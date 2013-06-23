@@ -5,4 +5,4 @@ Minecraft Server Automation
 
 TODO
 
-  * Write TODO
+  * Design a simple DSL for expressing callback events.
