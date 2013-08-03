@@ -10,4 +10,5 @@ Gem::Specification.new do |s|
   s.homepage = 'https://github.com/inertia186/cobblebot'
 
   s.add_dependency "java_properties", "~> 0.0.4"
+  s.add_dependency "minecraft-query", "~> 0.0.1"
 end
