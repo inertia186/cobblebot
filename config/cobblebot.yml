@@ -1,0 +1,4 @@
+server:
+  path: /Users/steve/Minecraft
+  log: server.log
+  properties: server.properties
