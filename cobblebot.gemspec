@@ -8,4 +8,6 @@ Gem::Specification.new do |s|
   s.email = 'cobblebot@martin-suuu.com'
   s.files = ["lib/cobblebot.rb"]
   s.homepage = 'https://github.com/inertia186/cobblebot'
+
+  s.add_dependency "java_properties", "~> 0.0.4"
 end
