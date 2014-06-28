@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.summary = "Minecraft Server Automation and Library"
   s.description = "A gem to interact with a Minecraft server."
   s.authors = ["Anthony Martin"]
-  s.email = 'cobblebot@martin-suuu.com'
+  s.email = 'cobblebot@martin-studio.com'
   s.files = ["lib/cobblebot.rb"]
   s.homepage = 'https://github.com/inertia186/cobblebot'
 
