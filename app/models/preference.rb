@@ -17,4 +17,8 @@ class Preference < ActiveRecord::Base
 
     super
   end
+  
+  def to_param
+    key
+  end
 end

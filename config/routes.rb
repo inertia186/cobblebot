@@ -47,10 +47,12 @@ Rails.application.routes.draw do
   #   resources :posts, concerns: :toggleable
   #   resources :photos, concerns: :toggleable
 
-  # Example resource route within a namespace:
-  #   namespace :admin do
-  #     # Directs /admin/products/* to Admin::ProductsController
-  #     # (app/controllers/admin/products_controller.rb)
-  #     resources :products
-  #   end
+  namespace :admin do
+    resources :preferences
+    
+    resources :sessions, only: [:new, :create]
+    delete 'session' => 'sessions#destroy', as: :destroy_session
+    
+    get 'config/server_properties' => 'config#show_server_properties'
+  end
 end
