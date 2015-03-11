@@ -1,0 +1,4 @@
+match: /^.*: <:player> :message$/
+  constraints:
+      message: /^@server .*/
+  execute: "#{config['server']['path']}/scripts/message.sh #{player} #{message}"

@@ -1,0 +1,42 @@
+player_chat:
+  all:
+    trigger:
+      on: /.*(i'm|im|i am) from (planetminecraft|planet minecraft|pmc).*/i
+      kick:
+        target: originator
+        reason: We're not falling for it.  This is not the server you're looking for.  Move along.
+    trigger:
+      on: /.*lag(\s|\.|\?|!)*/i
+      respond_publically_with: Blame Canada
+    trigger:
+      on_command: version
+      respond_publically_with:
+        dynamic_reply: version
+    trigger:
+      on_command: mail
+      respond_with:
+        dynamic_reply:
+          player_mail: originator
+#    ops:
+#    mods:
+# player_emote:
+player_slain:
+  all:
+    trigger:
+      on: /.*using.*/
+      respond_publically_with: It's supper effective!
+      frequency: random
+# player_shot:
+#   all:
+#     trigger: /.*using.*/
+player_death:
+  all:
+    trigger:
+      on: /.*(player:.*) was pricked to death.*/
+      give:
+        target: player
+        item: 358 1 143
+        wait: 15 seconds
+    trigger:
+      on: /.*(player:.*) (blown|blew up).*/
+      respond_publically_with: Tis funnier that way ... is it not?
