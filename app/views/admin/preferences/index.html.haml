@@ -1,16 +1,20 @@
-%h3 Preferences
+.row
+  %h3 Preferences
 
-%table
-  %tr
-    %th Key
-    %th Value
-    %th
-  - @preferences.each do |preference|
-    %tr
-      %td=preference.key
-      %td
-        - if preference.key == Preference::WEB_ADMIN_PASSWORD
-          = '*' * preference.value.length
-        - else
-          = preference.value
-      %td= link_to 'Edit', edit_admin_preference_path(preference)
+.row
+  %table.table
+    %thead
+      %tr
+        %th Key
+        %th Value
+        %th
+    %tbody
+      - @preferences.each do |preference|
+        %tr
+          %td=preference.key
+          %td
+            - if preference.key == Preference::WEB_ADMIN_PASSWORD
+              = '*' * preference.value.length
+            - else
+              = preference.value
+          %td= link_to 'Edit', edit_admin_preference_path(preference)

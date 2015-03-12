@@ -8,7 +8,7 @@ class Admin::SessionsController < ApplicationController
     if params[:admin_password] == Preference.web_admin_password
       sign_in_admin
     else
-      redirect_to new_admin_session_url, notice: 'Password incorrect.'
+      redirect_to new_admin_session_url, error: 'Password incorrect.' and return
     end
     
     redirect_to admin_preferences_url
@@ -17,6 +17,6 @@ class Admin::SessionsController < ApplicationController
   def destroy
     session.destroy
     
-    redirect_to new_admin_session_url
+    redirect_to new_admin_session_url, info: 'You have been logged out.'
   end
 end

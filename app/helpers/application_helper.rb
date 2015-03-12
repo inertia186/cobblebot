@@ -8,12 +8,20 @@ module ApplicationHelper
     Preference.path_to_server + "/" + 'server.properties'
   end
   
+  def active_nav nav
+    return :active if controller_name == nav
+  end
+  
   def server_properties
     @server_properties ||= JavaProperties::Properties.new(server_properties_path)
   end
   
   def query
     query ||= Query::simpleQuery(server_properties['server-ip'], server_properties['server-port'])
+  end
+
+  def full_query
+    full_query ||= Query::fullQuery(server_properties['server-ip'], server_properties['server-port'])
   end
   
   def rcon

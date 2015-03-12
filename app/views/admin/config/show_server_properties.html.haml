@@ -1,12 +1,15 @@
-%table
-  %tr
-    %th Key
-    %th Value
-  - server_properties.each do |prop|
-    %tr
-      %td= prop[0]
-      %td
-        - if prop[0].downcase =~ /password/
-          = '*' * prop[1].length
-        - else
-          = prop[1]
+.row
+  %table.table
+    %thead
+      %tr
+        %th Key
+        %th Value
+    %tbody
+      - server_properties.each do |prop|
+        %tr
+          %td= prop[0]
+          %td
+            - if prop[0].downcase =~ /password/
+              = '*' * prop[1].length
+            - else
+              = prop[1]

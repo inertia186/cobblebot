@@ -6,15 +6,46 @@
     = javascript_include_tag 'application', 'data-turbolinks-track' => true
     = csrf_meta_tags
 
-%body
+%body{role: :document}
 
-- if admin_signed_in?
-  = link_to 'Log out admin', admin_destroy_session_path, method: :delete, data: { confirm: 'Are you sure?' }
+.navbar.navbar-inverse.navbar-static-top
+  .container
 
-- if flash.any?
-  .flash
+    .navbar-header
+      %ul.nav.navbar-nav
+        %li{class: active_nav('players')}= link_to 'Players', players_path
+        %li{class: active_nav('status')}= link_to 'Server Status', status_index_path
+        %li.dropdown
+          = link_to '#', class: 'dropdown-toggle', data: { toggle: :dropdown }, role: :button, 'aria-expanded' => true do
+            Admin
+            %span.caret
+          %ul.dropdown-menu{role: :menu}
+            - if admin_signed_in?
+              %li{class: active_nav('admin_preferences')}= link_to 'Admin Preferences', admin_preferences_path
+              %li{class: active_nav('admin_config_server_properties')}= link_to 'Admin Server Properties', admin_config_server_properties_path
+              %li= link_to 'Admin Log Out', admin_destroy_session_path, method: :delete, data: { confirm: 'Are you sure?' }
+            - else
+              %li= link_to 'Log In', new_admin_session_path
+
+.container.theme-showcase{role: :main}
+  .starter-template
+
     - flash.each do |type, msg|
-      %div{id: type}= msg
+      - case type
+        - when 'notice'
+          .alert.alert-success{role: :alert}
+            %strong= msg
+        - when 'info'
+          .alert.alert-info{role: :alert}
+            %strong= msg
+        - when 'alert'
+          .alert.alert-warning{role: :alert}
+            %strong= msg
+        - when 'error'
+          .alert.alert-danger{role: :alert}
+            %strong= msg
+        - else
+          .alert.alert-info{role: :alert, data: {'flash-type' => type}}
+            %strong= msg
 
-= yield
-
+    = yield

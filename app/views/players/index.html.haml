@@ -1,11 +1,14 @@
-%h3
-  Players connected: 
-  = query[:numplayers]
-  of
-  = query[:maxplayers]
+.row
+  %h3
+    Players connected: 
+    = query[:numplayers]
+    of
+    = query[:maxplayers]
 
-%table
-  - @players.each do |player|
-    %tr
-      %td
-        = player
+.row
+  %table.table
+    %tbody
+      - @players.each do |player|
+        %tr
+          %td
+            = player

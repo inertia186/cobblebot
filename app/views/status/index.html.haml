@@ -1,0 +1,14 @@
+.row
+  - if !!query && query.class != Errno::ECONNREFUSED
+    %table.table
+      %tbody
+        - full_query.each do |pair|
+          %tr
+          %th{align: :right}= pair[0].to_s.titleize
+          %td
+            - if pair[1].respond_to?(:join)
+              = pair[1].join(', ')
+            - else
+              = pair[1]
+  - else
+    Cannot query server.
