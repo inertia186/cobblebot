@@ -51,7 +51,7 @@ class MinecraftServerLogMonitor
       @shall_monitor_server_log = false
     end
     
-    return unless !!@@server_log_monitor
+    return unless !!@@server_log_monitor && @@server_log_monitor.alive?
     
     if @@server_log_monitor.join(300)
       Rails.logger.info 'Minecraft server log monitor stopped cleanly.'
