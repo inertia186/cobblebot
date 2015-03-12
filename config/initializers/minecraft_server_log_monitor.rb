@@ -64,5 +64,10 @@ class MinecraftServerLogMonitor
   end
 end
 
-Rails.application.minecraft_server_log_monitor = MinecraftServerLogMonitor.new
-Rails.application.minecraft_server_log_monitor.start_server_log_monitor!
+begin
+  Rails.application.minecraft_server_log_monitor = MinecraftServerLogMonitor.new
+  Rails.application.minecraft_server_log_monitor.start_server_log_monitor!
+rescue ActiveRecord::StatementInvalid => e
+  # This can happen on initial execution.
+  Rails.logger.warn e.inspect
+end
