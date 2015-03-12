@@ -1,7 +1,8 @@
 class MinecraftServerLogMonitor
   BUFFER = 24
   
-  attr_accessor :server_log, :server_msgs, :server_log_monitor
+  cattr_accessor :server_log_monitor
+  attr_accessor :server_log, :server_msgs
 
   def server_msgs
     @server_msgs ||= []
@@ -15,13 +16,14 @@ class MinecraftServerLogMonitor
   def start_server_log_monitor
     return unless path_to_server = Preference.path_to_server
     return if @shall_monitor_server_log
+    return if @@server_log_monitor && @@server_log_monitor.alive?
 
     Rails.logger.info "Starting minecraft server log monitor."
     
     @shall_monitor_server_log = true
     @server_log = File.open("#{path_to_server}/logs/latest.log")
 
-    @server_log_monitor = Thread.start do
+    @@server_log_monitor = Thread.start do
       begin
         while(@shall_monitor_server_log) do
           lines = IO.readlines(@server_log)[-(BUFFER / 2)..-1]
@@ -49,16 +51,16 @@ class MinecraftServerLogMonitor
       @shall_monitor_server_log = false
     end
     
-    return unless !!@server_log_monitor
+    return unless !!@@server_log_monitor
     
-    if @server_log_monitor.join(300)
+    if @@server_log_monitor.join(300)
       Rails.logger.info 'Minecraft server log monitor stopped cleanly.'
     else
-      @server_log_monitor.kill
+      @@server_log_monitor.kill
       Rails.logger.error 'Minecraft server log monitor could not stop cleanly.'
     end
     
-    @server_log_monitor = nil
+    @@server_log_monitor = nil
     
     true
   end
