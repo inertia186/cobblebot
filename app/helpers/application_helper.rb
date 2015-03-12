@@ -27,7 +27,39 @@ module ApplicationHelper
     rcon
   end
   
+  ## Simuates /say
   def say message
     rcon.command "tellraw @a {\"color\": \"white\", \"text\":\"[Server] #{message}\"}"
+  end
+  
+  ## Renders a hyperlink.
+  def link player, link
+    begin
+      agent = Mechanize.new
+      agent.keep_alive = false
+      agent.open_timeout = 5
+      agent.read_timeout = 5
+      agent.get link
+    
+      title = if agent.page && defined?(agent.page.title) && agent.page.title 
+        "#{link.split('/')[2]} :: #{agent.page.title.strip}"
+      else
+        link
+      end
+    rescue SocketError => e
+      Rails.logger.warn "Ignoring link: #{link}" && return
+    rescue Net::OpenTimeout => e
+      title = link
+    rescue Net::HTTP::Persistent::Error => e
+      title = link
+    rescue StandardError => e
+      title = "#{link.split('/')[2]} :: #{e.inspect}"
+    end
+
+    original_title = title
+    title = title.gsub(/[^a-zA-Z0-9:?&=#@+*, \.\/\"\[\]\(\)]/, '-').truncate(90)
+    Rails.logger.warn "Removed characters from: #{original_title}" if title != original_title # FIXME Remove later.
+  
+    rcon.command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"#{title}\",\"color\":\"dark_purple\",\"underlined\":\"true\",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"#{link}\"}}]}"
   end
 end

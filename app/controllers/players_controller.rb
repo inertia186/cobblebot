@@ -9,7 +9,5 @@ class PlayersController < ApplicationController
 
       @players += players.split(", ")
     end
-    
-    1/0
   end
 end

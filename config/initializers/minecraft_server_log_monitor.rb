@@ -1,4 +1,6 @@
 class MinecraftServerLogMonitor
+  BUFFER = 24
+  
   attr_accessor :server_log, :server_msgs, :server_log_monitor
 
   def server_msgs
@@ -22,13 +24,15 @@ class MinecraftServerLogMonitor
     @server_log_monitor = Thread.start do
       begin
         while(@shall_monitor_server_log) do
-          lines = IO.readlines(@server_log)[-25..-1]
+          lines = IO.readlines(@server_log)[-(BUFFER / 2)..-1]
           sleep(10) and next if lines.nil?
         
           lines.each do |line|
-            MinecraftServerLogHandler.handle line unless server_msgs.include? line
+            if server_msgs.length > (BUFFER / 2) && !server_msgs.include?(line)
+              MinecraftServerLogHandler.handle line
+            end
           
-            server_msgs.push(line).slice!(0..-50)
+            server_msgs.push(line).slice!(0..-(BUFFER))
           end
           
           sleep 0.25
