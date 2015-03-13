@@ -38,6 +38,7 @@
                 %span{'aria-hidden' => true} &times;
               %h4.modal-title{id: "explain_match_scheme_label"} Explanation of Match Scheme
             .modal-body
+              %p This option defines which log event will cause the callback to fire.
               %p One of the purposes of this field is to keep players from being able to initiate certain patterns.  For example, we do not want players to see the Message of the Day if they manually type "joined the game" into chat.  But we would like the server to trigger this event.  If we arbitrarily look for "joined the game" without looking at the context, players could trigger the message.
               %p On the other hand, we also do not want the server to initiate certain commands that are intended for the player only.  If the server generates a log entry like '@server help' which contains the text '@server help', it would get stuck in a loop.  Choosing the correct Match Scheme helps to avoid this.
               %p Setting this will cause CobbleBot to selectively apply a pattern as:
@@ -103,3 +104,5 @@
         Enabled
     .input-group
       = f.submit class: 'btn btn-primary'
+    .input-group
+      = link_to 'Back', admin_server_callbacks_path, class: 'btn btn-info btn-xs'

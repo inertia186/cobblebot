@@ -98,7 +98,8 @@ private
         gsub("%7%", "#{$7}").
         gsub("%8%", "#{$8}").
         gsub("%9%", "#{$9}").
-        gsub("%message%", "#{message}")
+        gsub("%message%", "#{message}").
+        gsub("%player%", "#{player}")
       Rails.logger.info "Executing: #{callback.inspect} :: #{command.inspect}"
       eval(command)
     end

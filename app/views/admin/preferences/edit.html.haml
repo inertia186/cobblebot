@@ -1,3 +1,23 @@
 = form_for [:admin, @preference] do |f|
-  = f.text_field :value, size: 80
-  = f.submit class: 'btn btn-primary'
+  - if @preference.errors.any?
+    .alert.alert-danger
+      %h4 #{pluralize(@preference.errors.count, "error")} prohibited this template from being saved:
+      %ul
+      - @preference.errors.full_messages.each do |msg|
+        %li= msg
+
+  .row
+    %h3
+      Editing
+      = @preference.key.titleize
+    .input-group
+      = f.label :value
+      %br
+      - if ['motd'].include? @preference.key
+        = f.text_area :value, cols: 80, rows: 15
+      -else
+        = f.text_field :value, size: 80
+    .input-group
+      = f.submit class: 'btn btn-primary'
+    .input-group
+      = link_to 'Back', admin_preferences_path, class: 'btn btn-info btn-xs'

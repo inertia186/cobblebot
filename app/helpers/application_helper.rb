@@ -10,6 +10,7 @@ module ApplicationHelper
   
   def active_nav nav
     return :active if controller_name == nav
+    return :active if controller_path.split('/')[0] == nav
   end
   
   def server_properties

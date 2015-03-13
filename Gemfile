@@ -39,6 +39,9 @@ gem "resque", require: 'resque/server'
 gem 'resque-scheduler'
 gem 'resque-pool'
 
+# Use this if there are problems with the latest version.
+#gem 'rufus-scheduler', '~> 2.0.24'
+
 gem 'haml'
 
 # Use ActiveModel has_secure_password
