@@ -23,9 +23,21 @@ gem 'jbuilder', '~> 2.0'
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', '~> 0.4.0', group: :doc
 
+# CobbleBot uses java_properties to read the Mineraft Server server.properites.
 gem 'java_properties'
+
+# CobbleBot uses minecraft-query to do basic queries on a Minecraft Server.
 gem 'minecraft-query'
+
+# CobbleBot uses mechanize to get the HTML Title when displaying a link to players.
 gem 'mechanize'
+
+# CobbleBot uses redis/resque to kick off the log monitor and other stuff.
+gem 'redis'
+gem 'redis-store'
+gem "resque", require: 'resque/server'
+gem 'resque-scheduler'
+gem 'resque-pool'
 
 gem 'haml'
 

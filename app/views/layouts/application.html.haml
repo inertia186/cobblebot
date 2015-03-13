@@ -21,8 +21,10 @@
             %span.caret
           %ul.dropdown-menu{role: :menu}
             - if admin_signed_in?
-              %li{class: active_nav('admin_preferences')}= link_to 'Admin Preferences', admin_preferences_path
-              %li{class: active_nav('admin_config_server_properties')}= link_to 'Admin Server Properties', admin_config_server_properties_path
+              %li{class: active_nav('admin_preferences')}= link_to 'Preferences', admin_preferences_path
+              %li{class: active_nav('admin_callbacks')}= link_to 'Callbacks', admin_server_callbacks_path
+              %li{class: active_nav('admin_config_server_properties')}= link_to 'Server Properties', admin_config_server_properties_path
+              %li= link_to 'Resque', "admin:#{Preference.web_admin_password}@#{admin_resque_server_path}", target: '_new'
               %li= link_to 'Admin Log Out', admin_destroy_session_path, method: :delete, data: { confirm: 'Are you sure?' }
             - else
               %li= link_to 'Log In', new_admin_session_path
