@@ -50,10 +50,12 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resources :preferences
+    resources :callbacks, as: :server_callbacks, controller: :callbacks
     
     resources :sessions, only: [:new, :create]
     delete 'session' => 'sessions#destroy', as: :destroy_session
     
     get 'config/server_properties' => 'config#show_server_properties'
+    mount Resque::Server, at: "/resque"
   end
 end

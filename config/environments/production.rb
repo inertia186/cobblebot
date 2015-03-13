@@ -77,3 +77,5 @@ Rails.application.configure do
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 end
+
+Resque.redis = Redis.connect(:url => 'redis://localhost:6379/3')

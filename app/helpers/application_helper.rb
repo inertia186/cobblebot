@@ -29,19 +29,40 @@ module ApplicationHelper
     raise StandardError.new("RCON password not set.  To set, please modify server.properties and change rcon.password=") unless server_properties['rcon.password']
     raise StandardError.new("RCON is disabled.  To enable rcon, please modify server.properties and change enable-rcon=false to enable-rcon=true and restart server.") unless server_properties['enable-rcon'] == 'true'
 
-    rcon ||= RCON::Minecraft.new(server_properties['server-ip'], server_properties['rcon.port'])
-    rcon.auth(server_properties['rcon.password'])
+    5.times do
+      rcon ||= RCON::Minecraft.new(server_properties['server-ip'], server_properties['rcon.port'])
+
+      begin
+        return rcon if rcon.auth(server_properties['rcon.password'])
+      rescue Errno::ECONNREFUSED => e
+        Rails.logger.warn e.inspect
+        sleep 5
+        rcon = nil
+      end
+    end
     
-    rcon
+    nil
   end
   
   ## Simuates /say
   def say message
     rcon.command "tellraw @a {\"color\": \"white\", \"text\":\"[Server] #{message}\"}"
   end
-  
+
+  ## Simuates /tell
+  def tell player, message
+    rcon.command "tellraw #{player} {\"color\": \"gray\", \"text\":\"Server whispers to you: #{message}\"}"
+  end
+
   ## Renders a hyperlink.
   def link player, link
+    text = link.gsub(/http/i, 'http')
+    link = text.split('http')[1]
+    return unless link
+
+    link = "http#{link.split(' ')[0]}"
+    return unless !!link.split('://')[1]
+    
     begin
       agent = Mechanize.new
       agent.keep_alive = false
@@ -69,5 +90,16 @@ module ApplicationHelper
     Rails.logger.warn "Removed characters from: #{original_title}" if title != original_title # FIXME Remove later.
   
     rcon.command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"#{title}\",\"color\":\"dark_purple\",\"underlined\":\"true\",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"#{link}\"}}]}"
+  end
+  
+  def tell_motd player
+    return unless !!Preference.motd
+    
+    rcon.command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"Message of the Day\",\"color\":\"green\"}]}"
+    rcon.command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"===\",\"color\":\"green\"}]}"
+
+    Preference.motd.split("\n").each do |line|
+      rcon.command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"#{line}\",\"color\":\"green\"}]}"
+    end
   end
 end

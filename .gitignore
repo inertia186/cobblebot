@@ -16,3 +16,4 @@ vendor/plugins
 .sass-cache/
 coverage
 dragonfly/*
+resque_web.*

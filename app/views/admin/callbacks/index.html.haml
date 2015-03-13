@@ -1,0 +1,23 @@
+.row
+  %h3 Callbacks
+
+.row
+  %table.table
+    %thead
+      %tr
+        %th Name
+        %th Pattern
+        %th Match
+        %th Command
+        %th
+    %tbody
+      - @callbacks.each do |callback|
+        %tr{class: callback.enabled ? 'success' : 'text-muted'}
+          %td=callback.name
+          %td=callback.pattern
+          %td=callback.match_scheme.titleize
+          %td=callback.command.truncate(30)
+          %td= link_to 'Edit', edit_admin_server_callback_path(callback), class: 'btn btn-info btn-xs'
+          %td= link_to 'Delete', admin_server_callback_path(callback), method: :delete, class: 'btn btn-danger btn-xs', data: { confirm: 'Are you sure?' }
+
+  = link_to 'New', new_admin_server_callback_path, class: 'btn btn-success'
