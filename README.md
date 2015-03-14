@@ -7,7 +7,7 @@ Cobblebot is a rails application and external scripting tool that interacts with
 
 ## Advantages
 
-Cobblebot does not rely upon any Java API.  It does not require modifications to the server jar.  There are no plugins.  This means cobblebot should (theoretically) run even in snapshots.
+Cobblebot does not rely upon any Java API.  It does not require modifications to the server jar.  There are no plugins to Minecraft itself.  This means cobblebot should (theoretically) run even in snapshots.
 
 ## Disadvantages
 

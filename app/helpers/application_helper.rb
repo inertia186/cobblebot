@@ -1,6 +1,18 @@
 require 'rcon/rcon'
 
 module ApplicationHelper
+  def reset_vars
+    @server_properties_path = nil
+    @command_scheme = nil
+    @server_properties = nil
+    @query = nil
+    @full_query = nil
+    @rcon = nil
+    @multiplexor = nil
+    
+    true
+  end
+  
   def server_properties_path
     raise StandardError.new("Preference.path_to_server not initialized properly") if Preference.path_to_server.nil?
     raise StandardError.new("Expected valid path to server: #{Preference.path_to_server}") if !File.directory?(Preference.path_to_server)
@@ -8,14 +20,10 @@ module ApplicationHelper
     @server_properties_path ||= Preference.path_to_server + "/" + 'server.properties'
   end
   
-  def reset_vars
-    @server_properties_path = nil
-    @server_properties = nil
-    @query = nil
-    @full_query = nil
-    @rcon = nil
+  def _command_scheme
+    raise StandardError.new("Preference.command_scheme not initialized properly") if Preference.command_scheme.nil?
     
-    true
+    @command_scheme ||= Preference.command_scheme
   end
   
   def active_nav nav
@@ -26,7 +34,7 @@ module ApplicationHelper
   def server_properties
     @server_properties ||= JavaProperties::Properties.new(server_properties_path)
   end
-  
+
   def query
     @query ||= Query::simpleQuery(server_properties['server-ip'], server_properties['server-port'])
     
@@ -45,6 +53,17 @@ module ApplicationHelper
     end
     
     @full_query
+  end
+  
+  def command(command)
+    case _command_scheme
+    when 'rcon'
+      rcon.command(command)
+    when 'multiplexor'
+      # TODO Something like: `bash -c "screen -p 0 -S minecraft -X eval 'stuff \"#{command}\"\015'"`
+    else
+      raise StandardError.new("Preference.command_scheme not recognized")
+    end
   end
   
   def rcon
@@ -69,12 +88,12 @@ module ApplicationHelper
   
   ## Simuates /say
   def say message
-    rcon.command "tellraw @a {\"color\": \"white\", \"text\":\"[Server] #{message}\"}"
+    command "tellraw @a {\"color\": \"white\", \"text\":\"[Server] #{message}\"}"
   end
 
   ## Simuates /tell
   def tell player, message
-    rcon.command "tellraw #{player} {\"color\": \"gray\", \"text\":\"Server whispers to you: #{message}\"}"
+    command "tellraw #{player} {\"color\": \"gray\", \"text\":\"Server whispers to you: #{message}\"}"
   end
 
   ## Renders a hyperlink.
@@ -116,26 +135,26 @@ module ApplicationHelper
     title = title.gsub(/[^a-zA-Z0-9:?&=#@+*, \.\/\"\[\]\(\)]/, '-').truncate(90)
     Rails.logger.warn "Removed characters from: #{original_title}" if title != original_title # FIXME Remove later.
   
-    rcon.command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"#{title}\",\"color\":\"dark_purple\",\"underlined\":\"true\",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"#{link}\"}}]}"
+    command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"#{title}\",\"color\":\"dark_purple\",\"underlined\":\"true\",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"#{link}\"}}]}"
   end
   
   def tell_motd player
     return unless !!Preference.motd
     
-    rcon.command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"Message of the Day\",\"color\":\"green\"}]}"
-    rcon.command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"===\",\"color\":\"green\"}]}"
+    command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"Message of the Day\",\"color\":\"green\"}]}"
+    command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"===\",\"color\":\"green\"}]}"
 
     Preference.motd.split("\n").each do |line|
       line = line.gsub(/\r/, '')
       if line =~ /^http.*/i
         link player, line, title_only: true
       else
-        rcon.command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"#{line}\",\"color\":\"green\"}]}"
+        command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"#{line}\",\"color\":\"green\"}]}"
       end
     end
   end
   
   def play_sound player, sound, options = {volume: '', pitch: ''}
-    rcon.command "execute #{player} ~ ~ ~ playsound #{sound} @p ~0 ~0 ~0 #{options[:volume]} #{options[:pitch]}"
+    command "execute #{player} ~ ~ ~ playsound #{sound} @p ~0 ~0 ~0 #{options[:volume]} #{options[:pitch]}"
   end
 end

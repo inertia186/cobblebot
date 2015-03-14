@@ -1,9 +1,10 @@
 class Preference < ActiveRecord::Base
   WEB_ADMIN_PASSWORD = 'web_admin_password'
   PATH_TO_SERVER = 'path_to_server'
+  COMMAND_SCHEME = 'command_scheme'
   MOTD = 'motd'
 
-  ALL_KEYS = [WEB_ADMIN_PASSWORD, PATH_TO_SERVER, MOTD]
+  ALL_KEYS = [WEB_ADMIN_PASSWORD, PATH_TO_SERVER, COMMAND_SCHEME, MOTD]
 
   validates_uniqueness_of :key
 

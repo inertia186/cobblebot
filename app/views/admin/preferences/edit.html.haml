@@ -15,6 +15,8 @@
       %br
       - if ['motd'].include? @preference.key
         = f.text_area :value, cols: 80, rows: 15
+      - if @preference.key == 'command_scheme'
+        = f.select :value, %w(rcon multiplexor)
       -else
         = f.text_field :value, size: 80
     .input-group

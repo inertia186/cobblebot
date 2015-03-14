@@ -1,5 +1,6 @@
 Preference.create(key: Preference::WEB_ADMIN_PASSWORD, value: '123456')
 Preference.create(key: Preference::PATH_TO_SERVER, value: '/path/to/minecraft/server')
+Preference.create(key: Preference::COMMAND_SCHEME, value: 'rcon')
 Preference.create(key: Preference::MOTD, value: 'Welcome to the server!')
 
 ServerCallback.create(name: 'Check Version', pattern: "/^@server version$/i", match_scheme: 'player_chat', command: "say \"CobbleBot version %cobblebot_version%\"\nlink \"@a\", \"http://github.com/inertia186/cobblebot\"")
