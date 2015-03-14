@@ -99,6 +99,20 @@
                     %code %player% 
                   %td substitutes player name 
     .input-group
+      = f.label :cooldown
+      %br
+      = f.text_field :cooldown, placeholder: '300'
+      %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_cooldown'}} ?
+      .modal.fade{id: :explain_cooldown, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_cooldown_label', 'aria-hidden' => true}
+        .modal-dialog
+          .modal-content
+            .modal-header
+              %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+                %span{'aria-hidden' => true} &times;
+              %h4.modal-title{id: "explain_cooldown_label"} Explanation of Cooldown
+            .modal-body
+              %p An expression for the minimum number of seconds that must pass before this callback will fire again.  Typically, this is for player chat or emotes.
+    .input-group
       = f.label :enabled do
         = f.check_box :enabled
         Enabled

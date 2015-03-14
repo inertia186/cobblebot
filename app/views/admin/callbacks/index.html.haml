@@ -1,23 +1,51 @@
 .row
-  %h3 Callbacks
+  %h3
+    Callbacks
+    %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_callbacks'}} ?
+    .modal.fade{id: :explain_callbacks, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_callbacks_label', 'aria-hidden' => true}
+      .modal-dialog
+        .modal-content
+          .modal-header
+            %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+              %span{'aria-hidden' => true} &times;
+            %h4.modal-title{id: "explain_callbacks_label"} Explanation of Callbacks
+          .modal-body
+            %p Callbacks are used to program the behavior of CobbleBot.  They're really just fancy event triggers that happen when the latest log entry matches certain criteria.
+            %p You can change the behavior of CobbleBot by adding or modifying the entries.
 
 .row
+  = link_to 'Reset All', reset_all_cooldown_admin_server_callbacks_path, method: :patch, class: 'btn btn-info btn-xs', style: 'float: right', data: { confirm: 'Are you sure?' }
   %table.table
     %thead
       %tr
         %th Name
-        %th Pattern
-        %th Match
-        %th Command
+        %th Match Scheme
+        %th Ran
+        %th Status
         %th
     %tbody
       - @callbacks.each do |callback|
-        %tr{class: callback.enabled ? 'success' : 'text-muted'}
+        %tr{class: callback_status_class(callback)}
           %td=callback.name
-          %td=callback.pattern
           %td=callback.match_scheme.titleize
-          %td=callback.command.truncate(30)
+          %td
+            - if !!callback.ran_at
+              = distance_of_time_in_words_to_now(callback.ran_at)
+              ago
+            - else
+              Never
+          %td
+            - if callback.ready?
+              Ready
+            - else
+              - if callback.enabled?
+                In Cooldown
+              - else
+                Disabled
+          %td= link_to 'Run', execute_command_admin_server_callback_path(callback), remote: true, class: 'btn btn-success btn-xs'
           %td= link_to 'Edit', edit_admin_server_callback_path(callback), class: 'btn btn-info btn-xs'
+          %td= link_to 'Reset', reset_cooldown_admin_server_callback_path(callback), method: :patch, class: 'btn btn-info btn-xs'
+          %td= link_to callback.enabled? ? 'Disable' : 'Enable', toggle_enabled_admin_server_callback_path(callback), method: :patch, class: 'btn btn-info btn-xs'
           %td= link_to 'Delete', admin_server_callback_path(callback), method: :delete, class: 'btn btn-danger btn-xs', data: { confirm: 'Are you sure?' }
 
   = link_to 'New', new_admin_server_callback_path, class: 'btn btn-success'

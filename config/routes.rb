@@ -50,7 +50,16 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resources :preferences
-    resources :callbacks, as: :server_callbacks, controller: :callbacks
+    resources :callbacks, as: :server_callbacks, controller: :callbacks do
+      collection do
+        patch :reset_all_cooldown
+      end
+      member do
+        patch :toggle_enabled
+        get :execute_command
+        patch :reset_cooldown
+      end
+    end
     
     resources :sessions, only: [:new, :create]
     delete 'session' => 'sessions#destroy', as: :destroy_session

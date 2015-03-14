@@ -56,7 +56,7 @@ module ApplicationHelper
   end
 
   ## Renders a hyperlink.
-  def link player, link
+  def link player, link, options = {}
     text = link.gsub(/http/i, 'http')
     link = text.split('http')[1]
     return unless link
@@ -71,8 +71,12 @@ module ApplicationHelper
       agent.read_timeout = 5
       agent.get link
     
-      title = if agent.page && defined?(agent.page.title) && agent.page.title 
-        "#{link.split('/')[2]} :: #{agent.page.title.strip}"
+      title = if agent.page && defined?(agent.page.title) && agent.page.title
+        if options[:title_only]
+          agent.page.title.strip
+        else
+          "#{link.split('/')[2]} :: #{agent.page.title.strip}"
+        end
       else
         link
       end
@@ -100,7 +104,16 @@ module ApplicationHelper
     rcon.command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"===\",\"color\":\"green\"}]}"
 
     Preference.motd.split("\n").each do |line|
-      rcon.command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"#{line}\",\"color\":\"green\"}]}"
+      line = line.gsub(/\r/, '')
+      if line =~ /^http.*/i
+        link player, line, title_only: true
+      else
+        rcon.command "tellraw #{player} {\"text\":\"\",\"extra\":[{\"text\":\"#{line}\",\"color\":\"green\"}]}"
+      end
     end
+  end
+  
+  def play_sound player, sound, options = {volume: '', pitch: ''}
+    rcon.command "execute #{player} ~ ~ ~ playsound #{sound} @p ~0 ~0 ~0 #{options[:volume]} #{options[:pitch]}"
   end
 end

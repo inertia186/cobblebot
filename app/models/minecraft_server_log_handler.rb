@@ -17,6 +17,25 @@ class MinecraftServerLogHandler
       Rails.logger.warn e
     end
   end
+
+  def self.execute_command(callback, player, message)
+    command = callback.command.
+      gsub("%1%", "#{$1}").
+      gsub("%2%", "#{$2}").
+      gsub("%3%", "#{$3}").
+      gsub("%4%", "#{$4}").
+      gsub("%5%", "#{$5}").
+      gsub("%6%", "#{$6}").
+      gsub("%7%", "#{$7}").
+      gsub("%8%", "#{$8}").
+      gsub("%9%", "#{$9}").
+      gsub("%message%", "#{message}").
+      gsub("%player%", "#{player}").
+      gsub("%cobblebot_version%", COBBLEBOT_VERSION)
+    Rails.logger.info "Executing: #{callback.inspect} :: #{command.inspect}"
+    eval(command)
+    callback.ran!
+  end
 private
   def self.handle_any(line)
     return unless line =~ REGEX_ANY
@@ -24,7 +43,7 @@ private
     segments = line.split(' ')
     message = segments[3..-1].join(' ')
 
-    ServerCallback.enabled.match_any.find_each do |callback|
+    ServerCallback.ready.match_any.find_each do |callback|
       handle_message(callback, nil, message)
     end
   end
@@ -34,8 +53,8 @@ private
 
     segments = line.split(' ')
     message = segments[3..-1].join(' ')
-    
-    ServerCallback.enabled.match_server_message.find_each do |callback|
+
+    ServerCallback.ready.match_server_message.find_each do |callback|
       handle_message(callback, nil, message)
     end
   end
@@ -47,7 +66,7 @@ private
     player = segments[3].gsub(/[<>]+/, '')
     message = segments[4..-1].join(' ')
     
-    ServerCallback.enabled.match_player_chat.find_each do |callback|
+    ServerCallback.ready.match_player_chat.find_each do |callback|
       handle_message(callback, player, message)
     end
   end
@@ -59,7 +78,7 @@ private
     player = segments[4]
     message = segments[5..-1].join(' ')
     
-    ServerCallback.enabled.match_player_emote.find_each do |callback|
+    ServerCallback.ready.match_player_emote.find_each do |callback|
       handle_message(callback, player, message)
     end
   end
@@ -80,7 +99,7 @@ private
       message = segments[5..-1].join(' ')
     end
 
-    ServerCallback.enabled.match_player_chat_or_emote.find_each do |callback|
+    ServerCallback.ready.match_player_chat_or_emote.find_each do |callback|
       handle_message(callback, player, message)
     end
   end
@@ -88,20 +107,7 @@ private
   def self.handle_message(callback, player, message)
     case message
     when eval(callback.pattern)
-      command = callback.command.
-        gsub("%1%", "#{$1}").
-        gsub("%2%", "#{$2}").
-        gsub("%3%", "#{$3}").
-        gsub("%4%", "#{$4}").
-        gsub("%5%", "#{$5}").
-        gsub("%6%", "#{$6}").
-        gsub("%7%", "#{$7}").
-        gsub("%8%", "#{$8}").
-        gsub("%9%", "#{$9}").
-        gsub("%message%", "#{message}").
-        gsub("%player%", "#{player}")
-      Rails.logger.info "Executing: #{callback.inspect} :: #{command.inspect}"
-      eval(command)
+      execute_command(callback, player, message)
     end
   end
 end
