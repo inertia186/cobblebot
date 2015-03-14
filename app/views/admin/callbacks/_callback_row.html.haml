@@ -1,0 +1,12 @@
+%tr{class: callback_status_class(callback), id: "callback_tr_#{callback.id}"}
+  %td=callback.name
+  %td=callback.match_scheme.titleize
+  %td=callback_ran(callback)
+  %td=callback_status(callback)
+  %td
+    %span{style: 'float: right'}
+      = link_to 'Run', execute_command_admin_server_callback_path(callback), class: 'btn btn-success btn-xs', data: { remote: true }
+      = link_to 'Edit', edit_admin_server_callback_path(callback), class: 'btn btn-info btn-xs'
+      = link_to 'Reset', reset_cooldown_admin_server_callback_path(callback), class: 'btn btn-info btn-xs', data: { remote: true, method: :patch }
+      = link_to callback_toggle_enabled(callback), toggle_enabled_admin_server_callback_path(callback), class: 'btn btn-info btn-xs', data: { remote: true, method: :patch }
+      = link_to 'Delete', admin_server_callback_path(callback), class: 'btn btn-danger btn-xs', data: { confirm: 'Are you sure?', remote: true, method: :delete }

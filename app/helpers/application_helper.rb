@@ -3,9 +3,19 @@ require 'rcon/rcon'
 module ApplicationHelper
   def server_properties_path
     raise StandardError.new("Preference.path_to_server not initialized properly") if Preference.path_to_server.nil?
-    raise StandardError.new("expected valid path to server: #{Preference.path_to_server}") if !File.directory?(Preference.path_to_server)
+    raise StandardError.new("Expected valid path to server: #{Preference.path_to_server}") if !File.directory?(Preference.path_to_server)
     
-    Preference.path_to_server + "/" + 'server.properties'
+    @server_properties_path ||= Preference.path_to_server + "/" + 'server.properties'
+  end
+  
+  def reset_vars
+    @server_properties_path = nil
+    @server_properties = nil
+    @query = nil
+    @full_query = nil
+    @rcon = nil
+    
+    true
   end
   
   def active_nav nav
@@ -18,11 +28,23 @@ module ApplicationHelper
   end
   
   def query
-    query ||= Query::simpleQuery(server_properties['server-ip'], server_properties['server-port'])
+    @query ||= Query::simpleQuery(server_properties['server-ip'], server_properties['server-port'])
+    
+    if @query.class == Errno::ECONNREFUSED
+      raise StandardError.new("Minecraft Server not started? #{@query}")
+    end
+    
+    @query
   end
 
   def full_query
-    full_query ||= Query::fullQuery(server_properties['server-ip'], server_properties['server-port'])
+    @full_query ||= Query::fullQuery(server_properties['server-ip'], server_properties['server-port'])
+
+    if @full_query.class == Errno::ECONNREFUSED
+      raise StandardError.new("Minecraft Server not started? #{@full_query}")
+    end
+    
+    @full_query
   end
   
   def rcon
@@ -31,14 +53,14 @@ module ApplicationHelper
     raise StandardError.new("RCON is disabled.  To enable rcon, please modify server.properties and change enable-rcon=false to enable-rcon=true and restart server.") unless server_properties['enable-rcon'] == 'true'
 
     5.times do
-      rcon ||= RCON::Minecraft.new(server_properties['server-ip'], server_properties['rcon.port'])
+      @rcon ||= RCON::Minecraft.new(server_properties['server-ip'], server_properties['rcon.port'])
 
       begin
-        return rcon if rcon.auth(server_properties['rcon.password'])
+        return @rcon if @rcon.auth(server_properties['rcon.password'])
       rescue Errno::ECONNREFUSED => e
         Rails.logger.warn e.inspect
         sleep 5
-        rcon = nil
+        @rcon = nil
       end
     end
     

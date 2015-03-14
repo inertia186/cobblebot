@@ -2,7 +2,7 @@ class Admin::CallbacksController < ApplicationController
   before_filter :authenticate_admin!
 
   def index
-    @callbacks = ServerCallback.all
+    @callbacks = ServerCallback.all.order(:created_at)
   end
   
   def reset_all_cooldown
@@ -48,7 +48,10 @@ class Admin::CallbacksController < ApplicationController
 
     @callback.destroy
 
-    redirect_to admin_server_callbacks_url
+    respond_to do |format|
+      format.html { redirect_to admin_server_callbacks_url }
+      format.js { render 'remove_callback_row' }
+    end
   end
   
   def toggle_enabled
@@ -56,7 +59,10 @@ class Admin::CallbacksController < ApplicationController
     
     @callback.update_attribute(:enabled, !@callback.enabled?)
 
-    redirect_to admin_server_callbacks_url, notice: "#{@callback.name} is now #{@callback.enabled? ? 'Enabled' : 'Disabled'}."
+    respond_to do |format|
+      format.html { redirect_to admin_server_callbacks_url, notice: "#{@callback.name} is now #{@callback.enabled? ? 'Enabled' : 'Disabled'}." }
+      format.js { render 'replace_callback_row' }
+    end
   end
 
   def execute_command
@@ -64,7 +70,10 @@ class Admin::CallbacksController < ApplicationController
 
     MinecraftServerLogHandler.execute_command(@callback, "@a", "Test")
 
-    redirect_to admin_server_callbacks_url, notice: "Ran #{@callback.name} on all players."
+    respond_to do |format|
+      format.html { redirect_to admin_server_callbacks_url, notice: "Ran #{@callback.name} on all players." }
+      format.js { render 'replace_callback_row' }
+    end
   end
 
   def reset_cooldown
@@ -72,7 +81,10 @@ class Admin::CallbacksController < ApplicationController
     
     @callback.update_attribute(:ran_at, nil)
 
-    redirect_to admin_server_callbacks_url, notice: "Cooldown for #{@callback.name} has been reset."
+    respond_to do |format|
+      format.html { redirect_to admin_server_callbacks_url, notice: "Cooldown for #{@callback.name} has been reset." }
+      format.js { render 'replace_callback_row' }
+    end
   end
 private
   def server_callback_params

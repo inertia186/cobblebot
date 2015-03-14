@@ -25,27 +25,6 @@
         %th
     %tbody
       - @callbacks.each do |callback|
-        %tr{class: callback_status_class(callback)}
-          %td=callback.name
-          %td=callback.match_scheme.titleize
-          %td
-            - if !!callback.ran_at
-              = distance_of_time_in_words_to_now(callback.ran_at)
-              ago
-            - else
-              Never
-          %td
-            - if callback.ready?
-              Ready
-            - else
-              - if callback.enabled?
-                In Cooldown
-              - else
-                Disabled
-          %td= link_to 'Run', execute_command_admin_server_callback_path(callback), remote: true, class: 'btn btn-success btn-xs'
-          %td= link_to 'Edit', edit_admin_server_callback_path(callback), class: 'btn btn-info btn-xs'
-          %td= link_to 'Reset', reset_cooldown_admin_server_callback_path(callback), method: :patch, class: 'btn btn-info btn-xs'
-          %td= link_to callback.enabled? ? 'Disable' : 'Enable', toggle_enabled_admin_server_callback_path(callback), method: :patch, class: 'btn btn-info btn-xs'
-          %td= link_to 'Delete', admin_server_callback_path(callback), method: :delete, class: 'btn btn-danger btn-xs', data: { confirm: 'Are you sure?' }
+        = render 'callback_row', callback: callback
 
   = link_to 'New', new_admin_server_callback_path, class: 'btn btn-success'

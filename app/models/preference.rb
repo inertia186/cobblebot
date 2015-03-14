@@ -20,6 +20,6 @@ class Preference < ActiveRecord::Base
   end
   
   def to_param
-    key
+    key.parameterize
   end
 end

@@ -15,7 +15,7 @@ class ServerCallback < ActiveRecord::Base
   scope :ready, -> { enabled.where('server_callbacks.ran_at IS NULL OR datetime(server_callbacks.ran_at, server_callbacks.cooldown) <= ?', Time.now) }
 
   def to_param
-    "#{id}-#{name}"
+    "#{id}-#{name.parameterize}"
   end
   
   def ready?

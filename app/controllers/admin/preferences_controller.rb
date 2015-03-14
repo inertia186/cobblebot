@@ -13,6 +13,7 @@ class Admin::PreferencesController < ApplicationController
     @preference = Preference.find_by_key(params[:id])
 
     if @preference.update_attributes(preference_params)
+      reset_vars
       redirect_to admin_preferences_url
     end
   end
