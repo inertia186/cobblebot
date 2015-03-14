@@ -14,7 +14,7 @@
             %p You can change the behavior of CobbleBot by adding or modifying the entries.
 
 .row
-  = link_to 'Reset All', reset_all_cooldown_admin_server_callbacks_path, method: :patch, class: 'btn btn-info btn-xs', style: 'float: right', data: { confirm: 'Are you sure?' }
+  = link_to 'Reset All', reset_all_cooldown_admin_server_callbacks_path, method: :patch, class: 'btn btn-warning btn-xs', style: 'float: right', data: { confirm: 'Are you sure?  This will attempt to reset ALL callbacks, including any debugging information.' }
   %table.table
     %thead
       %tr

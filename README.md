@@ -3,15 +3,61 @@ cobblebot
 
 Minecraft Server Automation
 
-Cobblebot is a rails application and external scripting tool that interacts with Minecraft SMP.  It primarily uses the server logs to detect events and can be configured to send commands back to the server with RCON and/or a multiplexor.
+CobbleBot is a rails application and external scripting tool that interacts with Minecraft SMP.  It primarily uses the server logs to detect events and can be configured to send commands back to the server with RCON and/or a multiplexor.
+
+## Installation
+
+    $ mkdir cobblebot
+    $ cd cobblebot
+    $ git clone https://github.com/inertia186/cobblebot.git .
+    $ bundle install
+    $ rake db:migrate
+    $ rake db:seed
+    $ rails s
+    $ open http://localhost:3000/admin/sessions/new
+
+Now, use the default admin password to log in: `123456`
+
+Click on the Admin drop-down, and select Preferences.
+
+Edit the `web_admin_password` key and change it to something better.
+
+Edit the `path_to_server` key and change it to the absolute path of your Minecraft Server.
+
+Click on the Admin drop-down, and select Server Properties.  If it loads, then you are correctly configured.
+
+Now install [Redis](http://redis.io/) so that you can run the monitors in the background using Resque.  This allows CobbleBot to process the server log.  Installation of Redis depends on your platform.
+
+Mac OS X with MacPorts:
+
+    $ sudo port install redis
+    $ sudo port load redis
+
+Ubuntu:
+
+    $ apt-get install redis-server
+    $ redis-server /etc/redis/redis.conf
+
+Once Redis is up and running, start the CobbleBot scheduler and workers:
+
+    $ BACKGROUND=yes RAILS_ENV='development' rake resque:scheduler
+    $ TERM_CHILD=1 RAILS_ENV='development' QUEUE='minecraft_server_log_monitor' rake resque:work
+
+Now you should be able to log into your Minecraft Server and interact with CobbleBot.  For example, in the Minecraft client, type:
+
+```
+@server version
+```
+
+Enjoy!
 
 ## Advantages
 
-Cobblebot does not rely upon any Java API.  It does not require modifications to the server jar.  There are no plugins to Minecraft itself.  This means cobblebot should (theoretically) run even in snapshots.
+CobbleBot does not rely upon any Java API.  It does not require modifications to the server jar.  There are no plugins to Minecraft itself.  This means CobbleBot should (theoretically) run even in snapshots.
 
 ## Disadvantages
 
-Cobblebot is limited to information that can be gathered from the server logs.  This means that most things a player does cannot be detected.  This also means that all interaction with cobblebot will be public, for example, using @server in chat.  It can be configured to respond privately.
+CobbleBot is limited to information that can be gathered from the server logs.  This means that most things a player does cannot be detected.  This also means that all interaction with CobbleBot will be public, for example, using @server in chat.  It can be configured to respond privately.
 
 ## TODO
 
@@ -20,13 +66,13 @@ Cobblebot is limited to information that can be gathered from the server logs.  
 
 ## Resource Pack
 
-Cobblebot can be configured to trigger sound events.  To enable the default sounds, make sure your server.properties points at a copy of the default cobblebot resource pack:
+CobbleBot can be configured to trigger sound events.  To enable the default sounds, make sure your server.properties points at a copy of the default CobbleBot resource pack:
 
 ```
 resource-pack=https\://www.dropbox.com/s/uq143k8dlftccla/swim_resource_pack.zip?dl\=1
 ```
 
-To test the resource pack on the default configuration, type the command in Minecraft chat:
+To test the resource pack on the default configuration, type the command in the Minecraft client:
 
 ```
 @server soundcheck
@@ -38,4 +84,4 @@ To test the resource pack on the default configuration, type the command in Mine
 
 ## Licence
 
-I don't believe in intellectual "property".  If you do, consider cobblebot as licensed under a Creative Commons CC0 (Public Domain) License.
+I don't believe in intellectual "property".  If you do, consider CobbleBot as licensed under a Creative Commons CC0 (Public Domain) License.

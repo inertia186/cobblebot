@@ -6,7 +6,7 @@ class Admin::CallbacksController < ApplicationController
   end
   
   def reset_all_cooldown
-    count = ServerCallback.where.not(id: ServerCallback.ready).update_all('ran_at = NULL')
+    count = ServerCallback.dirty.update_all('last_match = NULL, last_command_output = NULL, ran_at = NULL')
 
     redirect_to admin_server_callbacks_url, notice: "#{pluralize count, "Callback"} reset."
   end
@@ -61,7 +61,7 @@ class Admin::CallbacksController < ApplicationController
 
     respond_to do |format|
       format.html { redirect_to admin_server_callbacks_url, notice: "#{@callback.name} is now #{@callback.enabled? ? 'Enabled' : 'Disabled'}." }
-      format.js { render 'replace_callback_row' }
+      format.js { render 'replace_visible_callbacks' }
     end
   end
 
@@ -69,21 +69,22 @@ class Admin::CallbacksController < ApplicationController
     @callback = ServerCallback.find(params[:id])
 
     MinecraftServerLogHandler.execute_command(@callback, "@a", "Test")
+    @callback.update_attribute(:last_match, 'Manual Run from Web Console')
 
     respond_to do |format|
       format.html { redirect_to admin_server_callbacks_url, notice: "Ran #{@callback.name} on all players." }
-      format.js { render 'replace_callback_row' }
+      format.js { render 'replace_visible_callbacks' }
     end
   end
 
   def reset_cooldown
     @callback = ServerCallback.find(params[:id])
     
-    @callback.update_attribute(:ran_at, nil)
+    @callback.update_attributes(last_match: nil, last_command_output: nil, ran_at: nil)
 
     respond_to do |format|
       format.html { redirect_to admin_server_callbacks_url, notice: "Cooldown for #{@callback.name} has been reset." }
-      format.js { render 'replace_callback_row' }
+      format.js { render 'replace_visible_callbacks' }
     end
   end
 private

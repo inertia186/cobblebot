@@ -1,0 +1,5 @@
+$('#callback_tr_<%= @callback.id %>').replaceWith('<%= j render 'callback_row', callback: @callback %>')
+$('#callback_ran_at_<%= @callback.id %>').html("<%= callback_ran(@callback) %>")
+$('#callback_status_<%= @callback.id %>').html("<%= callback_status(@callback) %>")
+$('#callback_last_match_<%= @callback.id %>').html("<%= @callback.last_match %>")
+$('#callback_last_command_output_<%= @callback.id %>').html("<%= @callback.last_command_output %>")

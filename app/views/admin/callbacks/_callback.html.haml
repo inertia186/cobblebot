@@ -1,0 +1,49 @@
+%table.table
+  %tr
+    %th Name
+    %td=callback.name
+  %tr
+    %th Pattern
+    %td
+      %pre=callback.pattern
+  %tr
+    %th{nowrap: :nowrap} Match Scheme
+    %td=callback.match_scheme.titleize
+  %tr
+    %th Command
+    %td
+      .media
+        .media-body
+          %pre
+            =callback.command
+        .media-right
+          = callback_run_link(callback)
+  %tr
+    %th Cooldown
+    %td=callback.cooldown
+  %tr
+    %th Ran
+    %td
+      .media
+        .media-body{id: "callback_ran_at_#{callback.id}"}
+          =callback_ran(callback)
+        .media-right
+          = callback_reset_link(callback)
+  %tr
+    %th Status
+    %td{id: "callback_status_#{callback.id}"}=callback_status(callback)
+  %tr
+    %th{nowrap: :nowrap} Last Match
+    %td
+      %code{id: "callback_last_match_#{callback.id}"}= callback.last_match
+  %tr
+    %th{nowrap: :nowrap} Last Command Output
+    %td
+      %code{id: "callback_last_command_output_#{callback.id}"}= callback.last_command_output
+
+.modal-footer
+  %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close
+  = callback_edit_link(callback)
+  = callback_enable_link(callback)
+  = callback_delete_link(callback)
+  

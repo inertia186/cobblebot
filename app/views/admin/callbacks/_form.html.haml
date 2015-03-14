@@ -1,10 +1,16 @@
 = form_for [:admin, @callback], role: :form do |f|
   - if @callback.errors.any?
     .alert.alert-danger
-      %h4 #{pluralize(@callback.errors.count, "error")} prohibited this template from being saved:
-      %ul
-      - @callback.errors.full_messages.each do |msg|
-        %li= msg
+      %h4 #{pluralize((@callback.errors.keys - [:base]).size, "error")} prohibited this template from being saved:
+      %ul>
+      - @callback.errors.keys.each do |key|
+        - if key == :base
+          %pre.alert-warning>~ @callback.errors.messages[key].uniq.join(" ")
+        - else
+          %li>
+            = key.to_s.titleize
+            %span>:&nbsp;
+            = @callback.errors.messages[key].join(" and/or ")
 
   .row
     .input-group
@@ -84,20 +90,49 @@
       = f.text_area :command, cols: 80, rows: 15, placeholder: 'say "Hello World"'
       %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_command'}} ?
       .modal.fade{id: :explain_command, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_command_label', 'aria-hidden' => true}
-        .modal-dialog
+        .modal-dialog.modal-lg
           .modal-content
             .modal-header
               %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
                 %span{'aria-hidden' => true} &times;
               %h4.modal-title{id: "explain_command_label"} Explanation of Command
             .modal-body
-              %p What to do when a pattern match is made.
+              %p Commands tell CobbleBot what to do when a pattern match is made.  They can be an entire program with variables and conditions.  Any valid ruby program will be executed each time a pattern match is made.
               %table.table
                 %tbody
                 %tr
+                  %th{nowrap: :nowrap}
+                    %code say "Hello World"
+                  %td causes the server to output a message to all players
+                %tr
+                  %th{nowrap: :nowrap}
+                    %code link "@a", "http://www.mojang.com/"
+                    %br
+                    %code link "@r", "http://www.cnn.com/"
+                  %td causes the server to output a link
+                %tr
                   %th
-                    %code %player% 
-                  %td substitutes player name 
+                    %code %player%
+                  %td
+                    %p substitutes player name, if applicable
+                    %p For example, this would cause the server to use the name of the player who initiated the pattern.
+                    %code say "Hello, %player%!"
+                %tr
+                  %th
+                    %code %message%
+                  %td substitutes the message that was received (e.g., what the player typed in chat)
+                %tr
+                  %th
+                    %code %1%
+                  %td
+                    %p substitutes the first regex group match (1-9 supported)
+                    %p
+                      For example, if the callback pattern is
+                      %code /slap (.*)/i
+                      then this var becomes the part of the message matched within the parentheses.
+                    %p A command using this pattern might be:
+                    %code say "Hey, be nice to %1%!"
+                    
     .input-group
       = f.label :cooldown
       %br

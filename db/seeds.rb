@@ -3,12 +3,13 @@ Preference.create(key: Preference::PATH_TO_SERVER, value: '/path/to/minecraft/se
 Preference.create(key: Preference::COMMAND_SCHEME, value: 'rcon')
 Preference.create(key: Preference::MOTD, value: 'Welcome to the server!')
 
+# Basics ...
 ServerCallback.create(name: 'Check Version', pattern: "/^@server version$/i", match_scheme: 'player_chat', command: "say \"CobbleBot version %cobblebot_version%\"\nlink \"@a\", \"http://github.com/inertia186/cobblebot\"")
 ServerCallback.create(name: 'Autolink', pattern: "/http/i", match_scheme: 'player_chat', command: "link \"@a\", \"%message%\"")
 ServerCallback.create(name: 'Message of the Day', pattern: "/([a-z0-9_]+) joined the game/i", match_scheme: 'server_message', command: "tell_motd \"%1%\"")
 
 # Player initialted sounds ...
-ServerCallback.create(name: 'Sound Check', pattern: "/^@server soundcheck$/", match_scheme: 'player_chat', command: "@@sound_check ||= 0\n@@sound_check = 1 + @@sound_check\n\nif @@sound_check == 4\n  play_sound \"%player%\", \"sound_check_b\"\nelsif @@sound_check > 7\n  play_sound \"%player%\", \"sound_check_c\"\n  @@sound_check = 0\nelse\n  play_sound \"%player%\", \"sound_check_a\"\nend")
+ServerCallback.create(name: 'Sound Check', pattern: "/^@server soundcheck$/", match_scheme: 'player_chat', command: "# This command allows the player to test their sound configuration in CobbleBot.  There is\n# additional logic to demonstrate how commands can interact with players, not just\n# respond blindly.  This command changes which sound to use depending on how many\n# times the command has been used.\n\n@@sound_check ||= 0\n@@sound_check = 1 + @@sound_check\n\nif @@sound_check == 4\n  play_sound \"%player%\", \"sound_check_b\"\nelsif @@sound_check > 7\n  play_sound \"%player%\", \"sound_check_c\"\n  @@sound_check = 0\nelse\n  play_sound \"%player%\", \"sound_check_a\"\nend")
 ServerCallback.create(name: 'To The Batcave!', pattern: "/^to the/i", match_scheme: 'player_chat', command: "play_sound \"@a\", \"to_the_batcave\"", cooldown: '+15 minutes')
 ServerCallback.create(name: 'boo', pattern: "/halloween/i", match_scheme: 'player_chat', command: "play_sound \"@a\", \"mk64_boo_laugh\"", cooldown: '+15 minutes')
 ServerCallback.create(name: 'SEGA', pattern: "/blast processing/i", match_scheme: 'player_chat', command: "play_sound \"@a\", \"sega\"", cooldown: '+15 minutes')
