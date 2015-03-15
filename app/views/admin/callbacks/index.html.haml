@@ -18,10 +18,11 @@
   %table.table
     %thead
       %tr
-        %th Name
-        %th Match Scheme
-        %th Ran
-        %th Status
+        %th=sortable_header_link 'Name', 'lower(name)'
+        %th=sortable_header_link 'Match Scheme', 'match_scheme'
+        %th=sortable_header_link 'Ran', 'ran_at'
+        %th=sortable_header_link 'Status', 'status'
+        %th=sortable_header_link 'Created', 'created_at'
         %th
     %tbody
       - @callbacks.each do |callback|

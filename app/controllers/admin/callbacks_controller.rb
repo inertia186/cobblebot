@@ -2,7 +2,16 @@ class Admin::CallbacksController < ApplicationController
   before_filter :authenticate_admin!
 
   def index
-    @callbacks = ServerCallback.all.order(:created_at)
+    @sort_field = params[:sort_field].present? ? params[:sort_field] : 'created_at'
+    @sort_order = params[:sort_order] == 'desc' ? 'desc' : 'asc'
+    @callbacks = ServerCallback.all
+    
+    case @sort_field
+    when 'status'
+      @callbacks = @callbacks.select('*, datetime(server_callbacks.ran_at, server_callbacks.cooldown) AS status').order("enabled #{@sort_order}, status #{@sort_order}")
+    else
+      @callbacks = @callbacks.order("#{@sort_field} #{@sort_order}")
+    end
   end
   
   def reset_all_cooldown

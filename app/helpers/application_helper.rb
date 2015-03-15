@@ -157,4 +157,9 @@ module ApplicationHelper
   def play_sound player, sound, options = {volume: '', pitch: ''}
     command "execute #{player} ~ ~ ~ playsound #{sound} @p ~0 ~0 ~0 #{options[:volume]} #{options[:pitch]}"
   end
+
+  def sortable_header_link(name, field)
+    options = params.merge(:action => controller.action_name, :sort_field => field, :page => nil, :query => params[:query], :sort_order => params[:sort_order] == 'asc' ? 'desc' : 'asc')
+    link_to name, url_for(options)
+  end
 end

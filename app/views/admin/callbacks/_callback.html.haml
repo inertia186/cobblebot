@@ -5,7 +5,7 @@
   %tr
     %th Pattern
     %td
-      %pre=callback.pattern
+      %pre>~ callback.pattern
   %tr
     %th{nowrap: :nowrap} Match Scheme
     %td=callback.match_scheme.titleize
@@ -14,10 +14,8 @@
     %td
       .media
         .media-body
-          %pre
-            =callback.command
-        .media-right
-          = callback_run_link(callback)
+          %pre>~ callback.command
+        .media-right= callback_run_link(callback, class: 'btn btn-success btn-xs')
   %tr
     %th Cooldown
     %td=callback.cooldown
@@ -28,7 +26,7 @@
         .media-body{id: "callback_ran_at_#{callback.id}"}
           =callback_ran(callback)
         .media-right
-          = callback_reset_link(callback)
+          = callback_reset_link(callback, class: 'btn btn-warning btn-xs')
   %tr
     %th Status
     %td{id: "callback_status_#{callback.id}"}=callback_status(callback)
