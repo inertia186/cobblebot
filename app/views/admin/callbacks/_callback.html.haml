@@ -5,7 +5,7 @@
   %tr
     %th Pattern
     %td
-      %pre>~ callback.pattern
+      %pre{style: 'overflow: auto; white-space: pre-wrap;'}>~ callback.pattern
   %tr
     %th{nowrap: :nowrap} Match Scheme
     %td=callback.match_scheme.titleize
@@ -14,7 +14,7 @@
     %td
       .media
         .media-body
-          %pre>~ callback.command
+          %pre{style: 'overflow: auto; white-space: pre-wrap;'}>~ callback.command
         .media-right= callback_run_link(callback, class: 'btn btn-success btn-xs')
   %tr
     %th Cooldown
