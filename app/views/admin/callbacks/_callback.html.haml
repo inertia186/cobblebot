@@ -40,7 +40,10 @@
       %code{id: "callback_last_command_output_#{callback.id}"}= callback.last_command_output
 
 .modal-footer
-  %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close
+  - if defined? modal
+    %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close
+  - else
+    = link_to 'Close', admin_server_callbacks_path, class: 'btn btn-default'
   = callback_edit_link(callback)
   = callback_enable_link(callback)
   = callback_delete_link(callback)

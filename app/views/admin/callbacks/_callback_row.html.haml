@@ -1,9 +1,9 @@
-%tr{class: callback_status_class(callback), id: "callback_tr_#{callback.id}"}
-  %td=callback.name
-  %td=callback.match_scheme.titleize
-  %td=callback_ran(callback)
-  %td=callback_status(callback)
-  %td=callback_created(callback)
+%tr{class: callback_status_class(callback), id: "callback_tr_#{callback.id}" }
+  %td.clickable-cell=callback.name
+  %td.clickable-cell=callback.match_scheme.titleize
+  %td.clickable-cell=callback_ran(callback)
+  %td.clickable-cell=callback_status(callback)
+  %td.clickable-cell=callback_created(callback)
   %td
     %span{style: 'float: right'}
       = link_to 'Show', admin_server_callback_path(callback), class: 'btn btn-info btn-xs', data: { remote: true, toggle: :modal, target: '#show_callback'}
@@ -22,3 +22,11 @@
       = callback_reset_link(callback, class: 'btn btn-warning btn-xs')
       = callback_enable_link(callback, class: 'btn btn-info btn-xs')
       = callback_delete_link(callback, class: 'btn btn-danger btn-xs')
+
+:javascript
+
+  jQuery(document).ready(function($) {
+    $(".clickable-cell").click(function() {
+      window.document.location = '#{admin_server_callback_path(callback)}';
+    });
+  });
