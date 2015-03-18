@@ -199,7 +199,7 @@ class ServerCommand
     
     if players.any?
       player = players.first
-      say "Latest activity for #{player.nick} #{distance_of_time_in_words_to_now(player.last_activity_at)} ago."
+      say "Latest activity for #{player.nick} was #{distance_of_time_in_words_to_now(player.last_activity_at)} ago."
       say "<#{player.nick}> #{player.last_chat} #{player.registered? ? '®' : ''}"
       say "Biomes explored: #{player.explore_all_biome_progress}"
       # TODO get rate:

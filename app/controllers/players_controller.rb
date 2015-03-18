@@ -3,7 +3,7 @@ class PlayersController < ApplicationController
     @players = []
     
     unless ServerQuery.numplayers == '0'
-      result = rcon.command 'list'
+      result = ServerCommand.execute 'list'
       
       players = result.split(':')[1]
 

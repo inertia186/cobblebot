@@ -234,7 +234,7 @@ class IrcBot < Summer::Connection
     
     if players.any?
       player = players.first
-      reply sender: sender, channel: channel, reply: "Latest activity for #{player.nick} #{distance_of_time_in_words_to_now(player.last_activity_at)} ago."
+      reply sender: sender, channel: channel, reply: "Latest activity for #{player.nick} was #{distance_of_time_in_words_to_now(player.last_activity_at)} ago."
       sleep TROTTLE
       reply sender: sender, channel: channel, reply: "<#{player.nick}> #{player.last_chat} #{player.registered? ? '®' : ''}"
       sleep TROTTLE
