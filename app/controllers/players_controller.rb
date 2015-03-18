@@ -2,7 +2,7 @@ class PlayersController < ApplicationController
   def index
     @players = []
     
-    unless query[:numplayers] == '0'
+    unless ServerQuery.numplayers == '0'
       result = rcon.command 'list'
       
       players = result.split(':')[1]

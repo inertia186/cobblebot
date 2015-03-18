@@ -8,12 +8,13 @@ class ServerCallback < ActiveRecord::Base
   validate :valid_pattern, if: :pattern_changed?
   validate :valid_command, if: :command_changed?
 
+  scope :system, lambda { |system = true| where(system: system) }
   scope :match_any, -> { where(match_scheme: 'any') }
   scope :match_player_chat, -> { where(match_scheme: 'player_chat') }
   scope :match_player_emote, -> { where(match_scheme: 'player_emote') }
   scope :match_player_chat_or_emote, -> { where(match_scheme: 'player_chat_or_emote') }
   scope :match_server_message, -> { where(match_scheme: 'server_message') }
-  scope :enabled, -> { where.not(enabled: [false, 'f']) } #lambda { |enabled = true| where(enabled: enabled) }
+  scope :enabled, lambda { |enabled = true| where(enabled: enabled) }
   scope :ready, -> { enabled.where('server_callbacks.ran_at IS NULL OR datetime(server_callbacks.ran_at, server_callbacks.cooldown) <= ?', Time.now) }
   scope :dirty, -> { where("last_match IS NOT NULL OR last_command_output IS NOT NULL OR ran_at IS NOT NULL") }
 

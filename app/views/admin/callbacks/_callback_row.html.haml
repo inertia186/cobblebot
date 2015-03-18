@@ -13,20 +13,20 @@
             .modal-header
               %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
                 %span{'aria-hidden' => true} &times;
-              %h4.modal-title{id: "show_callback_label"} Loading ...
+              %h4.modal-title#show_callback_label Loading ...
             .modal-body{id: 'show_callback_body'}
               %center
                 %img{src: '/images/large_spinner.gif'}
       = callback_run_link(callback, class: 'btn btn-success btn-xs')
       = callback_edit_link(callback, class: 'btn btn-info btn-xs')
+      %wbr
       = callback_reset_link(callback, class: 'btn btn-warning btn-xs')
       = callback_enable_link(callback, class: 'btn btn-info btn-xs')
       = callback_delete_link(callback, class: 'btn btn-danger btn-xs')
 
 :javascript
-
   jQuery(document).ready(function($) {
-    $(".clickable-cell").click(function() {
+    $("#callback_tr_#{callback.id} .clickable-cell").click(function() {
       window.document.location = '#{admin_server_callback_path(callback)}';
     });
   });

@@ -15,6 +15,13 @@
           %td
             - if preference.key == Preference::WEB_ADMIN_PASSWORD
               = '*' * preference.value.length
+            - elsif [Preference::IRC_ENABLED, Preference::IRC_WEB_CHAT_ENABLED].include? preference.key
+              - if preference.value == '0'
+                false
+              - elsif preference.value == '1'
+                true
+              - else
+                = preference.value
             - else
               = preference.value
           %td= link_to 'Edit', edit_admin_preference_path(preference), class: 'btn btn-info btn-xs'

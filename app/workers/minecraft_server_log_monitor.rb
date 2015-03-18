@@ -10,26 +10,25 @@ class MinecraftServerLogMonitor
   def self.perform
     Rails.logger.info "Started #{self}"
 
-    server_log = "#{Preference.path_to_server}/logs/latest.log"
+    server_log = "#{ServerProperties.path_to_server}/logs/latest.log"
     server_msgs = []
 
     begin
-      while Resque.info[:pending] < 5 do
-        lines = IO.readlines(server_log)[-(BUFFER / 2)..-1]
-        sleep(10) and next if lines.nil?
-      
-        lines.each do |line|
-          if server_msgs.length > (BUFFER / 2) && !server_msgs.include?(line)
-            MinecraftServerLogHandler.handle line
-          end
-        
-          server_msgs.push(line).slice!(0..-(BUFFER))
+      lines = IO.readlines(server_log)[-(BUFFER / 2)..-1]
+      sleep(10) and next if lines.nil?
+    
+      lines.each do |line|
+        if server_msgs.length > (BUFFER / 2) && !server_msgs.include?(line)
+          MinecraftServerLogHandler.handle line
         end
-        
-        sleep 0.25
+      
+        server_msgs.push(line).slice!(0..-(BUFFER))
       end
+      
+      sleep 0.25
     rescue Errno::ENOENT => e
       Rails.logger.error "Need to finish setup: #{e.inspect}"
-    end
+      sleep 300
+    end while Resque.size(@queue) < 4
   end
 end

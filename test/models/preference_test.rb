@@ -2,7 +2,7 @@ require 'test_helper'
 
 class PreferenceTest < ActiveSupport::TestCase
   def setup
-    load "#{Rails.root}/db/seeds.rb"
+    sym = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
   end
   
   def test_web_admin_password

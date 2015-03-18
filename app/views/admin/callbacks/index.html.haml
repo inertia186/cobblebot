@@ -2,30 +2,41 @@
   %h3
     Callbacks
     %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_callbacks'}} ?
-    .modal.fade{id: :explain_callbacks, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_callbacks_label', 'aria-hidden' => true}
-      .modal-dialog
-        .modal-content
-          .modal-header
-            %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-              %span{'aria-hidden' => true} &times;
-            %h4.modal-title{id: "explain_callbacks_label"} Explanation of Callbacks
-          .modal-body
-            %p Callbacks are used to program the behavior of CobbleBot.  They're really just fancy event triggers that happen when the latest log entry matches certain criteria.
-            %p You can change the behavior of CobbleBot by adding or modifying the entries.
+  .modal.fade#explain_callbacks{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_callbacks_label', 'aria-hidden' => true}
+    .modal-dialog
+      .modal-content
+        .modal-header
+          %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+            %span{'aria-hidden' => true} &times;
+          %h4.modal-title#explain_callbacks_label Explanation of Callbacks
+        .modal-body
+          %p Callbacks are used to program the behavior of CobbleBot.  They're really just fancy event triggers that happen when the latest log entry matches certain criteria.
+          %p You can change the behavior of CobbleBot by adding or modifying the entries.
 
-.row
-  = link_to 'Reset All', reset_all_cooldown_admin_server_callbacks_path, method: :patch, class: 'btn btn-warning btn-xs', style: 'float: right', data: { confirm: 'Are you sure?  This will attempt to reset ALL callbacks, including any debugging information.' }
-  %table.table
-    %thead
-      %tr
-        %th=sortable_header_link 'Name', 'lower(name)'
-        %th=sortable_header_link 'Match Scheme', 'match_scheme'
-        %th=sortable_header_link 'Ran', 'ran_at'
-        %th=sortable_header_link 'Status', 'status'
-        %th=sortable_header_link 'Created', 'created_at'
-        %th
-    %tbody
-      - @callbacks.each do |callback|
-        = render 'callback_row', callback: callback
+%ul.nav.nav-tabs
+  %li{class: params[:filter].nil? ? 'active' : ''}
+    = link_to 'All', admin_server_callbacks_path, 'aria-controls' => "all"
+  %li{class: params[:filter] == 'exclude_system' ? 'active' : ''}
+    = link_to 'Non-system', admin_server_callbacks_path(filter: 'exclude_system'), 'aria-controls' => "non-system"
+  %li{class: params[:filter] == 'only_system' ? 'active' : ''}
+    = link_to 'System', admin_server_callbacks_path(filter: 'only_system'), 'aria-controls' => "system"
 
-  = link_to 'New', new_admin_server_callback_path, class: 'btn btn-success'
+= link_to 'Reset All', reset_all_cooldown_admin_server_callbacks_path, method: :patch, class: 'btn btn-warning btn-xs', style: 'float: right', data: { confirm: 'Are you sure?  This will attempt to reset ALL callbacks, including any debugging information.' }
+
+.tab-contents
+  .tab-panel.tab-pane.active
+    .row.table-responsive
+      %table.table
+        %thead
+          %tr
+            %th=sortable_header_link 'Name', 'lower(name)'
+            %th=sortable_header_link 'Match Scheme', 'match_scheme'
+            %th=sortable_header_link 'Ran', 'ran_at'
+            %th=sortable_header_link 'Status', 'status'
+            %th=sortable_header_link 'Created', 'created_at'
+            %th
+        %tbody
+          - @callbacks.each do |callback|
+            = render 'callback_row', callback: callback
+
+= link_to 'New', new_admin_server_callback_path, class: 'btn btn-success'

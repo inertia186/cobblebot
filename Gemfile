@@ -39,6 +39,9 @@ gem "resque", require: 'resque/server'
 gem 'resque-scheduler'
 gem 'resque-pool'
 
+# IRC
+gem 'summer'
+
 # Use this if there are problems with the latest version.
 #gem 'rufus-scheduler', '~> 2.0.24'
 

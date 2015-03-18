@@ -1,9 +1,8 @@
 require 'test_helper'
-include ApplicationHelper
 
 class ServerCallbackTest < ActiveSupport::TestCase
   def setup
-    load "#{Rails.root}/db/seeds.rb"
+    sym = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
   end
 
   def test_all_patterns
@@ -27,12 +26,15 @@ class ServerCallbackTest < ActiveSupport::TestCase
       rescue Errno::ENOENT => e
         # skip
       end
+      assert callback.ran_at, 'expect callback ran'
     end
   end
-end
 
-module ApplicationHelper
-  def server_properties_path
-    Preference.path_to_server
+  def test_only_enabled
+    assert ServerCallback.enabled.count > 0, 'expect non-zero results'
+  end
+
+  def test_only_enabled
+    assert_equal ServerCallback.enabled(false).count,  0, 'expect zero results'
   end
 end

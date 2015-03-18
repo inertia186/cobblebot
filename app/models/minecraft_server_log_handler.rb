@@ -1,10 +1,9 @@
-include ApplicationHelper
-
 class MinecraftServerLogHandler
   REGEX_ANY = %r{^\[\d{2}:\d{2}:\d{2}\] .*$}
   REGEX_PLAYER_CHAT = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: <[^<]+> .*$}
   REGEX_PLAYER_EMOTE = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: \* [^<]+ .*$}
   REGEX_PLAYER_CHAT_OR_EMOTE = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: [\* ]*[ ]*[<]*[^<]+[>]* .*$}
+  REGEX_USER_AUTHENTICATOR = %r{^\[\d{2}:\d{2}:\d{2}\] \[User Authenticator #\d+/INFO\]: .*$}
   
   def self.handle(line)
     begin
@@ -18,35 +17,29 @@ class MinecraftServerLogHandler
     end
   end
 
-  def self.execute_command(callback, player, message)
-    if message =~ eval(callback.pattern)
-#      Rails.logger.info "Match Executing: #{callback.inspect} :: #{command.inspect}"
-    else
-#      Rails.logger.info "Force Executing: #{callback.inspect} :: #{command.inspect}"
-    end
-    
+  def self.execute_command(callback, nick, message)
     command = callback.command.
-      gsub("%1%", "#{$1}").
-      gsub("%2%", "#{$2}").
-      gsub("%3%", "#{$3}").
-      gsub("%4%", "#{$4}").
-      gsub("%5%", "#{$5}").
-      gsub("%6%", "#{$6}").
-      gsub("%7%", "#{$7}").
-      gsub("%8%", "#{$8}").
-      gsub("%9%", "#{$9}").
       gsub("%message%", "#{message}").
-      gsub("%player%", "#{player}").
+      gsub("%nick%", "#{nick}").
       gsub("%cobblebot_version%", COBBLEBOT_VERSION)
-    
+
+    message.match(ServerCommand.eval_pattern(callback.pattern)).captures.each_with_index do |capture, index|
+      command.gsub!("%#{index + 1}%", "#{capture}")
+    end if message.match(ServerCommand.eval_pattern(callback.pattern))
+
+    # Remove matched vars.
+    command.gsub!(/%[^%]*%/, '')
+
     begin
-      result = eval(command)
+      result = ServerCommand.eval_command(command)
+      # TODO clear the error flag
     rescue StandardError => e
       result = e.inspect
+      # TODO set the error flag
     end
     
     callback.ran!
-    callback.update_attribute(:last_command_output, result)
+    callback.update_attribute(:last_command_output, result.inspect)
   end
 private
   def self.handle_any(line)
@@ -63,8 +56,13 @@ private
   def self.handle_server_message(line)
     return if line =~ REGEX_PLAYER_CHAT || line =~ REGEX_PLAYER_EMOTE
 
-    segments = line.split(' ')
-    message = segments[3..-1].join(' ')
+    if line =~ REGEX_USER_AUTHENTICATOR
+      segments = line.split(' ')
+      message = segments[4..-1].join(' ')
+    else
+      segments = line.split(' ')
+      message = segments[3..-1].join(' ')
+    end
 
     ServerCallback.ready.match_server_message.find_each do |callback|
       handle_message(callback, nil, message, line)
@@ -75,11 +73,11 @@ private
     return unless line =~ REGEX_PLAYER_CHAT
 
     segments = line.split(' ')
-    player = segments[3].gsub(/[<>]+/, '')
+    nick = segments[3].gsub(/[<>]+/, '')
     message = segments[4..-1].join(' ')
     
     ServerCallback.ready.match_player_chat.find_each do |callback|
-      handle_message(callback, player, message, line)
+      handle_message(callback, nick, message, line)
     end
   end
 
@@ -87,11 +85,11 @@ private
     return unless line =~ REGEX_PLAYER_EMOTE
     
     segments = line.split(' ')
-    player = segments[4]
+    nick = segments[4]
     message = segments[5..-1].join(' ')
     
     ServerCallback.ready.match_player_emote.find_each do |callback|
-      handle_message(callback, player, message, line)
+      handle_message(callback, nick, message, line)
     end
   end
 
@@ -118,7 +116,7 @@ private
 
   def self.handle_message(callback, player, message, line)
     case message
-    when eval(callback.pattern)
+    when ServerCommand.eval_pattern(callback.pattern)
       execute_command(callback, player, message)
       callback.update_attribute(:last_match, line)
     end

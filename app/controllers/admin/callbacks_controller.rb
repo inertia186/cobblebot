@@ -5,6 +5,9 @@ class Admin::CallbacksController < ApplicationController
     @sort_field = params[:sort_field].present? ? params[:sort_field] : 'created_at'
     @sort_order = params[:sort_order] == 'desc' ? 'desc' : 'asc'
     @callbacks = ServerCallback.all
+
+    @callbacks = @callbacks.system if params[:filter] == 'only_system'
+    @callbacks = @callbacks.system(false) if params[:filter] == 'exclude_system'
     
     case @sort_field
     when 'status'

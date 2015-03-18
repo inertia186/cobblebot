@@ -28,7 +28,7 @@
             .modal-header
               %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
                 %span{'aria-hidden' => true} &times;
-              %h4.modal-title{id: "explain_pattern_label"} Explanation of Pattern
+              %h4.modal-title#explain_pattern_label Explanation of Pattern
             .modal-body
               %p Regex match on a log entry.
     .input-group
@@ -42,7 +42,7 @@
             .modal-header
               %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
                 %span{'aria-hidden' => true} &times;
-              %h4.modal-title{id: "explain_match_scheme_label"} Explanation of Match Scheme
+              %h4.modal-title#explain_match_scheme_label Explanation of Match Scheme
             .modal-body
               %p This option defines which log event will cause the callback to fire.
               %p One of the purposes of this field is to keep players from being able to initiate certain patterns.  For example, we do not want players to see the Message of the Day if they manually type "joined the game" into chat.  But we would like the server to trigger this event.  If we arbitrarily look for "joined the game" without looking at the context, players could trigger the message.
@@ -95,7 +95,7 @@
             .modal-header
               %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
                 %span{'aria-hidden' => true} &times;
-              %h4.modal-title{id: "explain_command_label"} Explanation of Command
+              %h4.modal-title#explain_command_label Explanation of Command
             .modal-body
               %p Commands tell CobbleBot what to do when a pattern match is made.  They can be an entire program with variables and conditions.  Any valid ruby program will be executed each time a pattern match is made.
               %table.table
@@ -112,11 +112,11 @@
                   %td causes the server to output a link
                 %tr
                   %th
-                    %code %player%
+                    %code %nick%
                   %td
                     %p substitutes player name, if applicable
                     %p For example, this would cause the server to use the name of the player who initiated the pattern.
-                    %code say "Hello, %player%!"
+                    %code say "Hello, %nick%!"
                 %tr
                   %th
                     %code %message%
@@ -144,7 +144,7 @@
             .modal-header
               %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
                 %span{'aria-hidden' => true} &times;
-              %h4.modal-title{id: "explain_cooldown_label"} Explanation of Cooldown
+              %h4.modal-title#explain_cooldown_label Explanation of Cooldown
             .modal-body
               %p An expression for the minimum number of seconds that must pass before this callback will fire again.  Typically, this is for player chat or emotes.
     .input-group

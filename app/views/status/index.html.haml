@@ -1,8 +1,8 @@
 .row
-  - if !!query && query.class != Errno::ECONNREFUSED
+  - if !!ServerQuery.query && ServerQuery.query.class != Errno::ECONNREFUSED
     %table.table
       %tbody
-        - full_query.each do |pair|
+        - ServerQuery.full_query.each do |pair|
           %tr
           %th{align: :right}= pair[0].to_s.titleize
           %td

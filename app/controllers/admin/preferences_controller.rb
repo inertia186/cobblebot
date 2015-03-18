@@ -2,7 +2,7 @@ class Admin::PreferencesController < ApplicationController
   before_filter :authenticate_admin!
 
   def index
-    @preferences = Preference.all
+    @preferences = Preference.system(false)
   end
   
   def edit
@@ -13,7 +13,8 @@ class Admin::PreferencesController < ApplicationController
     @preference = Preference.find_by_key(params[:id])
 
     if @preference.update_attributes(preference_params)
-      reset_vars
+      ServerProperties.reset_vars
+      ServerCommand.reset_vars
       redirect_to admin_preferences_url
     end
   end

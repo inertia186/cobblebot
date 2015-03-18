@@ -1,2 +1,2 @@
-MinecraftServerLogMonitor:
+MinecraftWatchdog:
   cron: "* * * * *"

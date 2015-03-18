@@ -1,0 +1,2 @@
+class Whitelist
+end

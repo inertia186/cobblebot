@@ -13,10 +13,14 @@
     .input-group
       = f.label :value
       %br
-      - if ['motd'].include? @preference.key
+      - if [Preference::MOTD].include? @preference.key
         = f.text_area :value, cols: 80, rows: 15
-      - if @preference.key == 'command_scheme'
+      - elsif @preference.key == Preference::COMMAND_SCHEME
         = f.select :value, %w(rcon multiplexor)
+      - elsif [Preference::IRC_ENABLED, Preference::IRC_WEB_CHAT_ENABLED].include? @preference.key
+        = f.label :value do
+          = f.check_box :value
+          = @preference.key
       -else
         = f.text_field :value, size: 80
     .input-group

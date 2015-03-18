@@ -29,12 +29,13 @@
               %li{class: active_nav('admin_config_server_properties')}
                 = link_to 'Server Properties', admin_config_server_properties_path
               %li
-                = link_to 'Resque', "admin:#{Preference.web_admin_password}@#{admin_resque_server_path}", target: '_new'
+                = link_to 'Resque', "http://admin:#{Preference.web_admin_password}@#{admin_resque_server_url.split('://')[1]}", target: '_new'
               %li
                 = link_to 'Admin Log Out', admin_destroy_session_path, method: :delete, data: { confirm: 'Are you sure?' }
             - else
               %li
                 = link_to 'Log In', new_admin_session_path
+    .navbar-brand{style: 'float: right;'}= ServerProperties.level_name.titleize
 
 .container.theme-showcase{role: :main}
   .starter-template
@@ -58,3 +59,7 @@
             %strong= msg
 
     = yield
+
+    = version
+
+    = yield :footer

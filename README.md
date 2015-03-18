@@ -1,9 +1,11 @@
 cobblebot
 =========
 
-Minecraft Server Automation
+Minecraft Server Automation ... *For Vanilla*
 
-CobbleBot is a rails application and external scripting tool that interacts with Minecraft SMP.  It primarily uses the server logs to detect events and can be configured to send commands back to the server with RCON and/or a multiplexor.
+CobbleBot is a rails application and external scripting tool that interacts with (vanilla) Minecraft SMP.  It primarily uses the server logs to detect events and can be configured to send commands back to the server with RCON and/or a multiplexor.
+
+There is also an optional IRC bot that allows players to interact.
 
 ## Installation
 
@@ -41,13 +43,37 @@ Ubuntu:
 Once Redis is up and running, start the CobbleBot scheduler and workers:
 
     $ BACKGROUND=yes RAILS_ENV='development' rake resque:scheduler
+    $ TERM_CHILD=1 RAILS_ENV='development' QUEUE='minecraft_watchdog' rake resque:work
     $ TERM_CHILD=1 RAILS_ENV='development' QUEUE='minecraft_server_log_monitor' rake resque:work
+
+If you've configured IRC, you need to start a worker for that as well:
+
+    $ TERM_CHILD=1 RAILS_ENV='development' QUEUE='irc_bot' rake resque:work
 
 Now you should be able to log into your Minecraft Server and interact with CobbleBot.  For example, in the Minecraft client, type:
 
 ```
 @server version
 ```
+
+If IRC is enabled, players may send messages to IRC by typing, for example:
+
+```
+@irc Hello IRC!
+```
+
+In IRC, messages can be sent back to the game by typing, for example:
+
+```
+@cobblebot say Hello, Minecraft!
+```
+
+... or ...
+
+```
+@cb say Hello, Minecraft!
+```
+
 
 Enjoy!
 
@@ -57,12 +83,12 @@ CobbleBot does not rely upon any Java API.  It does not require modifications to
 
 ## Disadvantages
 
-CobbleBot is limited to information that can be gathered from the server logs.  This means that most things a player does cannot be detected.  This also means that all interaction with CobbleBot will be public, for example, using @server in chat.  It can be configured to respond privately.
+CobbleBot is limited to information that can be gathered from the server logs.  This means that most things a player does cannot be detected.  This also means that all interaction with CobbleBot will be public, for example, using `@server` in chat.  It can be configured to respond privately.
 
 ## TODO
 
-  * Design a simple DSL for expressing callback events.
-  * Implement test cases for DSL callback events.
+  * Expand DSL for more complex tasks (like in-game Mail and Web of Trust).
+  * Implement more test cases for DSL callback events.
 
 ## Resource Pack
 
