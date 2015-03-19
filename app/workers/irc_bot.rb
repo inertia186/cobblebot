@@ -4,7 +4,7 @@ class IrcBot < Summer::Connection
   @queue = :irc_bot
   @shall_monitor = false
   
-  TROTTLE = 1
+  THROTTLE = 1
   OP_COMMANDS = %w(opself opme quit_irc kick latest chatlog rcon)
   COMMANDS = %w(help info bancheck playercheck list say)
 
@@ -88,6 +88,7 @@ class IrcBot < Summer::Connection
         
         IrcReply.all.find_each do |reply|
           channel_say(channel: config[:channel], reply: reply.body)
+          sleep THROTTLE
         
           reply.destroy
         end
@@ -161,7 +162,7 @@ class IrcBot < Summer::Connection
     #nick_msg sender: sender, reply: "Messages: #{=== current size of latest.log buffer ===}"
     # === latest.log buffer===.each do |line|
     #  nick_msg sender: sender, reply: line
-    #  sleep TROTTLE
+    #  sleep THROTTLE
     #end
   end
 
@@ -220,7 +221,7 @@ class IrcBot < Summer::Connection
     lines=[] # TODO get ban info for target
     lines.each do |line|
       reply sender: sender, channel: channel, reply: line
-      sleep TROTTLE
+      sleep THROTTLE
     end
   end
 
@@ -235,15 +236,15 @@ class IrcBot < Summer::Connection
     if players.any?
       player = players.first
       reply sender: sender, channel: channel, reply: "Latest activity for #{player.nick} was #{distance_of_time_in_words_to_now(player.last_activity_at)} ago."
-      sleep TROTTLE
+      sleep THROTTLE
       reply sender: sender, channel: channel, reply: "<#{player.nick}> #{player.last_chat} #{player.registered? ? '®' : ''}"
-      sleep TROTTLE
+      sleep THROTTLE
       reply sender: sender, channel: channel, reply: "Biomes explored: #{player.explore_all_biome_progress}"
       # TODO get rate:
       # say "Sum of all trust: ..."
     else
       reply sender: sender, channel: channel, reply: "Player not found: #{nick}"
-      sleep TROTTLE
+      sleep THROTTLE
       players = Player.search_any_nick(nick)
       reply sender: sender, channel: channel, reply: "Did you mean: #{players.first.nick}" if players.any?
     end
