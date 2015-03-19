@@ -16,6 +16,8 @@ Preference.send sym, key: Preference::IRC_CHANNEL, value: '#my_channel', system:
 Preference.send sym, key: Preference::IRC_CHANNEL_OPS, value: '', system: 'f'
 Preference.send sym, key: Preference::IRC_NICKSERV_PASSWORD, value: 'secret', system: 'f'
 
+Preference.where.not(system: true).update_all('system = \'f\'')
+
 # System/Utility/Important ...
 ServerCallback.send sym, name: 'Check Version', pattern: "/^@server version$/i", match_scheme: 'player_chat', command: "say \"CobbleBot version %cobblebot_version%\"\nlink \"@a\", \"http://github.com/inertia186/cobblebot\"", system: 't'
 ServerCallback.send sym, name: 'Autolink', pattern: "/http/i", match_scheme: 'player_chat', command: "link \"@a\", \"%message%\"", system: 't'
@@ -85,3 +87,5 @@ ServerCallback.send sym, name: 'Beaconator', pattern: "/Beaconator/", match_sche
 ServerCallback.send sym, name: 'Repopulation', pattern: "/Repopulation/", match_scheme: 'server_message', command: "play_sound \"@a\", \"smb_1up\"", system: 'f'
 ServerCallback.send sym, name: 'Diamonds to you', pattern: "/Diamonds to you/", match_scheme: 'server_message', command: "play_sound \"@a\", \"smb_coin\"", system: 'f'
 ServerCallback.send sym, name: 'Overpowered', pattern: "/Overpowered/", match_scheme: 'server_message', command: "play_sound \"@a\", \"sm64_key_get\"", system: 'f'
+
+ServerCallback.where.not(system: true).update_all('system = \'f\'')
