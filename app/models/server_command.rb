@@ -78,6 +78,10 @@ class ServerCommand
     IrcReply.create(body: "<#{nick}> #{message}")
   end
 
+  def self.irc_event(message)
+    IrcReply.create(body: message)
+  end
+
   ## Simuates /tell
   def self.tell(nick, message)
     execute "tellraw #{nick} {\"color\": \"gray\", \"text\":\"Server whispers to you: #{message}\"}"
