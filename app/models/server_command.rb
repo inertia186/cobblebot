@@ -22,14 +22,22 @@ class ServerCommand
   end
   
   def self.execute(command)
-    case command_scheme
-    when 'rcon'
-      rcon.command(command)
-    when 'multiplexor'
-      # TODO Something like: `bash -c "screen -p 0 -S minecraft -X eval 'stuff \"#{command}\"\015'"`
-    else
-      raise StandardError.new("Preference.command_scheme not recognized")
+    TRY_MAX.times do
+      case command_scheme
+      when 'rcon'
+        return rcon.command(command)
+      when 'multiplexor'
+        # TODO Something like: `bash -c "screen -p 0 -S minecraft -X eval 'stuff \"#{command}\"\015'"`
+        return
+      else
+        raise StandardError.new("Preference.command_scheme not recognized")
+      end
     end
+  rescue StandardError => e
+    Rails.logger.warn e.inspect
+    sleep RETRY_SLEEP
+    ServerProperties.reset_vars
+    reset_vars
   end
   
   def self.rcon
@@ -45,8 +53,8 @@ class ServerCommand
       rescue Errno::ECONNREFUSED => e
         Rails.logger.warn e.inspect
         sleep RETRY_SLEEP
-        @rcon = nil
-        @rcon_auth_success = nil
+        ServerProperties.reset_vars
+        reset_vars
       end
     end
     

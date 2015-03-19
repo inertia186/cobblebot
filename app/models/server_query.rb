@@ -12,7 +12,10 @@ class ServerQuery
   def self.full_query
     full_query = Query::fullQuery(ServerProperties.server_ip, ServerProperties.server_port)
 
-    if full_query.class == Errno::ECONNREFUSED
+    if full_query.class != Hash
+      ServerProperties.reset_vars
+      ServerCommand.reset_vars
+      
       raise StandardError.new("Minecraft Server not started? #{full_query}")
     end
     

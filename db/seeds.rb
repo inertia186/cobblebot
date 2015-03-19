@@ -89,3 +89,4 @@ ServerCallback.send sym, name: 'Diamonds to you', pattern: "/Diamonds to you/", 
 ServerCallback.send sym, name: 'Overpowered', pattern: "/Overpowered/", match_scheme: 'server_message', command: "play_sound \"@a\", \"sm64_key_get\"", system: 'f'
 
 ServerCallback.where.not(system: true).update_all('system = \'f\'')
+ServerCallback.where.not(enabled: false).update_all('enabled = \'t\'')
