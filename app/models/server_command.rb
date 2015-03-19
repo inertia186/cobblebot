@@ -6,6 +6,14 @@ class ServerCommand
   RETRY_SLEEP = 5
   
   cattr_accessor :command_scheme, :rcon
+
+  def self.try_max
+    Rails.env == 'test' ? 1 : TRY_MAX
+  end
+  
+  def self.retry_sleep
+    Rails.env == 'test' ? 0 : RETRY_SLEEP
+  end
   
   def self.reset_vars
     @command_scheme = nil
@@ -22,7 +30,7 @@ class ServerCommand
   end
   
   def self.execute(command)
-    TRY_MAX.times do
+    try_max.times do
       case command_scheme
       when 'rcon'
         return rcon.command(command)
@@ -35,7 +43,7 @@ class ServerCommand
     end
   rescue StandardError => e
     Rails.logger.warn e.inspect
-    sleep RETRY_SLEEP
+    sleep retry_sleep
     ServerProperties.reset_vars
     reset_vars
   end
@@ -45,14 +53,14 @@ class ServerCommand
     raise StandardError.new("RCON password not set.  To set, please modify server.properties and change rcon.password=") unless ServerProperties.rcon_password
     raise StandardError.new("RCON is disabled.  To enable rcon, please modify server.properties and change enable-rcon=false to enable-rcon=true and restart server.") unless ServerProperties.enable_rcon == 'true'
 
-    TRY_MAX.times do
+    try_max.times do
       @rcon ||= RCON::Minecraft.new(ServerProperties.server_ip, ServerProperties.rcon_port)
 
       begin
         return @rcon if @rcon_auth_success ||= @rcon.auth(ServerProperties.rcon_password)
       rescue Errno::ECONNREFUSED => e
         Rails.logger.warn e.inspect
-        sleep RETRY_SLEEP
+        sleep retry_sleep
         ServerProperties.reset_vars
         reset_vars
       end
@@ -71,14 +79,34 @@ class ServerCommand
   
   ## Simuates /say
   def self.say(message)
-    execute "tellraw @a {\"color\": \"white\", \"text\":\"[Server] #{message}\"}"
+    execute <<-DONE
+      tellraw @a { "color": "white", "text": "[Server] #{message}" }
+    DONE
   end
 
   def self.irc_say(irc_nick, message)
     if Preference.irc_web_chat_enabled?
-      execute "tellraw @a [{\"color\": \"white\", \"text\":\"[\"}, {\"color\": \"gold\", \"text\": \"irc\", \"hoverEvent\": {\"action\": \"show_text\", \"value\":\"#{Preference.irc_web_chat_url_label}\"}, \"clickEvent\":{\"action\":\"open_url\",\"value\":\"#{Preference.irc_web_chat_url}\"}}, {\"color\": \"white\", \"text\":\"] <#{irc_nick}> #{message}\"}]"
+      execute <<-DONE
+        tellraw @a [
+          { "color": "white", "text": "[" },
+          {
+            "color": "gold", "text": "irc", "hoverEvent": {
+              "action": "show_text", "value": "#{Preference.irc_web_chat_url_label}"
+            }, "clickEvent": {
+              "action": "open_url", "value": "#{Preference.irc_web_chat_url}"
+            }
+          },
+          { "color": "white", "text":"] <#{irc_nick}> #{message}" }
+        ]
+      DONE
     else
-      execute "tellraw @a [{\"color\": \"white\", \"text\":\"[\"}, {\"color\": \"gold\", \"text\": \"irc\"}, {\"color\": \"white\", \"text\":\"] <#{irc_nick}> #{message}\"}]"
+      execute <<-DONE
+        tellraw @a [
+          { "color": "white", "text": "[" },
+          { "color": "gold", "text": "irc" },
+          { "color": "white", "text": "] <#{irc_nick}> #{message}" }
+        ]
+      DONE
     end
   end
 
@@ -91,8 +119,10 @@ class ServerCommand
   end
 
   ## Simuates /tell
-  def self.tell(nick, message)
-    execute "tellraw #{nick} {\"color\": \"gray\", \"text\":\"Server whispers to you: #{message}\"}"
+  def self.tell(nick, message, as = "Server")
+    execute <<-DONE
+      tellraw #{nick} { "color": "gray", "text":"#{as} whispers to you: #{message}" }
+    DONE
   end
 
   ## Renders a hyperlink.
@@ -110,7 +140,7 @@ class ServerCommand
       agent.open_timeout = 5
       agent.read_timeout = 5
       agent.get link
-    
+
       title = if agent.page && defined?(agent.page.title) && agent.page.title
         if options[:title_only]
           agent.page.title.strip
@@ -132,23 +162,38 @@ class ServerCommand
 
     original_title = title
     title = title.gsub(/[^a-zA-Z0-9:?&=#@+*, \.\/\"\[\]\(\)]/, '-').truncate(90)
+    last_modified = agent.page.response['last-modified']
     Rails.logger.warn "Removed characters from: #{original_title}" if title != original_title # FIXME Remove later.
   
-    execute "tellraw #{nick} {\"text\":\"\",\"extra\":[{\"text\":\"#{title}\",\"color\":\"dark_purple\",\"underlined\":\"true\",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"#{link}\"}}]}"
+    execute <<-DONE
+      tellraw #{nick} {
+        "text": "#{title}", "color": "dark_purple", "underlined": "true", "hoverEvent": {
+          "action": "show_text", "value": "Last Modified: #{last_modified}"
+        }, "clickEvent": {
+          "action": "open_url", "value": "#{link}"
+        }
+      }
+    DONE
   end
   
   def self.tell_motd(nick)
     return unless !!Preference.motd
     
-    execute "tellraw #{nick} {\"text\":\"\",\"extra\":[{\"text\":\"Message of the Day\",\"color\":\"green\"}]}"
-    execute "tellraw #{nick} {\"text\":\"\",\"extra\":[{\"text\":\"===\",\"color\":\"green\"}]}"
+    execute <<-DONE
+      tellraw #{nick} { "text": "Message of the Day", "color": "green" }
+    DONE
+    execute <<-DONE
+      tellraw #{nick} { "text": "===", "color": "green" }
+    DONE
 
     Preference.motd.split("\n").each do |line|
       line = line.gsub(/\r/, '')
       if line =~ /^http.*/i
         link nick, line, title_only: true
       else
-        execute "tellraw #{nick} {\"text\":\"\",\"extra\":[{\"text\":\"#{line}\",\"color\":\"green\"}]}"
+        execute  <<-DONE
+          tellraw #{nick} { "text": "#{line}", "color": "green" }
+        DONE
       end
     end
   end
@@ -211,7 +256,19 @@ class ServerCommand
     
     if players.any?
       player = players.first
-      say "Latest activity for #{player.nick} was #{distance_of_time_in_words_to_now(player.last_activity_at)} ago."
+      #say "Latest activity for #{player.nick} was #{distance_of_time_in_words_to_now(player.last_activity_at)} ago."
+      execute <<-DONE
+        tellraw @a [
+          { "color": "white", "text": "[Server] Latest activity for #{player.nick} was " },
+          {
+            "color": "white", "text": "#{distance_of_time_in_words_to_now(player.last_activity_at)}",
+            "hoverEvent": {
+              "action": "show_text", "value": "#{player.last_activity_at}"
+            }
+          },
+          { "color": "white", "text": " ago." }
+        ]
+      DONE
       say "<#{player.nick}> #{player.last_chat} #{player.registered? ? '®' : ''}"
       say "Biomes explored: #{player.explore_all_biome_progress}"
       # TODO get rate:
