@@ -37,7 +37,7 @@ class IrcBot < Summer::Connection
   def did_start_up
     Rails.logger.info "Started IRC Bot"
 
-    count = IrcReply.destroy_all
+    count = IrcReply.destroy_all.size
     Rails.logger.info "Removed stale irc replies: #{count}" if count > 0
     
     monitor_replies
