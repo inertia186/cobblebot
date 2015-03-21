@@ -7,6 +7,6 @@ class Server
 
     return Player.none unless !!nicks
 
-    Player.where(nick: nicks.split(", ")).order(:updated_at)
+    Player.where(nick: nicks.split(", ")).order(:last_login_at)
   end
 end
