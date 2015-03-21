@@ -13,15 +13,25 @@
           %p Callbacks are used to program the behavior of CobbleBot.  They're really just fancy event triggers that happen when the latest log entry matches certain criteria.
           %p You can change the behavior of CobbleBot by adding or modifying the entries.
 
-%ul.nav.nav-tabs
-  %li{class: params[:filter].nil? ? 'active' : ''}
-    = link_to 'All', admin_server_callbacks_path, 'aria-controls' => "all"
-  %li{class: params[:filter] == 'exclude_system' ? 'active' : ''}
-    = link_to 'Non-system', admin_server_callbacks_path(filter: 'exclude_system'), 'aria-controls' => "non-system"
-  %li{class: params[:filter] == 'only_system' ? 'active' : ''}
-    = link_to 'System', admin_server_callbacks_path(filter: 'only_system'), 'aria-controls' => "system"
+%div{style: 'float: right'}
+  = form_tag url_for(action: controller.action_name), method: :get do
+    = hidden_field_tag :sort_field, @sort_field
+    = hidden_field_tag :sort_order, @sort_order
+    = hidden_field_tag :filter, @filter
+    = text_field_tag :query, @query, placeholder: 'Query Text'
+    = select_tag :status, callback_status_options_for_select(@status)
+    = select_tag :match_scheme, callback_match_scheme_options_for_select(@match_scheme)
+    = submit_tag 'Search', class: 'btn btn-info btn-xs'
+    = link_to 'Reset All', reset_all_cooldown_admin_server_callbacks_path, method: :patch, class: 'btn btn-warning btn-xs', data: { confirm: 'Are you sure?  This will attempt to reset ALL callbacks, including any debugging information.' }
 
-= link_to 'Reset All', reset_all_cooldown_admin_server_callbacks_path, method: :patch, class: 'btn btn-warning btn-xs', style: 'float: right', data: { confirm: 'Are you sure?  This will attempt to reset ALL callbacks, including any debugging information.' }
+
+%ul.nav.nav-tabs
+  %li{class: @filter == 'all' ? 'active' : ''}
+    = link_to 'All', admin_server_callbacks_path, 'aria-controls' => "all"
+  %li{class: @filter == 'exclude_system' ? 'active' : ''}
+    = link_to 'Non-system', admin_server_callbacks_path(filter: 'exclude_system'), 'aria-controls' => "non-system"
+  %li{class: @filter == 'only_system' ? 'active' : ''}
+    = link_to 'System', admin_server_callbacks_path(filter: 'only_system'), 'aria-controls' => "system"
 
 .tab-contents
   .tab-panel.tab-pane.active

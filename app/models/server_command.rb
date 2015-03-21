@@ -5,7 +5,7 @@ class ServerCommand
   TRY_MAX = 5
   RETRY_SLEEP = 5
   
-  cattr_accessor :command_scheme, :rcon
+  cattr_accessor :command_scheme, :rcon, :rcon_connected_at
 
   def self.try_max
     Rails.env == 'test' ? 1 : TRY_MAX
@@ -54,7 +54,10 @@ class ServerCommand
     raise StandardError.new("RCON is disabled.  To enable rcon, please modify server.properties and change enable-rcon=false to enable-rcon=true and restart server.") unless ServerProperties.enable_rcon == 'true'
 
     try_max.times do
-      @rcon ||= RCON::Minecraft.new(ServerProperties.server_ip, ServerProperties.rcon_port)
+      if @rcon.nil? || @rcon_connected_at.nil? || @rcon_connected_at > 15.minutes.ago
+        @rcon = RCON::Minecraft.new(ServerProperties.server_ip, ServerProperties.rcon_port)
+        @rcon_connected_at = Time.now
+      end
 
       begin
         return @rcon if @rcon_auth_success ||= @rcon.auth(ServerProperties.rcon_password)
@@ -78,16 +81,23 @@ class ServerCommand
   end
   
   ## Simuates /say
-  def self.say(message)
+  def self.say(selector, message, color = "white")
     execute <<-DONE
-      tellraw @a { "color": "white", "text": "[Server] #{message}" }
+      tellraw #{selector} [{ "color": "white", "text": "[Server] "}, { "color": "#{color}", "text": "#{message}" }]
     DONE
   end
 
-  def self.irc_say(irc_nick, message)
+  ## Simuates /me
+  def self.emote(selector, message, color = "white")
+    execute <<-DONE
+      tellraw #{selector} {"color": "#{color}", "text":"* Server #{message}"}
+    DONE
+  end
+
+  def self.irc_say(selector, irc_nick, message)
     if Preference.irc_web_chat_enabled?
       execute <<-DONE
-        tellraw @a [
+        tellraw #{selector} [
           { "color": "white", "text": "[" },
           {
             "color": "gold", "text": "irc", "hoverEvent": {
@@ -119,91 +129,83 @@ class ServerCommand
   end
 
   ## Simuates /tell
-  def self.tell(nick, message, as = "Server")
+  def self.tell(selector, message, as = "Server")
     execute <<-DONE
-      tellraw #{nick} { "color": "gray", "text":"#{as} whispers to you: #{message}" }
+      tellraw #{selector} { "color": "gray", "text":"#{as} whispers to you: #{message}" }
     DONE
   end
 
   ## Renders a hyperlink.
-  def self.link(nick, link, options = {})
-    text = link.gsub(/http/i, 'http')
-    link = text.split('http')[1]
-    return unless link
+  def self.say_link(selector, url, options = {})
+    text = url.gsub(/http/i, 'http')
+    url = text.split('http')[1]
+    return unless url
 
-    link = "http#{link.split(' ')[0]}"
-    return unless !!link.split('://')[1]
+    url = "http#{url.split(' ')[0]}"
+    return unless !!url.split('://')[1]
     
-    begin
-      agent = Mechanize.new
-      agent.keep_alive = false
-      agent.open_timeout = 5
-      agent.read_timeout = 5
-      agent.get link
-
-      title = if agent.page && defined?(agent.page.title) && agent.page.title
-        if options[:title_only]
-          agent.page.title.strip
-        else
-          "#{link.split('/')[2]} :: #{agent.page.title.strip}"
-        end
+    links = Link.unexpired(url)
+    
+    if links.any?
+      link = links.last
+    else
+      if !!options[:nick]
+        player = Player.find_by_nick(options[:nick])
+        link = Link.create(url: url, actor: player)
       else
-        link
+        link = Link.create(url: url)
       end
-    rescue SocketError => e
-      Rails.logger.warn "Ignoring link: #{link}" && return
-    rescue Net::OpenTimeout => e
-      title = link
-    rescue Net::HTTP::Persistent::Error => e
-      title = link
-    rescue StandardError => e
-      title = "#{link.split('/')[2]} :: #{e.inspect}"
     end
-
-    original_title = title
-    title = title.gsub(/[^a-zA-Z0-9:?&=#@+*, \.\/\"\[\]\(\)]/, '-').truncate(90)
-    last_modified = agent.page.response['last-modified']
-    Rails.logger.warn "Removed characters from: #{original_title}" if title != original_title # FIXME Remove later.
-  
+    
+    title = if link.title
+      if !!options[:only_title]
+        link.title.strip
+      else
+        "#{link.url.split('/')[2]} :: #{link.title.strip}"
+      end
+    else
+      link.url
+    end
+    
     execute <<-DONE
-      tellraw #{nick} {
+      tellraw #{selector} { "text": "", "extra": [{
         "text": "#{title}", "color": "dark_purple", "underlined": "true", "hoverEvent": {
-          "action": "show_text", "value": "Last Modified: #{last_modified}"
+          "action": "show_text", "value": "Last Modified: #{!!link ? link.last_modified_at : '???'}"
         }, "clickEvent": {
-          "action": "open_url", "value": "#{link}"
+          "action": "open_url", "value": "#{link.url}"
         }
-      }
+      }]}
     DONE
   end
   
-  def self.tell_motd(nick)
+  def self.tell_motd(selector)
     return unless !!Preference.motd
     
     execute <<-DONE
-      tellraw #{nick} { "text": "Message of the Day", "color": "green" }
+      tellraw #{selector} { "text": "Message of the Day", "color": "green" }
     DONE
     execute <<-DONE
-      tellraw #{nick} { "text": "===", "color": "green" }
+      tellraw #{selector} { "text": "===", "color": "green" }
     DONE
 
     Preference.motd.split("\n").each do |line|
       line = line.gsub(/\r/, '')
       if line =~ /^http.*/i
-        link nick, line, title_only: true
+        link selector, line, only_title: true
       else
         execute  <<-DONE
-          tellraw #{nick} { "text": "#{line}", "color": "green" }
+          tellraw #{selector} { "text": "#{line}", "color": "green" }
         DONE
       end
     end
   end
   
-  def self.play_sound(nick, sound, options = {volume: '', pitch: ''})
-    execute "execute #{nick} ~ ~ ~ playsound #{sound} @p ~0 ~0 ~0 #{options[:volume]} #{options[:pitch]}"
+  def self.play_sound(selector, sound, options = {volume: '', pitch: ''})
+    execute "execute #{selector} ~ ~ ~ playsound #{sound} @p ~0 ~0 ~0 #{options[:volume]} #{options[:pitch]}"
   end
 
-  def self.tp(nick, destination)
-    execute "tp #{nick} #{destination}"
+  def self.tp(selector, destination)
+    execute "tp #{selector} #{destination}"
   end
   
   def self.player_authenticated(nick, uuid)
@@ -251,14 +253,14 @@ class ServerCommand
     player
   end
 
-  def self.say_playercheck(nick)
+  def self.say_playercheck(selector, nick)
     players = Player.any_nick(nick).order(:nick)
     
     if players.any?
       player = players.first
-      #say "Latest activity for #{player.nick} was #{distance_of_time_in_words_to_now(player.last_activity_at)} ago."
+      
       execute <<-DONE
-        tellraw @a [
+        tellraw #{selector} [
           { "color": "white", "text": "[Server] Latest activity for #{player.nick} was " },
           {
             "color": "white", "text": "#{distance_of_time_in_words_to_now(player.last_activity_at)}",
@@ -269,14 +271,14 @@ class ServerCommand
           { "color": "white", "text": " ago." }
         ]
       DONE
-      say "<#{player.nick}> #{player.last_chat} #{player.registered? ? '®' : ''}"
-      say "Biomes explored: #{player.explore_all_biome_progress}"
+      say selector, "<#{player.nick}> #{player.last_chat} #{player.registered? ? '®' : ''}"
+      say selector, "Biomes explored: #{player.explore_all_biome_progress}"
       # TODO get rate:
-      # say "Sum of all trust: ..."
+      # say selector, "Sum of all trust: ..."
     else
-      say "Player not found: #{nick}"
+      say selector, "Player not found: #{nick}"
       players = Player.search_any_nick(nick)
-      say "Did you mean: #{players.first.nick}" if players.any?
+      say selector, "Did you mean: #{players.first.nick}" if players.any?
     end
   end
   

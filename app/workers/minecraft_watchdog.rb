@@ -1,7 +1,7 @@
 class MinecraftWatchdog
   @queue = :minecraft_watchdog
 
-  WATCHDOG_TICK = 60
+  WATCHDOG_TICK = 300
   
   def self.before_perform_log_job(*args)
     Rails.logger.info "About to perform #{self} with #{args.inspect}"
@@ -16,6 +16,9 @@ class MinecraftWatchdog
       # TODO every so often (not every watchdog tick) crack open the latest.log to see what's going on
 
       # Make sure the other workers are queued and working (like IRC and Log Monitor)
+      Resque.enqueue(MinecraftServerLogMonitor) unless Resque.queues.include? 'minecraft_server_log_monitor'
+      Resque.enqueue(IrcBot, start_irc_bot: true) if !Resque.queues.include?('irc_bot') && Preference.irc_enabled?
+      
       Resque.queues.each do |queue|
         case queue
         when 'minecraft_server_log_monitor'
@@ -72,12 +75,17 @@ class MinecraftWatchdog
           Preference.latest_resource_pack_timestamp = Time.now.to_i
         end
       end
+   
+      ServerCallback.needs_prettification.find_each do |callback|
+        callback.prettify(:pattern) unless !!callback.pretty_pattern
+        callback.prettify(:command) unless !!callback.pretty_command
+      end
       
       Rails.logger.info "#{self} sleeping for #{WATCHDOG_TICK}"
       sleep WATCHDOG_TICK
     rescue Errno::ENOENT => e
       Rails.logger.error "Need to finish setup: #{e.inspect}"
-      sleep 300
+      WATCHDOG_TICK 300 * 4
     end while Resque.size(@queue) < 4
   end
 end

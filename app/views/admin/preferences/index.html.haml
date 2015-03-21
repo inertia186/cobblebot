@@ -13,7 +13,7 @@
         %tr
           %td=preference.key
           %td
-            - if preference.key == Preference::WEB_ADMIN_PASSWORD
+            - if preference.key =~ /password/i
               = '*' * preference.value.length
             - elsif [Preference::IRC_ENABLED, Preference::IRC_WEB_CHAT_ENABLED].include? preference.key
               - if preference.value == '0'

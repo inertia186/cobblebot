@@ -8,15 +8,32 @@ class ServerCallback < ActiveRecord::Base
   validate :valid_pattern, if: :pattern_changed?
   validate :valid_command, if: :command_changed?
 
+  after_validation :remove_pretty_pattern, if: :pattern_changed?
+  after_validation :remove_pretty_command, if: :command_changed?
+
   scope :system, lambda { |system = true| where(system: system) }
-  scope :match_any, -> { where(match_scheme: 'any') }
-  scope :match_player_chat, -> { where(match_scheme: 'player_chat') }
-  scope :match_player_emote, -> { where(match_scheme: 'player_emote') }
-  scope :match_player_chat_or_emote, -> { where(match_scheme: 'player_chat_or_emote') }
+  scope :match_scheme, lambda { |match_scheme = ALL_MATCH_SCHEMES| where(match_scheme: match_scheme) }
+  scope :match_any, -> { match_scheme('any') }
+  scope :match_player_chat, -> { match_scheme('player_chat') }
+  scope :match_player_emote, -> { match_scheme('player_emote') }
+  scope :match_player_chat_or_emote, -> { match_scheme('player_chat_or_emote') }
   scope :match_server_message, -> { where(match_scheme: 'server_message') }
   scope :enabled, lambda { |enabled = true| where(enabled: enabled) }
-  scope :ready, -> { enabled.where('server_callbacks.ran_at IS NULL OR datetime(server_callbacks.ran_at, server_callbacks.cooldown) <= ?', Time.now) }
-  scope :dirty, -> { where("last_match IS NOT NULL OR last_command_output IS NOT NULL OR ran_at IS NOT NULL") }
+  scope :ready, lambda { |ready = true|
+    if ready
+      enabled.where('server_callbacks.ran_at IS NULL OR datetime(server_callbacks.ran_at, server_callbacks.cooldown) <= ?', Time.now)
+    else
+      enabled.where('server_callbacks.ran_at IS NOT NULL AND datetime(server_callbacks.ran_at, server_callbacks.cooldown) > ?', Time.now)
+    end
+  }
+  scope :dirty, -> { where("server_callbacks.last_match IS NOT NULL OR server_callbacks.last_command_output IS NOT NULL OR server_callbacks.ran_at IS NOT NULL") }
+  scope :needs_prettification, lambda { |needs_prettification = true|
+    if needs_prettification
+      where('server_callbacks.pretty_pattern IS NULL OR server_callbacks.pretty_command IS NULL')
+    else
+      where('server_callbacks.pretty_pattern IS NOT NULL AND server_callbacks.pretty_command IS NOT NULL')
+    end
+  }
 
   def to_param
     "#{id}-#{name.parameterize}"
@@ -52,5 +69,20 @@ class ServerCallback < ActiveRecord::Base
   def ran!
     self.ran_at = Time.now
     save
+  end
+
+  def remove_pretty_pattern
+    self.pretty_pattern = nil
+  end
+
+  def remove_pretty_command
+    self.pretty_command = nil
+  end
+  
+  def prettify key
+    code = send(key)
+    uri = URI.parse('http://pygments.appspot.com/')
+    request = Net::HTTP.post_form(uri, {lang: 'ruby', code: code})
+    update_attribute("pretty_#{key.to_s}".to_sym, request.body)
   end
 end

@@ -13,6 +13,8 @@ class Player < ActiveRecord::Base
     where('LOWER(nick) LIKE ? OR LOWER(last_nick) LIKE ?', search_nick, search_nick)
   }
 
+  has_many :links, as: :actor
+
   def to_param
     "#{id}-#{nick.parameterize}"
   end
@@ -45,6 +47,13 @@ class Player < ActiveRecord::Base
   
   def time_since_death
     "%.2f hours" % (stats.time_since_death / 60.0 / 60.0 / 24.0) if player_data
+  end
+  
+  def current_location
+    response = ServerCommand.execute("tp #{p.nick} ~ ~ ~")
+    return if response == 'The entity UUID provided is in an invalid format'
+    
+    response.split(' ')[3..-1].join(' ').split(/[\s,]+/)
   end
   
   def method_missing(m, *args, &block)

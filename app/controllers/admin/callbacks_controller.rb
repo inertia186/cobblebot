@@ -2,12 +2,38 @@ class Admin::CallbacksController < ApplicationController
   before_filter :authenticate_admin!
 
   def index
+    @filter = params[:filter].present? ? params[:filter] : 'all'
+    @query = params[:query]
+    @status = params[:status]
+    @match_scheme = params[:match_scheme]
     @sort_field = params[:sort_field].present? ? params[:sort_field] : 'created_at'
     @sort_order = params[:sort_order] == 'desc' ? 'desc' : 'asc'
     @callbacks = ServerCallback.all
 
-    @callbacks = @callbacks.system if params[:filter] == 'only_system'
-    @callbacks = @callbacks.system(false) if params[:filter] == 'exclude_system'
+    @callbacks = @callbacks.system if @filter == 'only_system'
+    @callbacks = @callbacks.system(false) if @filter == 'exclude_system'
+    
+    if @query.present?
+      q = "%#{@query}%"
+      @callbacks = @callbacks.where('server_callbacks.name LIKE ? OR server_callbacks.pattern LIKE ? OR server_callbacks.command LIKE ?', q, q, q)
+    end
+
+    if @status.present?
+      case @status
+      when 'ready'
+        @callbacks = @callbacks.ready
+      when 'in_cooldown'
+        @callbacks = @callbacks.ready(false).enabled
+      when 'enabled'
+        @callbacks = @callbacks.enabled
+      when 'disabled'
+        @callbacks = @callbacks.enabled(false)
+      end
+    end
+
+    if @match_scheme.present?
+      @callbacks = @callbacks.match_scheme(@match_scheme)
+    end
     
     case @sort_field
     when 'status'

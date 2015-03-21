@@ -16,11 +16,9 @@ Preference.send sym, key: Preference::IRC_CHANNEL, value: '#my_channel', system:
 Preference.send sym, key: Preference::IRC_CHANNEL_OPS, value: '', system: 'f'
 Preference.send sym, key: Preference::IRC_NICKSERV_PASSWORD, value: 'secret', system: 'f'
 
-Preference.where.not(system: true).update_all('system = \'f\'')
-
 # System/Utility/Important ...
-ServerCallback.send sym, name: 'Check Version', pattern: "/^@server version$/i", match_scheme: 'player_chat', command: "say \"CobbleBot version %cobblebot_version%\"\nlink \"@a\", \"http://github.com/inertia186/cobblebot\"", system: 't'
-ServerCallback.send sym, name: 'Autolink', pattern: "/http/i", match_scheme: 'player_chat', command: "link \"@a\", \"%message%\"", system: 't'
+ServerCallback.send sym, name: 'Check Version', pattern: "/^@server version$/i", match_scheme: 'player_chat', command: "say \"@a\", \"CobbleBot version %cobblebot_version%\"\nsay_link \"@a\", \"http://github.com/inertia186/cobblebot\", only_title: true", system: 't'
+ServerCallback.send sym, name: 'Autolink', pattern: "/http/i", match_scheme: 'player_chat', command: "say_link \"@a\", \"%message%\", nick: \"%nick%\"", system: 't'
 ServerCallback.send sym, name: 'Message of the Day', pattern: "/([a-z0-9_]+) joined the game/i", match_scheme: 'server_message', command: "tell_motd \"%1%\"", system: 't'
 ServerCallback.send sym, name: 'Sync Me', pattern: "/^@server syncme$/i", match_scheme: 'player_chat', command: "# This command will sometimes help players who are stuck.\nplay_sound \"%nick%\", \"smb_pipe\"\ntp \"%nick%\", \"~ ~ ~\"", cooldown: '+3 seconds', system: 't'
 ServerCallback.send sym, name: 'Autosync', pattern: "/^([a-zA-Z0-9_]+) moved wrongly!/", match_scheme: 'server_message', command: "# This command will sometimes help players who are stuck, automatically.\ntp \"%1%\", \"~ ~ ~\"", system: 't'
@@ -29,8 +27,9 @@ ServerCallback.send sym, name: 'Player Authenticated', pattern: "/UUID of player
 ServerCallback.send sym, name: 'Latest Player Chat', pattern: "/.*/", match_scheme: 'player_chat', command: "update_player_last_chat \"%nick%\", \"%message%\"", system: 't'
 ServerCallback.send sym, name: 'Latest Player IP', pattern: "/([a-zA-Z0-9_]+)\\[\\/([0-9\.]+):.+\\] logged in with entity id/", match_scheme: 'server_message', command: "update_player_last_ip \"%1%\", \"%2%\"", system: 't'
 ServerCallback.send sym, name: 'Player Logged Out', pattern: "/^([a-zA-Z0-9_]+) lost connection/", match_scheme: 'server_message', command: "irc_event \"%1% left the game\"\ntouch_player_last_logged_out \"%1%\"", system: 't'
-ServerCallback.send sym, name: 'Player Check', pattern: "/^@server playercheck ([a-z0-9_]+)$/i", match_scheme: 'player_chat', command: "say_playercheck \"%1%\"", system: 't'
+ServerCallback.send sym, name: 'Player Check', pattern: "/^@server playercheck ([a-z0-9_]+)$/i", match_scheme: 'player_chat', command: "say_playercheck \"@a\", \"%1%\"", system: 't'
 ServerCallback.send sym, name: 'IRC Reply', pattern: "/^@irc (.*)$/i", match_scheme: 'player_chat', command: "irc_reply \"%nick%\", \"%1%\"", system: 't'
+ServerCallback.send sym, name: 'Slap', pattern: "/^@server slap(.*)/i", match_scheme: 'player_chat', command: "target = \"%1%\".strip\n\nif target.present?\n  emote \"@a\", McSlap.slap(target)\nelse\n  emote \"@a\", \"has \#{McSlap.combinations} slap combinations, see:\"\n  say_link \"@a\", \"https://gist.github.com/inertia186/5002463\", only_title: true\nend", system: 't'
 
 # Player initialted sounds ...
 ServerCallback.send sym, name: 'To The Batcave!', pattern: "/^to the/i", match_scheme: 'player_chat', command: "play_sound \"@a\", \"to_the_batcave\"", cooldown: '+15 minutes', system: 'f'
@@ -88,5 +87,11 @@ ServerCallback.send sym, name: 'Repopulation', pattern: "/Repopulation/", match_
 ServerCallback.send sym, name: 'Diamonds to you', pattern: "/Diamonds to you/", match_scheme: 'server_message', command: "play_sound \"@a\", \"smb_coin\"", system: 'f'
 ServerCallback.send sym, name: 'Overpowered', pattern: "/Overpowered/", match_scheme: 'server_message', command: "play_sound \"@a\", \"sm64_key_get\"", system: 'f'
 
-ServerCallback.where.not(system: true).update_all('system = \'f\'')
-ServerCallback.where.not(enabled: false).update_all('enabled = \'t\'')
+# Miscellaneous
+ServerCallback.send sym, name: 'Number Guess', pattern: "/^@server numberguess(.*)$/i", match_scheme: 'player_chat', command: "# Number Guess.  This is a demonstration of how to store variables.  A new\n# number is picked every so often, usually whenever the worker restarts.\n\nargs = \"%1%\"\n\nif args.empty?\n  say \"@a\", \"Pick a number between 1 and 1000.  Each guess costs one Level of XP.  If you win, you get levels as a prize (more guesses = lower prize).  There is a random time limit on the secret number.  Multiple players may play simultaneously, but only the first correct guess wins. To guess, type: @server numberguess <guess>\", \"dark_purple\"\n\n  return\nend\n\nif @number.nil?\n  say \"@a\", \"A new secret number has been picked.\", \"green\"\n  @number ||= Random.rand(1000) + 1\n  @guess_count = 14\nend\n\nguess = args.split(' ')[0].to_i\n\nexecute \"xp -1L %nick%\"\n\n# Unfortunately, there's not a simple way to tell if the player reaches zero levels.\n\n@guess_count = @guess_count - 1\n\nsay \"@a\", \"%nick% guessed \#{guess}.  Too high.  Try again.\", \"red\" and return if guess > @number\nsay \"@a\", \"%nick% guessed \#{guess}.  Too low.  Try again.\", \"gold\" and return if guess < @number\n\n@guess_count = 0 if @guess_count < 0\nsay \"@a\", \"%nick% guessed it and won \#{pluralize @guess_count, 'level'}!  The number was \#{guess}!\", \"green\"\nexecute \"xp \#{@guess_count}L %nick%\"\n@number = nil", system: 'f'
+ServerCallback.send sym, name: 'Grammar Nazi #001', pattern: "/([a-z]+ould) of/i", match_scheme: 'player_chat', command: "# When people say \"could of\" or similar, this command corrects them with\n# \"could have\" or similar.\n\nreturn if \"%message%\" =~ /of course/i\n\nThread.start do\n  sleep 5 # Don't reply right away.\n  say \"@a\", \"*%1% have\"\nend", cooldown: '+30 seconds', system: 'f'
+ServerCallback.send sym, name: 'Dijon?', pattern: "/an expensive ([a-z]{4,})/i", match_scheme: 'player_chat', command: "Thread.start do\n  sleep 5\n  say \"@a\", \"Dijon %1%?\"\nend", cooldown: '+30 seconds', system: 'f'
+ServerCallback.send sym, name: 'Embiggen', pattern: "/embiggen/i", match_scheme: 'player_chat', command: "Thread.start do\n  sleep 5\n  say \"@a\", \"... a perfectly cromulent word.\"\nend", cooldown: '+30 seconds', system: 'f'
+ServerCallback.send sym, name: 'Captain Obvious', pattern: "/([a-z]+) [a-z]+ (is|are) \\1/i", match_scheme: 'player_chat', command: "Thread.start do\n  sleep 5\n  say \"@a\", \"We have a Captain Obvious over here.\"\nend", cooldown: '+30 seconds', system: 'f'
+ServerCallback.send sym, name: 'CAPS', pattern: "/[A-Z]* [A-Z]* [A-Z]* [A-Z]*/", match_scheme: 'player_chat', command: "say \"@a\", \"Easy on the caps, please.\"", system: 'f'
+ServerCallback.send sym, name: 'Festivus', pattern: "/festivus/i", match_scheme: 'player_chat', command: "say \"@a\", \"... for the rest of us!\"", system: 'f'

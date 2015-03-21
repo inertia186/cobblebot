@@ -2,10 +2,14 @@
   %tr
     %th Name
     %td=callback.name
+      
   %tr
     %th Pattern
     %td
-      %pre{style: 'overflow: auto; white-space: pre-wrap;'}>~ callback.pattern
+      - if !!callback.pretty_pattern
+        ~ callback.pretty_pattern.html_safe
+      - else
+        %pre{style: 'overflow: auto; white-space: pre-wrap;'}>~ callback.pattern
   %tr
     %th{nowrap: :nowrap} Match Scheme
     %td=callback.match_scheme.titleize
@@ -14,7 +18,10 @@
     %td
       .media
         .media-body
-          %pre{style: 'overflow: auto; white-space: pre-wrap;'}>~ callback.command
+          - if !!callback.pretty_command
+            ~ callback.pretty_command.html_safe
+          - else
+            %pre{style: 'overflow: auto; white-space: pre-wrap;'}>~ callback.command
         .media-right= callback_run_link(callback, class: 'btn btn-success btn-xs')
   %tr
     %th Cooldown
@@ -40,11 +47,17 @@
       %code{id: "callback_last_command_output_#{callback.id}"}= callback.last_command_output
 
 .modal-footer
-  - if defined? modal
-    %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close
-  - else
-    = link_to 'Close', admin_server_callbacks_path, class: 'btn btn-default'
-  = callback_edit_link(callback)
-  = callback_enable_link(callback)
-  = callback_delete_link(callback)
+  %span{style: 'float: left;'}
+    = callback_edit_link(callback)
+    = callback_enable_link(callback)
+    = callback_delete_link(callback)
+  %span{style: 'float: right;'}
+    = link_to 'First', admin_server_callbacks_path(), id: :first_callback, class: 'btn btn-default', data: { remote: true, target: '#show_callback'}
+    = link_to 'Previous', admin_server_callbacks_path(), id: :previous_callback, class: 'btn btn-default', data: { remote: true, target: '#show_callback'}
+    = link_to 'Next', admin_server_callbacks_path(), id: :next_callback, class: 'btn btn-default', data: { remote: true, target: '#show_callback'}
+    = link_to 'Last', admin_server_callbacks_path(), id: :last_callback, class: 'btn btn-default', data: { remote: true, target: '#show_callback'}
+    - if defined? modal
+      %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close
+    - else
+      = link_to 'Close', admin_server_callbacks_path, class: 'btn btn-default'
   

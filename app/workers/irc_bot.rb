@@ -103,6 +103,10 @@ class IrcBot < Summer::Connection
   
   # IRC methods
   
+  # This method will reply to the channel or as a private message dpending on
+  # what options are set.  If channel is set, the response goes to the whole
+  # channel.  But if channel is nil, the response is sent privately (or not at
+  # all).
   def reply(options = {})
     sender = options[:sender]
     channel = options[:channel]
@@ -244,7 +248,7 @@ class IrcBot < Summer::Connection
       sleep THROTTLE
       reply sender: sender, channel: channel, reply: "Biomes explored: #{player.explore_all_biome_progress}"
       # TODO get rate:
-      # say "Sum of all trust: ..."
+      # reply sender: sender, channel: channel, reply: "Sum of all trust: ..."
     else
       reply sender: sender, channel: channel, reply: "Player not found: #{nick}"
       sleep THROTTLE
@@ -270,7 +274,7 @@ class IrcBot < Summer::Connection
     words = message.split(' ')
     msg = words[2..-1].join(' ').gsub(/['`"]/, "\'")
 
-    ServerCommand.irc_say sender[:nick], msg
+    ServerCommand.irc_say "@a", sender[:nick], msg
   end
 end
 

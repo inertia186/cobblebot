@@ -87,7 +87,7 @@
     .input-group
       = f.label :command
       %br
-      = f.text_area :command, cols: 80, rows: 15, placeholder: 'say "Hello World"'
+      = f.text_area :command, cols: 70, rows: 15, placeholder: 'say "@a", "Hello World"'
       %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_command'}} ?
       .modal.fade{id: :explain_command, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_command_label', 'aria-hidden' => true}
         .modal-dialog.modal-lg
@@ -102,21 +102,21 @@
                 %tbody
                 %tr
                   %th{nowrap: :nowrap}
-                    %code say "Hello World"
+                    %code say "@a", "Hello World"
                   %td causes the server to output a message to all players
                 %tr
                   %th{nowrap: :nowrap}
-                    %code link "@a", "http://www.mojang.com/"
+                    %code say_link "@a", "http://www.mojang.com/"
                     %br
-                    %code link "@r", "http://www.cnn.com/"
+                    %code say_link "@r", "http://www.cnn.com/"
                   %td causes the server to output a link
                 %tr
                   %th
                     %code %nick%
                   %td
                     %p substitutes player name, if applicable
-                    %p For example, this would cause the server to use the name of the player who initiated the pattern.
-                    %code say "Hello, %nick%!"
+                    %p For example, this would cause the server to use the name of the player who initiated the pattern, only to that player.
+                    %code say "%nick%", "Hello, %nick%!"
                 %tr
                   %th
                     %code %message%
@@ -131,7 +131,7 @@
                       %code /slap (.*)/i
                       then this var becomes the part of the message matched within the parentheses.
                     %p A command using this pattern might be:
-                    %code say "Hey, be nice to %1%!"
+                    %code say "%1%", "Hey, be nice to %1%!"
                     
     .input-group
       = f.label :cooldown
