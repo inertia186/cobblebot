@@ -32,6 +32,9 @@ gem 'minecraft-query'
 # CobbleBot uses mechanize to get the HTML Title when displaying a link to players.
 gem 'mechanize'
 
+# Can be used by callbacks.
+gem 'mc-slap', gist: '5002463'
+
 # CobbleBot uses redis/resque to kick off the log monitor and other stuff.
 gem 'redis'
 gem 'redis-store'

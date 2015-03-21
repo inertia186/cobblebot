@@ -1,3 +1,9 @@
+GIT
+  remote: https://gist.github.com/5002463.git
+  revision: 4a7f2b7074d4f2f87dc34fac4ed5ecc0c20792db
+  specs:
+    mc-slap (0.0.1)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -225,6 +231,7 @@ DEPENDENCIES
   java_properties
   jbuilder (~> 2.0)
   jquery-rails
+  mc-slap!
   mechanize
   minecraft-query
   pry-rails
