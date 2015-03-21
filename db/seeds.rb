@@ -96,5 +96,4 @@ ServerCallback.send sym, name: 'Captain Obvious', pattern: "/([a-z]+) [a-z]+ (is
 ServerCallback.send sym, name: 'CAPS', pattern: "/[A-Z]* [A-Z]* [A-Z]* [A-Z]*/", match_scheme: 'player_chat', command: "say \"@a\", \"Easy on the caps, please.\"", cooldown: '+30 seconds', system: 'f'
 ServerCallback.send sym, name: 'Festivus', pattern: "/festivus/i", match_scheme: 'player_chat', command: "say \"@a\", \"... for the rest of us!\"", system: 'f'
 ServerCallback.send sym, name: 'Muscallonge', pattern: "/muscallonge/i", match_scheme: 'player_chat', command: "say \"@a\", \"You mean, the fish?\"", system: 'f'
-ServerCallback.send sym, name: 'Search Replace', pattern: "/^%s\\/([^\\/]*)\\/([^\\/]*)[\\/]{0,1}$/i", match_scheme: 'player_chat', command: "mmand:
-  "corrected = find_latest_matching_chat_by_nick(\"%nick%\", \"%1%\")\nreturn if corrected.nil?\n\ncorrected.gsub!(%r(%1%)i, \"%2%\")\n\nsay \"@a\", \"%nick% meant: \#{corrected}\"", system: 'f'
+ServerCallback.send sym, name: 'Search Replace', pattern: "/^%s\\/([^\\/]*)\\/([^\\/]*)[\\/]{0,1}$/i", match_scheme: 'player_chat', command: "corrected = find_latest_matching_chat_by_nick(\"%nick%\", \"%1%\")\nreturn if corrected.nil?\n\ncorrected.gsub!(%r(%1%)i, \"%2%\")\n\nsay \"@a\", \"%nick% meant: \#{corrected}\"", system: 'f'
