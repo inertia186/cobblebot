@@ -89,6 +89,8 @@ CobbleBot is limited to information that can be gathered from the server logs.  
 
   * Expand DSL for more complex tasks (like in-game Mail and Web of Trust).
   * Implement more test cases for DSL callback events.
+  * Tutorial and Rules templates.
+  * Books
 
 ## Resource Pack
 
