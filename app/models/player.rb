@@ -51,7 +51,7 @@ class Player < ActiveRecord::Base
   end
   
   def current_location
-    response = ServerCommand.execute("tp #{p.nick} ~ ~ ~")
+    response = ServerCommand.execute("tp #{nick} ~ ~ ~")
     return if response == 'The entity UUID provided is in an invalid format'
     
     response.split(' ')[3..-1].join(' ').split(/[\s,]+/)
