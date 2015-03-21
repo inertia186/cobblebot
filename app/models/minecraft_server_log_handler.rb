@@ -18,6 +18,9 @@ class MinecraftServerLogHandler
   end
 
   def self.execute_command(callback, nick, message)
+    # TODO Escape problem substrings like quotes and double-check selectors
+    # don't matter in tellraw bodies.
+    
     command = callback.command.
       gsub("%message%", "#{message}").
       gsub("%nick%", "#{nick}").

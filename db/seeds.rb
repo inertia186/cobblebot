@@ -29,7 +29,7 @@ ServerCallback.send sym, name: 'Latest Player IP', pattern: "/([a-zA-Z0-9_]+)\\[
 ServerCallback.send sym, name: 'Player Logged Out', pattern: "/^([a-zA-Z0-9_]+) lost connection/", match_scheme: 'server_message', command: "irc_event \"%1% left the game\"\ntouch_player_last_logged_out \"%1%\"", system: 't'
 ServerCallback.send sym, name: 'Player Check', pattern: "/^@server playercheck ([a-z0-9_]+)$/i", match_scheme: 'player_chat', command: "say_playercheck \"@a\", \"%1%\"", system: 't'
 ServerCallback.send sym, name: 'IRC Reply', pattern: "/^@irc (.*)$/i", match_scheme: 'player_chat', command: "irc_reply \"%nick%\", \"%1%\"", system: 't'
-ServerCallback.send sym, name: 'Slap', pattern: "/^@server slap(.*)/i", match_scheme: 'player_chat', command: "target = \"%1%\".strip\n\nif target.present?\n  emote \"@a\", McSlap.slap(target)\nelse\n  emote \"@a\", \"has \#{McSlap.combinations} slap combinations, see:\"\n  say_link \"@a\", \"https://gist.github.com/inertia186/5002463\", only_title: true\nend", system: 't'
+ServerCallback.send sym, name: 'Slap', pattern: "/^@server slap(.*)/i", match_scheme: 'player_chat', command: "target = \"%1%\".strip\n\nif target.present?\n  if target =~ /@r/\n    emote \"@a\", McSlap.slap(random_nick)\n  else\n    emote \"@a\", McSlap.slap(target)\n  end\nelse\n  emote \"@a\", \"has \#{McSlap.combinations} slap combinations, see:\"\n  say_link \"@a\", \"https://gist.github.com/inertia186/5002463\", only_title: true\nend", system: 't'
 
 # Player initialted sounds ...
 ServerCallback.send sym, name: 'To The Batcave!', pattern: "/^to the/i", match_scheme: 'player_chat', command: "play_sound \"@a\", \"to_the_batcave\"", cooldown: '+15 minutes', system: 'f'
@@ -95,3 +95,6 @@ ServerCallback.send sym, name: 'Embiggen', pattern: "/embiggen/i", match_scheme:
 ServerCallback.send sym, name: 'Captain Obvious', pattern: "/([a-z]+) [a-z]+ (is|are) \\1/i", match_scheme: 'player_chat', command: "Thread.start do\n  sleep 5\n  say \"@a\", \"We have a Captain Obvious over here.\"\nend", cooldown: '+30 seconds', system: 'f'
 ServerCallback.send sym, name: 'CAPS', pattern: "/[A-Z]* [A-Z]* [A-Z]* [A-Z]*/", match_scheme: 'player_chat', command: "say \"@a\", \"Easy on the caps, please.\"", cooldown: '+30 seconds', system: 'f'
 ServerCallback.send sym, name: 'Festivus', pattern: "/festivus/i", match_scheme: 'player_chat', command: "say \"@a\", \"... for the rest of us!\"", system: 'f'
+ServerCallback.send sym, name: 'Muscallonge', pattern: "/muscallonge/i", match_scheme: 'player_chat', command: "say \"@a\", \"You mean, the fish?\"", system: 'f'
+ServerCallback.send sym, name: 'Search Replace', pattern: "/^%s\\/([^\\/]*)\\/([^\\/]*)[\\/]{0,1}$/i", match_scheme: 'player_chat', command: "mmand:
+  "corrected = find_latest_matching_chat_by_nick(\"%nick%\", \"%1%\")\nreturn if corrected.nil?\n\ncorrected.gsub!(%r(%1%)i, \"%2%\")\n\nsay \"@a\", \"%nick% meant: \#{corrected}\"", system: 'f'

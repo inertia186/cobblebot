@@ -16,6 +16,10 @@ class Player < ActiveRecord::Base
 
   has_many :links, as: :actor
 
+  def self.max_explore_all_biome_progress
+    all.map(&:explore_all_biome_progress).map(&:to_i).max
+  end
+
   def to_param
     "#{id}-#{nick.parameterize}"
   end

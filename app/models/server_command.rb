@@ -286,4 +286,19 @@ class ServerCommand
   def self.kick(nick, reason = "Have A Nice Day")
     execute "kick #{nick} #{reason}"
   end
+  
+  def self.random_nick
+    Server.players.sample.nick if Server.players.any?
+  end
+  
+  def self.find_latest_matching_chat_by_nick(nick, pattern)
+    server_log = "#{ServerProperties.path_to_server}/logs/latest.log"
+    lines = IO.readlines(server_log)
+    return if lines.nil?
+
+    lines.reject! { |line| line =~ %r(: \<#{nick}\> .*%s*)i }
+    line = lines.select { |line| line =~ %r(: \<#{nick}\> .*#{pattern}.*)i }.last
+    
+    line.split(' ')[4..-1].join(' ') unless line.nil?
+  end
 end
