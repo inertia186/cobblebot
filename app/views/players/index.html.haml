@@ -5,10 +5,21 @@
     of
     = ServerQuery.maxplayers
 
-.row
-  %table.table
-    %tbody
-      - @players.each do |player|
+- if ServerQuery.numplayers
+  .row
+    %table.table
+      %thead
         %tr
-          %td
-            = player
+          %th
+          %th Player
+          %th Logged in
+          %th Biomes Explored
+      %tbody
+        - @nicks.each do |nick|
+          - player = Player.find_by_nick(nick)
+          %tr
+            %td{align: :right}= image_tag "https://minotar.net/avatar/#{nick}/16.png", width: 16, height: 16, alt: nick
+            %td= nick
+            -if !!player
+              %td{title: player.last_login_at}= distance_of_time_in_words_to_now player.last_login_at
+              %td= player.explore_all_biome_progress

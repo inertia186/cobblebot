@@ -1,13 +1,13 @@
 class PlayersController < ApplicationController
   def index
-    @players = []
+    @nicks = []
     
     unless ServerQuery.numplayers == '0'
       result = ServerCommand.execute 'list'
       
-      players = result.split(':')[1]
+      nicks = result.split(':')[1]
 
-      @players += players.split(", ")
+      @nicks += nicks.split(", ")
     end
   end
 end
