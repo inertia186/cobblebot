@@ -12,6 +12,7 @@ class Player < ActiveRecord::Base
     search_nick = "%#{nick.downcase.chars.each.map { |c| c }.join('%')}%"
     where('LOWER(nick) LIKE ? OR LOWER(last_nick) LIKE ?', search_nick, search_nick)
   }
+  scope :logged_in_today, -> { where('players.last_login_at > ?', Time.now.beginning_of_day).order(:last_login_at) }
 
   has_many :links, as: :actor
 
