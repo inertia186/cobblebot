@@ -43,7 +43,7 @@ class Player < ActiveRecord::Base
   end
   
   def explore_all_biome_progress
-    achievements.explore_all_biomes['progress'].count if player_data
+    achievements.explore_all_biomes['progress'].count if player_data rescue 0
   end
   
   def time_since_death
