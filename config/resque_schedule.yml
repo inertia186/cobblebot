@@ -1,2 +1,2 @@
 MinecraftWatchdog:
-  cron: "* * * * *"
+  cron: "*/5 * * * *"
