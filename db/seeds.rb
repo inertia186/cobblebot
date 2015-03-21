@@ -93,5 +93,5 @@ ServerCallback.send sym, name: 'Grammar Nazi #001', pattern: "/([a-z]+ould) of/i
 ServerCallback.send sym, name: 'Dijon?', pattern: "/an expensive ([a-z]{4,})/i", match_scheme: 'player_chat', command: "Thread.start do\n  sleep 5\n  say \"@a\", \"Dijon %1%?\"\nend", cooldown: '+30 seconds', system: 'f'
 ServerCallback.send sym, name: 'Embiggen', pattern: "/embiggen/i", match_scheme: 'player_chat', command: "Thread.start do\n  sleep 5\n  say \"@a\", \"... a perfectly cromulent word.\"\nend", cooldown: '+30 seconds', system: 'f'
 ServerCallback.send sym, name: 'Captain Obvious', pattern: "/([a-z]+) [a-z]+ (is|are) \\1/i", match_scheme: 'player_chat', command: "Thread.start do\n  sleep 5\n  say \"@a\", \"We have a Captain Obvious over here.\"\nend", cooldown: '+30 seconds', system: 'f'
-ServerCallback.send sym, name: 'CAPS', pattern: "/[A-Z]* [A-Z]* [A-Z]* [A-Z]*/", match_scheme: 'player_chat', command: "say \"@a\", \"Easy on the caps, please.\"", system: 'f'
+ServerCallback.send sym, name: 'CAPS', pattern: "/[A-Z]* [A-Z]* [A-Z]* [A-Z]*/", match_scheme: 'player_chat', command: "say \"@a\", \"Easy on the caps, please.\"", cooldown: '+30 seconds', system: 'f'
 ServerCallback.send sym, name: 'Festivus', pattern: "/festivus/i", match_scheme: 'player_chat', command: "say \"@a\", \"... for the rest of us!\"", system: 'f'
