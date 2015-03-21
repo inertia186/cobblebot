@@ -1,4 +1,31 @@
 module Admin::ServerCallbackHelper
+  def callback_status_options_for_select(default = nil)
+    options = [['Status', ''], ['Ready', 'ready'], ['In Cooldown', 'in_cooldown'], ['Enabled', 'enabled'], ['Disabled', 'disabled']]
+
+    options.map do |option|
+      if default == option[1]
+        content_tag(:option, option[0], value: option[1], selected: 'selected')
+      else
+        content_tag(:option, option[0], value: option[1])
+      end
+    end.join.html_safe
+  end
+  
+  def callback_match_scheme_options_for_select(default = nil)
+    label_option = "Match Scheme"
+    options = [label_option] + ServerCallback::ALL_MATCH_SCHEMES
+
+    options.map do |option|
+      if option == label_option
+        content_tag(:option, option, value: '')
+      elsif default == option
+        content_tag(:option, option.titleize, value: option, selected: 'selected')
+      else
+        content_tag(:option, option.titleize, value: option)
+      end
+    end.join.html_safe
+  end
+  
   def callback_ran(callback)
     if !!callback.ran_at
       "#{distance_of_time_in_words_to_now(callback.ran_at)} ago"
