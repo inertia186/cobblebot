@@ -57,6 +57,7 @@ class ServerCommand
       if @rcon.nil? || @rcon_connected_at.nil? || @rcon_connected_at > 15.minutes.ago
         @rcon = RCON::Minecraft.new(ServerProperties.server_ip, ServerProperties.rcon_port)
         @rcon_connected_at = Time.now
+        @rcon_auth_success = nil
       end
 
       begin
