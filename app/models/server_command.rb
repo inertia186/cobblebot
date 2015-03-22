@@ -145,38 +145,62 @@ class ServerCommand
     url = "http#{url.split(' ')[0]}"
     return unless !!url.split('://')[1]
     
-    links = Link.unexpired(url)
-    
-    if links.any?
-      link = links.last
-    else
-      if !!options[:nick]
-        player = Player.find_by_nick(options[:nick])
-        link = Link.create(url: url, actor: player)
+    if !!options[:title]
+      url = url
+      title = if !!options[:only_title]
+        options[:title]
       else
-        link = Link.create(url: url)
+        "#{url.split('/')[2]} :: #{title.strip}"
       end
-    end
-    
-    title = if link.title
-      if !!options[:only_title]
-        link.title.strip
-      else
-        "#{link.url.split('/')[2]} :: #{link.title.strip}"
-      end
+      last_modified_at = Time.now
     else
-      link.url
+      links = Link.unexpired(url)
+
+      if links.any?
+        link = links.last
+      else
+        if !!options[:nick]
+          player = Player.find_by_nick(options[:nick])
+          link = Link.create(url: url, actor: player)
+        else
+          link = Link.create(url: url)
+        end
+      end
+    
+      title = if link.title
+        if !!options[:only_title]
+          link.title.strip
+        else
+          "#{link.url.split('/')[2]} :: #{link.title.strip}"
+        end
+      else
+        link.url
+      end
+      
+      url = link.url
+      title = link.title
+      last_modified_at = link.last_modified_at
     end
     
     execute <<-DONE
       tellraw #{selector} { "text": "", "extra": [{
         "text": "#{title}", "color": "dark_purple", "underlined": "true", "hoverEvent": {
-          "action": "show_text", "value": "Last Modified: #{!!link ? link.last_modified_at : '???'}"
+          "action": "show_text", "value": "Last Modified: #{last_modified_at ? last_modified_at : '???'}"
         }, "clickEvent": {
-          "action": "open_url", "value": "#{link.url}"
+          "action": "open_url", "value": "#{url}"
         }
       }]}
     DONE
+  end
+  
+  def self.say_lmgtfy_link(selector, query)
+    q = URI.encode_www_form([ ["q", query] ])
+    generate_lmgtfy_url = "http://lmgtfy.com/?#{q}"
+    base_url = "http://is.gd/create.php?format=json&url="
+    is_gd_request_url = URI.parse(base_url + generate_lmgtfy_url)
+    url = JSON.parse(Net::HTTP.get_response(is_gd_request_url).body).fetch("shorturl")
+    
+    say_link selector, url, title: query, only_title: true
   end
   
   def self.tell_motd(selector)
@@ -291,13 +315,17 @@ class ServerCommand
     Server.players.sample.nick if Server.players.any?
   end
   
-  def self.find_latest_matching_chat_by_nick(nick, pattern)
+  def self.find_latest_matching_chat_by_nick(nick, containing = nil)
     server_log = "#{ServerProperties.path_to_server}/logs/latest.log"
     lines = IO.readlines(server_log)
     return if lines.nil?
 
-    lines.reject! { |line| line =~ %r(: \<#{nick}\> .*%s*)i }
-    line = lines.select { |line| line =~ %r(: \<#{nick}\> .*#{pattern}.*)i }.last
+    if !!containing
+      lines.reject! { |line| line =~ %r(: \<#{nick}\> .*%s*)i }
+      line = lines.select { |line| line =~ %r(: \<#{nick}\> .*#{containing}.*)i }.last
+    else
+      line = lines.select { |line| line =~ %r(: \<#{nick}\> .*)i }.last
+    end
     
     line.split(' ')[4..-1].join(' ') unless line.nil?
   end
