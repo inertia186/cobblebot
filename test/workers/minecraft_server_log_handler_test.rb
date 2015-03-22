@@ -15,6 +15,17 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute_nil ServerCallback.find_by_name('Player Check').ran_at, 'did not expect nil ran_at'
   end
 
+  def test_autolink
+    cobblebot = Link.where(url: 'http://github.com/inertia186/cobblebot').first
+    cobblebot.update_attribute(:expires_at, 2.days.from_now)
+    
+    assert_no_difference -> { Link.count }, 'did not expect new link record' do
+      MinecraftServerLogHandler.send(:handle_player_chat, '[08:23:03] [Server thread/INFO]: <inertia186> http://github.com/inertia186/cobblebot')
+    end
+    
+    refute_nil ServerCallback.find_by_name('Autolink').ran_at, 'did not expect nil ran_at'
+  end
+
   def test_player_authenticated
     assert_difference -> { Player.count }, 1, 'expect new player' do
       MinecraftServerLogHandler.send(:handle_server_message, '[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')
