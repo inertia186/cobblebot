@@ -97,6 +97,9 @@ class IrcBot < Summer::Connection
         end
       
         sleep 5
+      rescue StandardError => e
+        Rails.logger.error = e.inspect
+        sleep 30
       end while @shall_monitor
     end
   end

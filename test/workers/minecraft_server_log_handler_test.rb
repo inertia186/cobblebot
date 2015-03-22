@@ -40,19 +40,48 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_nil player.last_nick, 'expect last_nick to be nil'
 
     assert_no_difference -> { Player.count }, 'did not expect new player' do
+      MinecraftServerLogHandler.send(:handle_server_message, '[14:12:05] [User Authenticator #23/INFO]: UUID of player yYPlayerYy is f6ddf946-f162-8d48-a21b-ac00929fb848')
+    end
+
+    player.reload
+    assert_equal player.nick, 'yYPlayerYy', 'expected nick to update to new nick'
+    refute_nil player.last_nick, 'expect last_nick to update'
+    refute_equal player.nick, player.last_nick, 'expect last_nick not to be equal to nick'
+
+    assert_no_difference -> { Player.count }, 'did not expect new player' do
       MinecraftServerLogHandler.send(:handle_server_message, '[14:12:05] [User Authenticator #23/INFO]: UUID of player zZPlayerZz is f6ddf946-f162-8d48-a21b-ac00929fb848')
     end
 
     player.reload
     assert_equal player.nick, 'zZPlayerZz', 'expected nick to update to new nick'
-    refute_nil player.last_nick, 'expect last_nick to update'
-    refute_equal player.nick, player.last_nick, 'expect last_nick not to be equal to nick'
+    assert_equal player.last_nick, 'yYPlayerYy', 'expect last_nick to update'
   end
 
   def test_latest_player_chat
+    player = Player.find_by_nick('inertia186')
+    callback = ServerCallback.find_by_name('Latest Player Chat')
+    
     MinecraftServerLogHandler.send(:handle_player_chat, '[15:04:50] [Server thread/INFO]: <inertia186> Hello!')
-    refute_nil ServerCallback.find_by_name('Latest Player Chat').ran_at, 'did not expect nil ran_at'
-    refute_nil Player.find_by_nick('inertia186').last_chat, 'did not expect nil last_chat'
+    refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
+    refute_nil player.reload.last_chat, 'did not expect nil last_chat'
+
+    callback.update_attribute(:ran_at, nil)
+    player.update_attribute(:last_chat, nil)
+    MinecraftServerLogHandler.send(:handle_player_chat, '[15:04:50] [Server thread/INFO]: <inertia186> "quoted"')
+    refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
+    refute_nil player.reload.last_chat, 'did not expect nil last_chat'
+
+    callback.update_attribute(:ran_at, nil)
+    player.update_attribute(:last_chat, nil)
+    MinecraftServerLogHandler.send(:handle_player_chat, '[15:04:50] [Server thread/INFO]: <inertia186> #{0}')
+    refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
+    refute_nil player.reload.last_chat, 'did not expect nil last_chat'
+
+    callback.update_attribute(:ran_at, nil)
+    player.update_attribute(:last_chat, nil)
+    MinecraftServerLogHandler.send(:handle_player_chat, '[15:04:50] [Server thread/INFO]: <inertia186> #{1/0}')
+    refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
+    refute_nil player.reload.last_chat, 'did not expect nil last_chat'
   end
 
   def test_latest_player_ip

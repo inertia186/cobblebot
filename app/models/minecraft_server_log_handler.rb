@@ -20,6 +20,12 @@ class MinecraftServerLogHandler
   def self.execute_command(callback, nick, message)
     # TODO Escape problem substrings like quotes and double-check selectors
     # don't matter in tellraw bodies.
+    message.gsub!(/"/, '\"')
+    message.gsub!(/\#{[^}]+}/, '')
+    
+    pre_eval = nil
+    eval("pre_eval = \"#{message}\"")
+    Rails.logger.warn "Possible problem with pre eval for messsage: \"#{message}\" became \"#{pre_eval}\"" unless message == pre_eval
     
     command = callback.command.
       gsub("%message%", "#{message}").
