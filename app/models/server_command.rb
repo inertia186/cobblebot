@@ -167,6 +167,7 @@ class ServerCommand
         end
       end
     
+      url = link.url
       title = if link.title
         if !!options[:only_title]
           link.title.strip
@@ -176,9 +177,6 @@ class ServerCommand
       else
         link.url
       end
-      
-      url = link.url
-      title = link.title
       last_modified_at = link.last_modified_at
     end
     
@@ -296,7 +294,9 @@ class ServerCommand
           { "color": "white", "text": " ago." }
         ]
       DONE
-      say selector, "<#{player.nick}> #{player.last_chat} #{player.registered? ? '®' : ''}"
+      if !!player.last_chat
+        say selector, "<#{player.nick}> #{player.last_chat}#{player.registered? ? ' ®' : ''}"
+      end
       say selector, "Biomes explored: #{player.explore_all_biome_progress}"
       # TODO get rate:
       # say selector, "Sum of all trust: ..."
