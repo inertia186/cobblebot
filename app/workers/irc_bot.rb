@@ -3,6 +3,7 @@ require 'summer'
 class IrcBot < Summer::Connection
   @queue = :irc_bot
   @shall_monitor = false
+  @bot_started_at = nil
   
   THROTTLE = 1
   OP_COMMANDS = %w(opself opme quit_irc kick latest chatlog rcon)
@@ -35,6 +36,7 @@ class IrcBot < Summer::Connection
   # Summer callbacks
 
   def did_start_up
+    @bot_started_at = Time.now
     Rails.logger.info "Started IRC Bot"
 
     count = IrcReply.destroy_all.size
@@ -97,6 +99,8 @@ class IrcBot < Summer::Connection
         end
       
         sleep 5
+
+        quit_irc if @bot_started_at.nil? || @bot_started_at > 24.hours.ago
       rescue StandardError => e
         Rails.logger.error = e.inspect
         sleep 30
