@@ -214,7 +214,7 @@ class ServerCommand
     Preference.motd.split("\n").each do |line|
       line = line.gsub(/\r/, '')
       if line =~ /^http.*/i
-        link selector, line, only_title: true
+        say_link selector, line, only_title: true
       else
         execute  <<-DONE
           tellraw #{selector} { "text": "#{line}", "color": "green" }
