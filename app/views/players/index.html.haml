@@ -24,7 +24,7 @@
               ago
             %td= player.explore_all_biome_progress
     %tr
-      %th{colspan: 4} Logged in Today
+      %th{colspan: 4} Logged in Today (#{@players_today.count})
       - @players_today.each do |player|
         %tr
           %td{align: :right}= image_tag "https://minotar.net/avatar/#{player.nick}/16.png", width: 16, height: 16, alt: player.nick
