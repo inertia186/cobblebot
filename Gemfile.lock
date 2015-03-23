@@ -225,6 +225,7 @@ PLATFORMS
 
 DEPENDENCIES
   better_errors
+  binding_of_caller
   byebug
   coffee-rails (~> 4.1.0)
   haml
