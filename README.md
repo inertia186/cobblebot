@@ -7,6 +7,16 @@ CobbleBot is a rails application and external scripting tool that interacts with
 
 There is also an optional IRC bot that allows players to interact.
 
+
+## Features
+
+  * Player List + Today's Players
+  * Server Status
+  * Server Callbacks to define custom server behavior and interaction.
+  * Message of the Day
+  * Player tracking by UUID
+  * IRC Bot with in-game messaging
+
 ## Installation
 
     $ mkdir cobblebot
@@ -91,6 +101,7 @@ CobbleBot is limited to information that can be gathered from the server logs.  
   * Implement more test cases for DSL callback events.
   * Tutorial and Rules templates.
   * Books
+  * IP Tracking
 
 ## Resource Pack
 
@@ -109,6 +120,10 @@ To test the resource pack on the default configuration, type the command in the 
 ## Supported environments
 
 * Minecraft 1.8.3
+
+## Get in touch!
+
+If you're using CobbleBot, I'd love to hear from you.  Drop me a line and tell me what you think!
 
 ## Licence
 
