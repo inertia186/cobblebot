@@ -45,6 +45,12 @@ class ServerCallback < ActiveRecord::Base
 
   def valid_command
     eval_check(:command)
+    
+    unless ['player_chat', 'player_emote', 'player_chat_or_emote'].include? match_scheme
+      if command =~ /%nick%/
+        errors[:command] << "cannot reference %nick% in a #{match_scheme.titleize} callback.  Try %1% if you intend to capture the nick yourself."
+      end
+    end
   end
 
   def eval_check key
