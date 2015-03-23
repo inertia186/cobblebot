@@ -56,30 +56,36 @@ module Admin::ServerCallbackHelper
   def callback_last_match(callback)
     return if callback.last_match.nil?
     
+    # FIXME Using the original way instead, without highlighting.  See below.
     content_tag(:code, id: "callback_last_match_#{callback.id}") do
-      pattern = callback.pattern
-      pattern.gsub!(/\(/, '')
-      pattern.gsub!(/\)/, '')
-      pattern.gsub!(/\/\^/, '/')
-      pattern.gsub!(/\$\//, '/')
-      last_match = Rack::Utils.escape_html(callback.last_match.html_safe)
-
-      if match = last_match.scan(eval(pattern)).flatten
-        replacements = match.map do |substring|
-          content_tag(:span, style: 'text-decoration: underline;') do
-            substring
-          end
-        end
-
-        match.each_with_index do |substring, i|
-          last_match.sub!(substring, replacements[i])
-        end
-        
-        last_match.html_safe
-      else
-        last_match
-      end
+      callback.last_match
     end
+    
+    # FIXME This is a failed attempt to highlight matched substrings.
+    # content_tag(:code, id: "callback_last_match_#{callback.id}") do
+    #   pattern = callback.pattern
+    #   pattern.gsub!(/\(/, '')
+    #   pattern.gsub!(/\)/, '')
+    #   pattern.gsub!(/\/\^/, '/')
+    #   pattern.gsub!(/\$\//, '/')
+    #   last_match = Rack::Utils.escape_html(callback.last_match.html_safe)
+    # 
+    #   if match = last_match.scan(eval(pattern)).flatten
+    #     replacements = match.map do |substring|
+    #       content_tag(:span, style: 'text-decoration: underline;') do
+    #         substring
+    #       end
+    #     end
+    # 
+    #     match.each_with_index do |substring, i|
+    #       last_match.sub!(substring, replacements[i])
+    #     end
+    #     
+    #     last_match.html_safe
+    #   else
+    #     last_match
+    #   end
+    # end
   end
   
   def callback_toggle_enabled(callback)
