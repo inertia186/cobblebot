@@ -62,7 +62,7 @@ module Admin::ServerCallbackHelper
       pattern.gsub!(/\)/, '')
       pattern.gsub!(/\/\^/, '/')
       pattern.gsub!(/\$\//, '/')
-      last_match = callback.last_match
+      last_match = Rack::Utils.escape_html(callback.last_match.html_safe)
 
       if match = last_match.scan(eval(pattern)).flatten
         replacements = match.map do |substring|
