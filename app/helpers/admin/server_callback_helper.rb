@@ -53,6 +53,35 @@ module Admin::ServerCallbackHelper
     end
   end
   
+  def callback_last_match(callback)
+    return if callback.last_match.nil?
+    
+    content_tag(:code, id: "callback_last_match_#{callback.id}") do
+      pattern = callback.pattern
+      pattern.gsub!(/\(/, '')
+      pattern.gsub!(/\)/, '')
+      pattern.gsub!(/\/\^/, '/')
+      pattern.gsub!(/\$\//, '/')
+      last_match = callback.last_match
+
+      if match = last_match.scan(eval(pattern)).flatten
+        replacements = match.map do |substring|
+          content_tag(:span, style: 'text-decoration: underline;') do
+            substring
+          end
+        end
+
+        match.each_with_index do |substring, i|
+          last_match.sub!(substring, replacements[i])
+        end
+        
+        last_match.html_safe
+      else
+        last_match
+      end
+    end
+  end
+  
   def callback_toggle_enabled(callback)
     if callback.enabled?
       'Disable'

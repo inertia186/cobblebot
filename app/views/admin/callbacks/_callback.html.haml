@@ -39,8 +39,7 @@
     %td{id: "callback_status_#{callback.id}"}=callback_status(callback)
   %tr
     %th{nowrap: :nowrap} Last Match
-    %td
-      %code{id: "callback_last_match_#{callback.id}"}= callback.last_match
+    %td= callback_last_match(callback)
   %tr
     %th{nowrap: :nowrap} Last Command Output
     %td
