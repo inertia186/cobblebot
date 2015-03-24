@@ -26,6 +26,13 @@ class ServerCallback < ActiveRecord::Base
       enabled.where('server_callbacks.ran_at IS NOT NULL AND datetime(server_callbacks.ran_at, server_callbacks.cooldown) > ?', Time.now)
     end
   }
+  scope :error_flagged, lambda { |error_flagged = true|
+    if error_flagged
+      where('server_callbacks.error_flag_at IS NOT NULL')
+    else
+      where('server_callbacks.error_flag_at IS NULL')
+    end
+  }
   scope :dirty, -> { where("server_callbacks.last_match IS NOT NULL OR server_callbacks.last_command_output IS NOT NULL OR server_callbacks.ran_at IS NOT NULL") }
   scope :needs_prettification, lambda { |needs_prettification = true|
     if needs_prettification
@@ -33,6 +40,16 @@ class ServerCallback < ActiveRecord::Base
     else
       where('server_callbacks.pretty_pattern IS NOT NULL AND server_callbacks.pretty_command IS NOT NULL')
     end
+  }
+  scope :query, lambda { |query|
+    clause = <<-DONE
+      server_callbacks.name LIKE ? OR
+      server_callbacks.pattern LIKE ? OR
+      server_callbacks.last_match LIKE ? OR
+      server_callbacks.last_command_output LIKE ? OR
+      server_callbacks.command LIKE ?
+    DONE
+    where(clause, query, query, query, query, query)
   }
 
   def to_param
@@ -67,14 +84,27 @@ class ServerCallback < ActiveRecord::Base
   end
 
   def ready?
-    return true unless ran_at
+    return true unless ran?
     
-    ServerCallback.ready.include?(self)
+    ServerCallback.where(id: self).ready.any?
   end
   
   def ran!
     self.ran_at = Time.now
     save
+  end
+
+  def ran?
+    ran_at.present?
+  end
+
+  def error_flag!
+    self.error_flag_at = Time.now
+    save
+  end
+
+  def error_flag?
+    error_flag_at.present?
   end
 
   def remove_pretty_pattern

@@ -27,7 +27,7 @@ module Admin::ServerCallbackHelper
   end
   
   def callback_ran(callback)
-    if !!callback.ran_at
+    if !!callback.ran?
       "#{distance_of_time_in_words_to_now(callback.ran_at)} ago"
     else
       'Never'
@@ -36,6 +36,7 @@ module Admin::ServerCallbackHelper
   
   def callback_status_class(callback)
     return 'warning' unless callback.enabled?
+    return 'danger' if callback.error_flag?
     return 'warning' unless callback.ready?
       
     'success'

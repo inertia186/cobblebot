@@ -82,16 +82,22 @@ class ServerCommand
   end
   
   ## Simuates /say
-  def self.say(selector, message, color = "white")
-    execute <<-DONE
-      tellraw #{selector} [{ "color": "white", "text": "[Server] "}, { "color": "#{color}", "text": "#{message}" }]
-    DONE
+  def self.say(selector, message, options = {color: 'white', as: 'Server'})
+    if options[:as].present?
+      execute <<-DONE
+        tellraw #{selector} [{ "color": "white", "text": "[#{options[:as]}] "}, { "color": "#{options[:color]}", "text": "#{message}" }]
+      DONE
+    else
+      execute <<-DONE
+        tellraw #{selector} { "color": "#{options[:color]}", "text": "#{message}" }
+      DONE
+    end
   end
 
   ## Simuates /me
-  def self.emote(selector, message, color = "white")
+  def self.emote(selector, message, options = {color: 'white', as: 'Server'})
     execute <<-DONE
-      tellraw #{selector} {"color": "#{color}", "text":"* Server #{message}"}
+      tellraw #{selector} [{ "color": "white", "text": "* #{options[:as]} "}, { "color": "#{options[:color]}", "text": "#{message}" }]
     DONE
   end
 
@@ -130,9 +136,9 @@ class ServerCommand
   end
 
   ## Simuates /tell
-  def self.tell(selector, message, as = "Server")
+  def self.tell(selector, message, options = {as: 'Server'})
     execute <<-DONE
-      tellraw #{selector} { "color": "gray", "text":"#{as} whispers to you: #{message}" }
+      tellraw #{selector} { "color": "gray", "text":"#{options[:as]} whispers to you: #{message}" }
     DONE
   end
 

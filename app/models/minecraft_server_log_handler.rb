@@ -18,14 +18,21 @@ class MinecraftServerLogHandler
   end
 
   def self.execute_command(callback, nick, message)
-    # TODO Escape problem substrings like quotes and double-check selectors
-    # don't matter in tellraw bodies.
-    message.gsub!(/"/, '\"')
-    message.gsub!(/\#{[^}]+}/, '')
+    callback.update_attribute(:error_flag_at, nil)
     
-    pre_eval = nil
-    eval("pre_eval = \"#{message}\"")
-    Rails.logger.warn "Possible problem with pre eval for messsage: \"#{message}\" became \"#{pre_eval}\"" unless message == pre_eval
+    begin
+      # TODO Escape problem substrings like quotes and double-check selectors
+      # don't matter in tellraw bodies.
+      message_escaped = message.gsub(/"/, '\"')
+      message_escaped = message_escaped.gsub(/\#{[^}]+}/, '')
+
+      pre_eval = nil
+      eval("pre_eval = \"#{message_escaped}\"")
+      Rails.logger.warn "Possible problem with pre eval for messsage: \"#{message}\" became \"#{pre_eval}\"" unless message == pre_eval
+      message = message_escaped
+    rescue StandardError => e
+      Rails.logger.error "Problem escaping message: #{e.inspect}"
+    end
     
     command = callback.command.
       gsub("%message%", "#{message}").
@@ -44,7 +51,7 @@ class MinecraftServerLogHandler
       # TODO clear the error flag
     rescue StandardError => e
       result = e.inspect
-      # TODO set the error flag
+      callback.error_flag!
     end
     
     callback.ran!

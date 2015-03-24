@@ -15,7 +15,7 @@ class Admin::CallbacksController < ApplicationController
     
     if @query.present?
       q = "%#{@query}%"
-      @callbacks = @callbacks.where('server_callbacks.name LIKE ? OR server_callbacks.pattern LIKE ? OR server_callbacks.command LIKE ?', q, q, q)
+      @callbacks = @callbacks.query(q)
     end
 
     if @status.present?
