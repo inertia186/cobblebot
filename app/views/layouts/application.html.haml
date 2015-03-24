@@ -5,7 +5,7 @@
     = stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true
     = javascript_include_tag 'application', 'data-turbolinks-track' => true
     = csrf_meta_tags
-    %meta{name: :viewport, content: "width=device-width"}
+    %meta{name: :viewport, content: "width=808"}
 
 %body{role: :document}
 
@@ -28,6 +28,9 @@
                 = link_to 'Callbacks', admin_server_callbacks_path
               %li{class: active_nav('admin_config_server_properties')}
                 = link_to 'Server Properties', admin_config_server_properties_path
+              - if Rails.env == 'development'
+                %li{class: active_nav('admin_config_console')}
+                  = link_to 'Console', admin_config_console_path, data: { remote: true }
               %li
                 = link_to 'Resque', "http://admin:#{Preference.web_admin_password}@#{admin_resque_server_url.split('://')[1]}", target: '_new'
               %li

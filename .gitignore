@@ -1,5 +1,4 @@
 .DS_Store
-coverage
 .bundle
 db/*.sqlite3
 log/*.log
@@ -14,6 +13,6 @@ db/schema.rb
 public/system/*
 vendor/plugins
 .sass-cache/
-coverage
 dragonfly/*
 resque_web.*
+coverage/*

@@ -203,22 +203,29 @@ class ServerCommand
   
   def self.tell_motd(selector)
     return unless !!Preference.motd
+    results = []
     
-    execute <<-DONE
+    results << execute(
+    <<-DONE
       tellraw #{selector} { "text": "Message of the Day", "color": "green" }
     DONE
-    execute <<-DONE
+    )
+    results << execute(
+    <<-DONE
       tellraw #{selector} { "text": "===", "color": "green" }
     DONE
+    )
 
     Preference.motd.split("\n").each do |line|
       line = line.gsub(/\r/, '')
       if line =~ /^http.*/i
-        say_link selector, line, only_title: true
+        results << say_link(selector, line, only_title: true)
       else
-        execute  <<-DONE
+        results << execute(
+        <<-DONE
           tellraw #{selector} { "text": "#{line}", "color": "green" }
         DONE
+        )
       end
     end
   end
@@ -278,11 +285,13 @@ class ServerCommand
 
   def self.say_playercheck(selector, nick)
     players = Player.any_nick(nick).order(:nick)
+    results = []
     
     if players.any?
       player = players.first
       
-      execute <<-DONE
+      results << execute(
+      <<-DONE
         tellraw #{selector} [
           { "color": "white", "text": "[Server] Latest activity for #{player.nick} was " },
           {
@@ -294,17 +303,20 @@ class ServerCommand
           { "color": "white", "text": " ago." }
         ]
       DONE
+      )
       if !!player.last_chat
-        say selector, "<#{player.nick}> #{player.last_chat}#{player.registered? ? ' ®' : ''}"
+        results << say(selector, "<#{player.nick}> #{player.last_chat}#{player.registered? ? ' ®' : ''}")
       end
-      say selector, "Biomes explored: #{player.explore_all_biome_progress}"
+      results << say(selector, "Biomes explored: #{player.explore_all_biome_progress}")
       # TODO get rate:
       # say selector, "Sum of all trust: ..."
     else
-      say selector, "Player not found: #{nick}"
+      results << say(selector, "Player not found: #{nick}")
       players = Player.search_any_nick(nick)
-      say selector, "Did you mean: #{players.first.nick}" if players.any?
+      results << say(selector, "Did you mean: #{players.first.nick}") if players.any?
     end
+    
+    results
   end
   
   def self.kick(nick, reason = "Have A Nice Day")
