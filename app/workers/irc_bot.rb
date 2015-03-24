@@ -18,7 +18,7 @@ class IrcBot < Summer::Connection
       Rails.logger.info "IRC Bot not started."
     end
     
-    if options['start_irc_bot']
+    if options['start_irc_bot'] && Preference.irc_enabled?
       Rails.logger.info "Starting IRC Bot"
       IrcBot.new(Preference.irc_server_host, Preference.irc_server_port.to_i)
       Rails.logger.info "Stopped IRC Bot"
