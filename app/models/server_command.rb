@@ -1,4 +1,5 @@
 require 'rcon/rcon'
+require 'cgi'
 include ActionView::Helpers::DateHelper
 
 class ServerCommand
