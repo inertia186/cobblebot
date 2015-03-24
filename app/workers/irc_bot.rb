@@ -1,6 +1,8 @@
 require 'summer'
 
 class IrcBot < Summer::Connection
+  attr_accessor :bot_started_at, :shall_monitor
+  
   @queue = :irc_bot
   @shall_monitor = false
   @bot_started_at = nil
@@ -37,7 +39,7 @@ class IrcBot < Summer::Connection
 
   def did_start_up
     self.bot_started_at = Time.now
-    Rails.logger.info "Started IRC Bot"
+    Rails.logger.info "Started IRC Bot at #{@bot_started_at}"
 
     count = IrcReply.destroy_all.size
     Rails.logger.info "Removed stale irc replies: #{count}" if count > 0
@@ -100,7 +102,7 @@ class IrcBot < Summer::Connection
       
         sleep 5
 
-        quit_irc if @bot_started_at.nil? || @bot_started_at > 24.hours.ago
+        quit_irc if @bot_started_at.nil? || @bot_started_at < 24.hours.ago
       rescue StandardError => e
         Rails.logger.error = e.inspect
         sleep 30
