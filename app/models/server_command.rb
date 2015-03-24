@@ -332,6 +332,10 @@ class ServerCommand
   def self.random_nick
     Server.players.sample.nick if Server.players.any?
   end
+
+  def self.all_nicks
+    Server.players.map(&:nick)
+  end
   
   def self.find_latest_chat_by_nick(nick, containing = nil)
     server_log = "#{ServerProperties.path_to_server}/logs/latest.log"
