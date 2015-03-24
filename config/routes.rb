@@ -64,6 +64,7 @@ Rails.application.routes.draw do
     delete 'session' => 'sessions#destroy', as: :destroy_session
     
     get 'config/server_properties' => 'config#show_server_properties'
+    get 'config/console' => 'config#console'
     mount Resque::Server, at: "/resque"
   end
 end
