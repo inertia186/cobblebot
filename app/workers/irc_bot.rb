@@ -36,7 +36,7 @@ class IrcBot < Summer::Connection
   # Summer callbacks
 
   def did_start_up
-    @bot_started_at = Time.now
+    self.bot_started_at = Time.now
     Rails.logger.info "Started IRC Bot"
 
     count = IrcReply.destroy_all.size
