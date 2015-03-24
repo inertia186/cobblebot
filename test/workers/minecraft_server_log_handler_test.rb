@@ -3,6 +3,17 @@ require 'test_helper'
 class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   def setup
     sym = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
+    
+    Preference.path_to_server = "#{Rails.root}/tmp"
+    
+    fake_logs = "#{Preference.path_to_server}/logs"
+    Dir.mkdir(fake_logs) unless File.exists?(fake_logs)
+    fake_latest_log = "#{fake_logs}/latest.log"
+    
+    File.delete(fake_latest_log) if File.exists?(fake_latest_log)
+    File.open(fake_latest_log, 'a') do |f|
+      f << "[15:04:50] [Server thread/INFO]: <inertia186> You try to swing an axe at Shia Labeouf.\n"
+    end
   end
 
   def test_check_version
@@ -156,5 +167,10 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   def test_autosync
     MinecraftServerLogHandler.send(:handle_server_message, '[19:23:22] [Server thread/WARN]: inertia186 moved wrongly!')
     refute_nil ServerCallback.find_by_name('Autosync').ran_at, 'did not expect nil ran_at'
+  end
+
+  def test_search_replace
+    MinecraftServerLogHandler.send(:handle_player_chat, '[15:05:10] [Server thread/INFO]: <inertia186> %s/axe/sword/')
+    refute_nil ServerCallback.find_by_name('Search Replace').ran_at, 'did not expect nil ran_at'
   end
 end
