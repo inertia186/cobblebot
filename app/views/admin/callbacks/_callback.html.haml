@@ -50,12 +50,13 @@
     = callback_edit_link(callback)
     = callback_enable_link(callback)
     = callback_delete_link(callback)
+    = callback_gist_link(callback)
   %span{style: 'float: right;'}
-    = link_to 'First', admin_server_callbacks_path(), id: :first_callback, class: 'btn btn-default', data: { remote: true, target: '#show_callback'}
-    = link_to 'Previous', admin_server_callbacks_path(), id: :previous_callback, class: 'btn btn-default', data: { remote: true, target: '#show_callback'}
-    = link_to 'Next', admin_server_callbacks_path(), id: :next_callback, class: 'btn btn-default', data: { remote: true, target: '#show_callback'}
-    = link_to 'Last', admin_server_callbacks_path(), id: :last_callback, class: 'btn btn-default', data: { remote: true, target: '#show_callback'}
     - if defined? modal
+      = link_to 'First', admin_server_callbacks_path(), id: :first_callback, class: 'btn btn-default', data: { remote: true, target: '#show_callback'}
+      = link_to 'Previous', admin_server_callbacks_path(), id: :previous_callback, class: 'btn btn-default', data: { remote: true, target: '#show_callback'}
+      = link_to 'Next', admin_server_callbacks_path(), id: :next_callback, class: 'btn btn-default', data: { remote: true, target: '#show_callback'}
+      = link_to 'Last', admin_server_callbacks_path(), id: :last_callback, class: 'btn btn-default', data: { remote: true, target: '#show_callback'}
       %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close
     - else
       = link_to 'Close', admin_server_callbacks_path, class: 'btn btn-default'
