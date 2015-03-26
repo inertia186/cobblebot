@@ -1,3 +1,4 @@
+require 'logger'
 require 'summer'
 
 class IrcBot < Summer::Connection
@@ -29,6 +30,16 @@ class IrcBot < Summer::Connection
     end
   end
 
+  def log info
+    @log ||= Logger.new(config[:log_file], 'daily')
+    @log.info info
+  end
+
+  def log_error error
+    @log ||= Logger.new(config[:log_file], 'daily')
+    @log.error error
+  end
+  
   def op_nicks
     ops = Preference.irc_channel_ops
     
@@ -39,16 +50,16 @@ class IrcBot < Summer::Connection
 
   def did_start_up
     self.bot_started_at = Time.now
-    Rails.logger.info "Started IRC Bot at #{@bot_started_at}"
+    log "Started IRC Bot at #{@bot_started_at}"
 
     count = IrcReply.destroy_all.size
-    Rails.logger.info "Removed stale irc replies: #{count}" if count > 0
+    log "Removed stale irc replies: #{count}" if count > 0
     
     monitor_replies
   end
   
   def channel_message sender, channel, message
-    Rails.logger.info "#{sender.inspect} :: #{channel.inspect} :: #{message}"
+    log "#{sender.inspect} :: #{channel.inspect} :: #{message}"
     at, command = message.split(' ')
 
     return unless at == '@cobblebot' || at == '@cb' || at == '@server'
@@ -68,7 +79,7 @@ class IrcBot < Summer::Connection
   end
   
   def private_message sender, bot, message
-    Rails.logger.info "#{sender.inspect} :: (privately) :: #{message}"
+    log "#{sender.inspect} :: (privately) :: #{message}"
     words = message.split(' ')
     command = words[0].downcase
 
@@ -104,7 +115,7 @@ class IrcBot < Summer::Connection
 
         quit_irc if @bot_started_at.nil? || @bot_started_at < 24.hours.ago
       rescue StandardError => e
-        Rails.logger.error = e.inspect
+        log_error e.inspect
         sleep 30
       end while @shall_monitor
     end
@@ -135,7 +146,7 @@ class IrcBot < Summer::Connection
     reply = options[:reply]
 
     response "PRIVMSG #{config[:channel]} :#{reply}"
-    Rails.logger.info ">> #{reply}"
+    log ">> #{reply}"
   end
   
   def nick_msg(options = {})
@@ -143,7 +154,7 @@ class IrcBot < Summer::Connection
     reply = options[:reply]
     msg = "#{sender[:nick]} :#{reply}"
     response "PRIVMSG #{msg}"
-    Rails.logger.info ">> #{msg}"
+    log ">> #{msg}"
   end
   
   # OP Commands
