@@ -74,12 +74,12 @@ class ServerCommand
     nil
   end
   
-  def self.eval_pattern(pattern)
-    eval(pattern)
+  def self.eval_pattern(pattern, name = nil)
+    eval(pattern, Proc.new {}.binding, name)
   end
   
-  def self.eval_command(command)
-    eval(command)
+  def self.eval_command(command, name = nil)
+    eval(command, Proc.new{}.binding, name)
   end
   
   ## Simuates /say

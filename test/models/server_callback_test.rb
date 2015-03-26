@@ -12,7 +12,7 @@ class ServerCallbackTest < ActiveSupport::TestCase
   def test_all_patterns
     ServerCallback.all.find_each do |callback|
       begin
-        eval(callback.pattern)
+        eval(callback.pattern, Proc.new{}.binding)
       rescue SyntaxError => e
         # :nocov:
         fail "SyntaxError while evaluating callback pattern named \"#{callback.name}\":\n#{e.inspect}"

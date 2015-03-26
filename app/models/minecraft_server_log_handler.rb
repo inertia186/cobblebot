@@ -27,7 +27,7 @@ class MinecraftServerLogHandler
       message_escaped = message_escaped.gsub(/\#{[^}]+}/, '')
 
       pre_eval = nil
-      eval("pre_eval = \"#{message_escaped}\"")
+      eval("pre_eval = \"#{message_escaped}\"", Proc.new{}.binding)
       Rails.logger.warn "Possible problem with pre eval for messsage: \"#{message}\" became \"#{pre_eval}\"" unless message == pre_eval
       message = message_escaped
     rescue StandardError => e

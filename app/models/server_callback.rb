@@ -72,7 +72,7 @@ class ServerCallback < ActiveRecord::Base
 
   def eval_check key
     begin
-      catch(:x) { eval("throw :x; #{send(key)};") }
+      catch(:x) { eval("throw :x; #{send(key)};", Proc.new{}.binding) }
     rescue SyntaxError => e
       syntax_error = e
     end
