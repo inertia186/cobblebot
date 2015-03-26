@@ -91,6 +91,12 @@ class Player < ActiveRecord::Base
     Time.parse(Server.banned_players.select { |player| player["uuid"] == uuid }.first['created'])
   end
   
+  def banned_reason
+    nil unless banned?
+    
+    Server.banned_players.select { |player| player["uuid"] == uuid }.first['reason']
+  end
+  
   def ban!(reason = '')
     ServerCommand.execute("ban #{nick} #{reason}")
   end
