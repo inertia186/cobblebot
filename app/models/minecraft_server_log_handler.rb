@@ -39,15 +39,15 @@ class MinecraftServerLogHandler
       gsub("%nick%", "#{nick}").
       gsub("%cobblebot_version%", COBBLEBOT_VERSION)
 
-    message.match(ServerCommand.eval_pattern(callback.pattern)).captures.each_with_index do |capture, index|
+    message.match(ServerCommand.eval_pattern(callback.pattern, callback.to_param)).captures.each_with_index do |capture, index|
       command.gsub!("%#{index + 1}%", "#{capture}")
-    end if message.match(ServerCommand.eval_pattern(callback.pattern))
+    end if message.match(ServerCommand.eval_pattern(callback.pattern, callback.to_param))
 
     # Remove matched vars.
     command.gsub!(/%[^%]*%/, '')
 
     begin
-      result = ServerCommand.eval_command(command)
+      result = ServerCommand.eval_command(command, callback.to_param)
       # TODO clear the error flag
     rescue StandardError => e
       result = e.inspect
@@ -132,7 +132,7 @@ private
 
   def self.handle_message(callback, player, message, line)
     case message
-    when ServerCommand.eval_pattern(callback.pattern)
+    when ServerCommand.eval_pattern(callback.pattern, callback.to_param)
       execute_command(callback, player, message)
       callback.update_attribute(:last_match, line)
     end
