@@ -29,6 +29,9 @@ gem 'java_properties'
 # CobbleBot uses minecraft-query to do basic queries on a Minecraft Server.
 gem 'minecraft-query'
 
+# CobbleBot uses file-tail to read latest.log of the Minecraft Server.
+gem 'file-tail'
+
 # CobbleBot uses mechanize to get the HTML Title when displaying a link to players.
 gem 'mechanize'
 
@@ -78,5 +81,6 @@ group :development, :test do
   gem 'binding_of_caller'
 
   gem 'pry-rails'
+  gem 'malp', github: 'inertia186/malp'
 end
 
