@@ -13,6 +13,35 @@ class Player < ActiveRecord::Base
     where('LOWER(nick) LIKE ? OR LOWER(last_nick) LIKE ?', search_nick, search_nick)
   }
   scope :logged_in_today, -> { where('players.last_login_at > ?', Time.now.beginning_of_day).order(:last_login_at) }
+  scope :opped, lambda { |opped = true|
+    if opped
+      where(uuid: Server.ops.map { |player| player["uuid"] })
+    else
+      where.not(uuid: Server.ops.map { |player| player["uuid"] })
+    end
+  }
+  scope :whitelisted, lambda { |whitelisted = true|
+    if whitelisted
+      where(uuid: Server.whitelist.map { |player| player["uuid"] })
+    else
+      where.not(uuid: Server.whitelist.map { |player| player["uuid"] })
+    end
+  }
+  scope :banned, lambda { |banned = true|
+    if banned
+      where(uuid: Server.banned_players.map { |player| player["uuid"] })
+    else
+      where.not(uuid: Server.banned_players.map { |player| player["uuid"] })
+    end
+  }
+  scope :matching_last_ip, lambda { |ip, matching_last_ip = true|
+    if matching_last_ip
+      where(last_ip: ip)
+    else
+      where.not(last_ip: ip)
+    end
+  }
+  scope :matching_banned_ip, lambda { |matching_banned_ip = true| matching_last_ip(Player.banned.select(:last_ip), matching_banned_ip) }
 
   has_many :links, as: :actor
 
@@ -24,12 +53,46 @@ class Player < ActiveRecord::Base
     "#{id}-#{nick.parameterize}"
   end
   
+  def logged_in?
+    Server.players.include? self
+  end
+  
   def registered?
     !!registered_at
   end
 
   def vetted?
     !!vetted_at
+  end
+  
+  def opped?
+    Server.ops.map { |player| player["uuid"] }.include? uuid
+  end
+  
+  def whitelisted?
+    Server.whitelist.map { |player| player["uuid"] }.include? uuid
+  end
+  
+  def whitelist!(yes = true)
+    if yes
+      ServerCommand.execute("whitelist add #{nick}")
+    else
+      ServerCommand.execute("whitelist remove #{nick}")
+    end
+  end
+  
+  def banned?
+    Server.banned_players.map { |player| player["uuid"] }.include? uuid
+  end
+  
+  def banned_at
+    nil unless banned?
+    
+    Time.parse(Server.banned_players.select { |player| player["uuid"] == uuid }.first['created'])
+  end
+  
+  def ban!(reason = '')
+    ServerCommand.execute("ban #{nick} #{reason}")
   end
   
   def last_activity_at
