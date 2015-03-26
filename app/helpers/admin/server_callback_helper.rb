@@ -71,7 +71,7 @@ module Admin::ServerCallbackHelper
     #   pattern.gsub!(/\$\//, '/')
     #   last_match = Rack::Utils.escape_html(callback.last_match.html_safe)
     # 
-    #   if match = last_match.scan(eval(pattern)).flatten
+    #   if match = last_match.scan(eval(pattern, Proc.new{}.binding)).flatten
     #     replacements = match.map do |substring|
     #       content_tag(:span, style: 'text-decoration: underline;') do
     #         substring
@@ -103,6 +103,14 @@ module Admin::ServerCallbackHelper
   
   def callback_run_link(callback, options = {class: 'btn btn-success'})
     link_to 'Run', execute_command_admin_server_callback_path(callback), class: options[:class], data: { remote: true }
+  end
+  
+  # TODO Figure out if there's a simple way to just start a gist without
+  # implementing the full gist api.
+  def callback_gist_link(callback, options = {class: 'btn btn-success'})
+    return nil
+    
+    link_to 'Gist', gist_callback_admin_server_callback_path(callback), class: options[:class], target: :gist
   end
   
   def callback_edit_link(callback, options = {class: 'btn btn-info btn'})

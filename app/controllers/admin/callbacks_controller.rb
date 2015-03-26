@@ -115,6 +115,12 @@ class Admin::CallbacksController < ApplicationController
     end
   end
 
+  def gist_callback
+    @callback = ServerCallback.find(params[:id])
+    
+    redirect_to 'https://gist.github.com/'
+  end
+
   def reset_cooldown
     @callback = ServerCallback.find(params[:id])
     
