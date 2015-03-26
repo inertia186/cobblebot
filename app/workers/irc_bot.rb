@@ -298,6 +298,8 @@ module Summer
       @config[:channels] << @config[:channel] = Preference.irc_channel if !!Preference.irc_channel
       @config[:nickserv_password] = Preference.irc_nickserv_password if !!Preference.irc_nickserv_password
       @config[:log_file] = "#{Rails.root}/log/irc.log"
+      
+      File.open(@config[:log_file], 'a').close
     end
   end
 end
