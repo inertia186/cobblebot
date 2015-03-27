@@ -1,12 +1,10 @@
 class Server
   def self.server_icon_path
-    raise StandardError.new("Server Path not set.") if ServerProperties.path_to_server.nil?
-    
     @server_icon_path ||= "#{ServerProperties.path_to_server}/server-icon.png"
   end
 
   def self.server_icon
-    File.binread(server_icon_path) if File.exists? server_icon_path
+    File.binread(server_icon_path) if File.exists? server_icon_path rescue return
   end
   
   def self.players
