@@ -11,7 +11,11 @@ module ApplicationHelper
   end
   
   def sortable_header_link(name, field)
-    options = params.merge(action: controller.action_name, sort_field: field, page: nil, query: params[:query], sort_order: params[:sort_order] == 'asc' ? 'desc' : 'asc')
+    sort_order = params[:sort_order] == 'asc' ? 'desc' : 'asc'
+    current_field = params[:sort_field] || @sort_field
+    name = "#{name} #{sort_order == 'asc' ? '⬆︎' : '⬇︎'}" if !!current_field && current_field == field
+    options = params.merge(action: controller.action_name, sort_field: field, page: nil, query: params[:query], sort_order: sort_order)
+    
     link_to name, url_for(options)
   end
   
