@@ -1,0 +1,23 @@
+%tr{id: "link_tr_#{link.id}", data: { id: link.id } }
+  %td.clickable-cell=link.title
+  %td.clickable-cell=created(link.created_at)
+  %td
+    %span{style: 'float: right'}
+      = link_to 'Show', admin_link_path(link), class: 'btn btn-info btn-xs', data: { remote: true, toggle: :modal, target: '#show_link'}
+      .modal.fade{id: :show_link, tabindex: -1, role: :dialog, 'aria-labelledby' => 'show_link_label', 'aria-hidden' => true}
+        .modal-dialog.modal-lg
+          .modal-content
+            .modal-header
+              %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+                %span{'aria-hidden' => true} &times;
+              %h4.modal-title#show_link_label Loading ...
+            .modal-body{id: 'show_link_body'}
+              %iframe{src: link.url, width: '640', height: '480'}
+      = link_delete_link(link, class: 'btn btn-danger btn-xs')
+
+    :javascript
+      jQuery(document).ready(function($) {
+        $("#link_tr_#{link.id} .clickable-cell").click(function() {
+          window.open('#{link.url}', '#{link.to_param}');
+        });
+      });

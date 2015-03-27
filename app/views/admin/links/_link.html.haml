@@ -1,0 +1,14 @@
+%iframe{src: link.url, width: '100%', height: 480}
+
+.modal-footer
+  %span{style: 'float: left;'}
+    = link_delete_link(link)
+  %span{style: 'float: right;'}
+    - if defined? modal
+      = link_to 'First', admin_links_path(), id: :first_link, class: 'btn btn-default', data: { remote: true, target: '#show_link'}
+      = link_to 'Previous', admin_links_path(), id: :previous_link, class: 'btn btn-default', data: { remote: true, target: '#show_link'}
+      = link_to 'Next', admin_links_path(), id: :next_link, class: 'btn btn-default', data: { remote: true, target: '#show_link'}
+      = link_to 'Last', admin_links_path(), id: :last_link, class: 'btn btn-default', data: { remote: true, target: '#show_link'}
+      %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close
+    - else
+      = link_to 'Close', admin_links_path, class: 'btn btn-default'
