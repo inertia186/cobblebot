@@ -1,5 +1,6 @@
 %tr{id: "link_tr_#{link.id}", data: { id: link.id } }
   %td.clickable-cell=link.title
+  %td.clickable-cell=link.actor.nick if link.actor_type == 'Player'
   %td.clickable-cell=created(link.created_at)
   %td
     %span{style: 'float: right'}
@@ -12,7 +13,7 @@
                 %span{'aria-hidden' => true} &times;
               %h4.modal-title#show_link_label Loading ...
             .modal-body{id: 'show_link_body'}
-              %iframe{src: link.url, width: '640', height: '480'}
+              %img{src: '/images/large_spinner.gif'}
       = link_delete_link(link, class: 'btn btn-danger btn-xs')
 
     :javascript
