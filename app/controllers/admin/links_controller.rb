@@ -17,7 +17,15 @@ class Admin::LinksController < ApplicationController
       @links = @links.query(q)
     end
 
-    @links = @links.order("#{@sort_field} #{@sort_order}")
+    case @sort_field
+    when
+      sort_nulls = 
+      @links = @links.select("links.*, lower(players.nick) AS link_linked_by").
+        joins("LEFT OUTER JOIN players ON ( links.actor_type = 'Player' AND links.actor_id = players.id )").
+        order("#{@sort_field} #{@sort_order}")
+    else
+      @links = @links.order("#{@sort_field} #{@sort_order}")
+    end
   end
   
   def show
