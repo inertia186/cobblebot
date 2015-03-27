@@ -57,7 +57,7 @@ class Link < ActiveRecord::Base
 
     original_title = self.title
     self.url = url
-    self.title = title.gsub(/[^a-zA-Z0-9:?&=#@+*, \.\/\"\[\]\(\)]/, '-').truncate(90)
+    self.title = title.gsub(/[^a-zA-Z0-9:?&=#@+*, \.\/\"\[\]\(\)]/, '-').truncate(90) unless title.nil?
 
     if agent
       self.expires_at = extract_expires_at(agent.page.response)
