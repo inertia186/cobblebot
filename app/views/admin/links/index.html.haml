@@ -1,6 +1,9 @@
 .row
   %h3
     Links
+    - if @player_id
+      by
+      = @player.nick
     %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_links'}} ?
   .modal.fade#explain_links{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_links_label', 'aria-hidden' => true}
     .modal-dialog
@@ -33,7 +36,8 @@
         %thead
           %tr
             %th=sortable_header_link 'Title', 'lower(title)'
-            %th=sortable_header_link 'Linked By', 'link_linked_by'
+            - unless @player_id
+              %th=sortable_header_link 'Linked By', 'link_linked_by'
             %th=sortable_header_link 'Created', 'created_at'
             %th
         %tbody

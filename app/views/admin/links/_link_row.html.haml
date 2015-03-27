@@ -1,7 +1,9 @@
 %tr{id: "link_tr_#{link.id}", data: { id: link.id } }
-  %td.clickable-cell=link.title
-  %td.clickable-cell=link.actor.nick if link.actor_type == 'Player'
-  %td.clickable-cell=created(link.created_at)
+  %td
+    = link_to link.title, link.url, target: link.to_param
+  - unless @player_id
+    %td=link_to link.actor.nick, "?player_id=#{link.actor_id}" if link.actor_type == 'Player'
+  %td=created(link.created_at)
   %td
     %span{style: 'float: right'}
       = link_to 'Show', admin_link_path(link), class: 'btn btn-info btn-xs', data: { remote: true, toggle: :modal, target: '#show_link'}
@@ -16,10 +18,3 @@
               %center
                 %img{src: '/images/large_spinner.gif'}
       = link_delete_link(link, class: 'btn btn-danger btn-xs')
-
-    :javascript
-      jQuery(document).ready(function($) {
-        $("#link_tr_#{link.id} .clickable-cell").click(function() {
-          window.open('#{link.url}', '#{link.to_param}');
-        });
-      });

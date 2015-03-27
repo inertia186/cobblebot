@@ -8,7 +8,14 @@ class Admin::LinksController < ApplicationController
     @match_scheme = params[:match_scheme]
     @sort_field = params[:sort_field].present? ? params[:sort_field] : 'created_at'
     @sort_order = params[:sort_order] == 'desc' ? 'desc' : 'asc'
-    @links = Link.all
+    @player_id = params[:player_id]
+    @player = Player.find @player_id if @player_id
+    
+    if @player
+      @links = @player.links
+    else
+      @links = Link.all
+    end
 
     @links = @links.where('links.created_at BETWEEN ? AND ?', Time.now.beginning_of_day, Time.now.end_of_day) if @filter == 'only_today'
     
