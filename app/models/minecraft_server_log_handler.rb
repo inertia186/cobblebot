@@ -30,6 +30,8 @@ class MinecraftServerLogHandler
       eval("pre_eval = \"#{message_escaped}\"", Proc.new{}.binding)
       Rails.logger.warn "Possible problem with pre eval for messsage: \"#{message}\" became \"#{pre_eval}\"" unless message == pre_eval
       message = message_escaped
+    rescue SyntaxError => e
+      Rails.logger.error "Syntax error escaping message: #{e.inspect}"
     rescue StandardError => e
       Rails.logger.error "Problem escaping message: #{e.inspect}"
     end
