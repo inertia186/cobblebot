@@ -7,7 +7,7 @@ class Admin::LinksController < ApplicationController
     @status = params[:status]
     @match_scheme = params[:match_scheme]
     @sort_field = params[:sort_field].present? ? params[:sort_field] : 'created_at'
-    @sort_order = params[:sort_order] == 'desc' ? 'desc' : 'asc'
+    @sort_order = params[:sort_order] == 'asc' ? 'asc' : 'desc'
     @player_id = params[:player_id]
     @player = Player.find @player_id if @player_id.present?
     

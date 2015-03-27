@@ -6,8 +6,8 @@ class Admin::CallbacksController < ApplicationController
     @query = params[:query]
     @status = params[:status]
     @match_scheme = params[:match_scheme]
-    @sort_field = params[:sort_field].present? ? params[:sort_field] : 'created_at'
-    @sort_order = params[:sort_order] == 'desc' ? 'desc' : 'asc'
+    @sort_field = params[:sort_field].present? ? params[:sort_field] : 'ran_at'
+    @sort_order = params[:sort_order] == 'asc' ? 'asc' : 'desc'
     @callbacks = ServerCallback.all
 
     @callbacks = @callbacks.system if @filter == 'only_system'
