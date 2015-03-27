@@ -14,4 +14,8 @@ module ApplicationHelper
     options = params.merge(action: controller.action_name, sort_field: field, page: nil, query: params[:query], sort_order: params[:sort_order] == 'asc' ? 'desc' : 'asc')
     link_to name, url_for(options)
   end
+  
+  def created(created_at)
+    "#{distance_of_time_in_words_to_now(created_at)} ago"
+  end
 end

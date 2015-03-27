@@ -97,10 +97,6 @@ module Admin::ServerCallbackHelper
     end
   end
 
-  def callback_created(callback)
-    "#{distance_of_time_in_words_to_now(callback.created_at)} ago"
-  end
-  
   def callback_run_link(callback, options = {class: 'btn btn-success'})
     link_to 'Run', execute_command_admin_server_callback_path(callback), class: options[:class], data: { remote: true }
   end
