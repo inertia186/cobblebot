@@ -103,6 +103,8 @@ class ServerCommand
   end
 
   def self.irc_say(selector, irc_nick, message)
+    Rails.logger.info "From IRC: <#{irc_nick}> #{message}"
+    
     if Preference.irc_web_chat_enabled?
       execute <<-DONE
         tellraw #{selector} [
@@ -161,7 +163,7 @@ class ServerCommand
       end
       last_modified_at = Time.now
     else
-      links = Link.unexpired(url)
+      links = Link.expired(false, url)
 
       if links.any?
         link = links.last

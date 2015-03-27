@@ -55,10 +55,10 @@ ServerCallback.send sym, name: 'Burnt', pattern: "/was burnt to a crisp/", match
 ServerCallback.send sym, name: 'Burned', pattern: "/burned to death/", match_scheme: 'server_message', command: "play_sound \"@a\", \"loz_die\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback.send sym, name: 'Lava Swim', pattern: "/tried to swim in lava/", match_scheme: 'server_message', command: "play_sound \"@a\", \"loz_die\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback.send sym, name: 'Cactus Death', pattern: "/pricked/", match_scheme: 'server_message', command: "play_sound \"@a\", \"loz_shield\"", system: 'f'
-ServerCallback.send sym, name: 'Sploded Death', pattern: "/was blown up by/", match_scheme: 'server_message', command: "play_sound \"@a\", \"sadtrombone\"", cooldown: '+15 minutes', system: 'f'
+ServerCallback.send sym, name: 'Sploded to Death', pattern: "/was blown up by/", match_scheme: 'server_message', command: "play_sound \"@a\", \"sadtrombone\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback.send sym, name: 'Anvil Death', pattern: "/squashed/", match_scheme: 'server_message', command: "play_sound \"@a\", \"oot_navi_watch_out\"", system: 'f'
 ServerCallback.send sym, name: 'Bat Death?', pattern: "/by Bat/", match_scheme: 'server_message', command: "play_sound \"@a\", \"to_the_batcave\"", system: 'f'
-ServerCallback.send sym, name: 'Fireball Death', pattern: "/fireballed/", match_scheme: 'server_message', command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"", system: 'f'
+ServerCallback.send sym, name: 'Fireballed to Death', pattern: "/fireballed/", match_scheme: 'server_message', command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"", system: 'f'
 ServerCallback.send sym, name: 'Just Died', pattern: "/died$/", match_scheme: 'server_message', command: "play_sound \"@a\", \"family_guy_bruce_what\"", system: 'f'
 
 # Server sounds ...

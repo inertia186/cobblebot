@@ -68,6 +68,14 @@ class Player < ActiveRecord::Base
   def opped?
     Server.ops.map { |player| player["uuid"] }.include? uuid
   end
+
+  def op!
+    ServerCommand.execute("op #{nick}")
+  end
+  
+  def deop!
+    ServerCommand.execute("deop #{nick}")
+  end
   
   def whitelisted?
     Server.whitelist.map { |player| player["uuid"] }.include? uuid
@@ -99,6 +107,46 @@ class Player < ActiveRecord::Base
   
   def ban!(reason = '')
     ServerCommand.execute("ban #{nick} #{reason}")
+  end
+  
+  def pardon!
+    ServerCommand.execute("pardon #{nick}")
+  end
+  
+  def kick!(reason = 'Have A Nice Day!')
+    ServerCommand.execute("kick #{nick} #{reason}")
+  end
+  
+  def kill!
+    ServerCommand.execute("kill #{nick}")
+  end
+
+  def tp!(options = {})
+    x = options[:x]
+    y = options[:y]
+    z = options[:z]
+    x_rot = options[:x_rot]
+    y_rot = options[:y_rot]
+    target_nick = options[:nick]
+    
+    return ServerCommand.execute("tp #{nick} #{x} #{y} #{z} #{x_rot} #{y_rot}") if !!x && !!y && !!z
+    return ServerCommand.execute("tp #{nick} #{target_nick}") if !!target
+  end
+
+  def spawnpoint!(x, y, z)
+    ServerCommand.execute("spawnpoint #{nick} #{x} #{y} #{z}")
+  end
+  
+  def title(type, json)
+    ServerCommand.execute("title #{nick} #{type} #{json}")
+  end
+
+  def tell(message)
+    ServerCommand.execute("tell #{nick} #{message}")
+  end
+
+  def tellraw(json)
+    ServerCommand.execute("tellraw #{nick} #{json}")
   end
   
   def last_activity_at

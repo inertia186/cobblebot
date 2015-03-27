@@ -61,7 +61,7 @@ Rails.application.routes.draw do
         get :gist_callback
       end
     end
-    resources :links, only: :index
+    resources :links, except: [:new, :create, :edit, :update]
     
     resources :sessions, only: [:new, :create]
     delete 'session' => 'sessions#destroy', as: :destroy_session

@@ -8,15 +8,72 @@ class Link < ActiveRecord::Base
       all
     end
   }
-  scope :unexpired, lambda { |url = nil| optionally_for_url(url).where('expires_at > ?', Time.now) }
-  scope :expired, lambda { |url = nil| optionally_for_url(url).where('expires_at < ?', Time.now) }
+  scope :expired, lambda { |expired = true, url = nil|
+    if expired
+      optionally_for_url(url).where('expires_at IS NULL OR expires_at < ?', Time.now)
+    else
+      optionally_for_url(url).where('expires_at IS NOT NULL AND expires_at > ?', Time.now)
+    end
+  }
+  scope :query, lambda { |query|
+    clause = <<-DONE
+      links.url LIKE ? OR
+      links.title LIKE ?
+    DONE
+    where(clause, query, query)
+  }
   
   after_initialize :populate_from_response
   
-  def populate_from_response
-    return unless new_record?
-    return unless !!url
+  def self.find_or_create_by_url(url)
+    link = find_or_create_by(url: url)
+  end
+
+  def to_param
+    "#{id}-#{url.parameterize}"
+  end
     
+  def populate_from_response(refresh_persisted = false)
+    return unless !!url
+    return if !new_record? && expired? && !refresh_persisted
+
+    if new_record?
+      agent = populate_from_get_response(url, self)
+    
+      return unless agent.page
+    elsif expired?
+      agent = Mechanize.new
+      agent.keep_alive = false
+      agent.open_timeout = 5
+      agent.read_timeout = 5
+      agent.head url
+
+      if agent.page.nil?
+        agent = populate_from_get_response(self.url, self)
+      elsif !!( timestamp = agent.page.response['last-modified'] ) && Time.parse(timestamp) != last_modified_at
+        agent = populate_from_get_response(self.url, self)
+      end
+    end
+
+    original_title = self.title
+    self.url = url
+    self.title = title.gsub(/[^a-zA-Z0-9:?&=#@+*, \.\/\"\[\]\(\)]/, '-').truncate(90)
+
+    if agent
+      self.expires_at = extract_expires_at(agent.page.response)
+      self.last_modified_at = agent.page.response['last-modified'] || Time.now
+    end
+    
+    Rails.logger.warn "Removed characters from: #{original_title}" if title != original_title # FIXME Remove later.
+    
+    self
+  end
+
+  def expired?
+    expires_at.present? && expires_at < Time.now
+  end
+private
+  def populate_from_get_response(url, link)
     begin
       agent = Mechanize.new
       agent.keep_alive = false
@@ -24,32 +81,24 @@ class Link < ActiveRecord::Base
       agent.read_timeout = 5
       agent.get url
 
-      title = if agent.page && defined?(agent.page.title) && agent.page.title
+      link.title = if agent.page && defined?(agent.page.title) && agent.page.title
         agent.page.title.strip
       else
         url
       end
     rescue SocketError => e
-      Rails.logger.warn "Ignoring url: #{url}" && return
+      Rails.logger.warn "Ignoring url: #{link.url}" && return
     rescue Net::OpenTimeout => e
-      title = url
+      link.title = url
     rescue Net::HTTP::Persistent::Error => e
-      title = url
+      link.title = url
     rescue StandardError => e
-      title = e.inspect
+      link.title = e.inspect
     end
 
-    original_title = title
-    self.url = url
-    self.title = title.gsub(/[^a-zA-Z0-9:?&=#@+*, \.\/\"\[\]\(\)]/, '-').truncate(90)
-    
-    return unless agent.page
-
-    self.expires_at = extract_expires_at(agent.page.response)
-    self.last_modified_at = agent.page.response['last-modified'] || Time.now
-    Rails.logger.warn "Removed characters from: #{original_title}" if title != original_title # FIXME Remove later.
+    agent
   end
-private
+
   def extract_expires_at(response)
     response_date = if !!response['date']
       Time.parse(response['date'])

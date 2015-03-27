@@ -3,7 +3,7 @@
   %td.clickable-cell=callback.match_scheme.titleize
   %td.clickable-cell=callback_ran(callback)
   %td.clickable-cell=callback_status(callback)
-  %td.clickable-cell=callback_created(callback)
+  %td.clickable-cell=created(callback.created_at)
   %td
     %span{style: 'float: right'}
       = link_to 'Show', admin_server_callback_path(callback), class: 'btn btn-info btn-xs', data: { remote: true, toggle: :modal, target: '#show_callback'}
