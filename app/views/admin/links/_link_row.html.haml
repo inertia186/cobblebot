@@ -13,7 +13,8 @@
                 %span{'aria-hidden' => true} &times;
               %h4.modal-title#show_link_label Loading ...
             .modal-body{id: 'show_link_body'}
-              %img{src: '/images/large_spinner.gif'}
+              %center
+                %img{src: '/images/large_spinner.gif'}
       = link_delete_link(link, class: 'btn btn-danger btn-xs')
 
     :javascript
