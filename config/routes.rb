@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   # Example resource route (maps HTTP verbs to controller actions automatically):
   resources :status, only: :index
   resources :players, only: :index
+  get 'server-icon.png' => 'resources#server_icon', as: :server_icon
 
   # Example resource route with options:
   #   resources :products do
@@ -60,6 +61,7 @@ Rails.application.routes.draw do
         get :gist_callback
       end
     end
+    resources :links, only: :index
     
     resources :sessions, only: [:new, :create]
     delete 'session' => 'sessions#destroy', as: :destroy_session

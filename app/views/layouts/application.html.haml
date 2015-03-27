@@ -38,7 +38,19 @@
             - else
               %li
                 = link_to 'Log In', new_admin_session_path
-    .navbar-brand{style: 'float: right;'}= ServerProperties.level_name.titleize
+    .navbar-brand{style: 'float: right;'}
+      %span= image_tag server_icon_path, width: 24, height: 24, data: { toggle: :modal, target: '#expand_server_icon'} if !!Server.server_icon
+      %span= ServerProperties.level_name.titleize
+
+.modal.fade#expand_server_icon{tabindex: -1, role: :dialog, 'aria-labelledby' => 'expand_server_icon_label', 'aria-hidden' => true}
+  .modal-dialog
+    .modal-content
+      .modal-header
+        %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+          %span{'aria-hidden' => true} &times;
+        %h4.modal-title#expand_server_icon_label server-icon.png
+      .modal-body
+        %center= image_tag server_icon_path, width: 256, height: 256 if !!Server.server_icon
 
 .container.theme-showcase{role: :main}
   .starter-template
