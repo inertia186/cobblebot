@@ -22,4 +22,19 @@ module ApplicationHelper
   def created(created_at)
     "#{distance_of_time_in_words_to_now(created_at)} ago"
   end
+  
+  def modal_nav_links(path, id)
+    link_to(path, id: "first_#{id}", class: 'btn btn-default', accesskey: 'f', data: { remote: true, target: "#show_#{id}"}) do
+      content_tag(:u) { 'F' } + 'irst'
+    end +
+    link_to(path, id: "previous_#{id}", class: 'btn btn-default', accesskey: 'p', data: { remote: true, target: "#show_#{id}"}) do
+      content_tag(:u) { 'P' } + 'revious'
+    end +
+    link_to(path, id: "next_#{id}", class: 'btn btn-default', accesskey: 'n', data: { remote: true, target: "#show_#{id}"}) do
+      content_tag(:u) { 'N' } + 'ext'
+    end +
+    link_to(path, id: "last_#{id}", class: 'btn btn-default', accesskey: 'l', data: { remote: true, target: "#show_#{id}"}) do
+      content_tag(:u) { 'L' } + 'ast'
+    end
+  end
 end
