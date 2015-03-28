@@ -26,7 +26,7 @@ class Link < ActiveRecord::Base
   after_initialize :populate_from_response
   
   def self.find_or_create_by_url(url)
-    link = find_or_create_by(url: url)
+    find_or_create_by(url: url)
   end
 
   def to_param

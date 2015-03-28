@@ -168,12 +168,9 @@ class ServerCommand
       if links.any?
         link = links.last
       else
-        if !!options[:nick]
-          player = Player.find_by_nick(options[:nick])
-          link = Link.create(url: url, actor: player)
-        else
-          link = Link.create(url: url)
-        end
+        link = Link.find_or_create_by_url(url)
+        link.actor = Player.find_by_nick(options[:nick]) if !!options[:nick]
+        link.save
       end
     
       url = link.url
