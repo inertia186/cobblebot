@@ -13,7 +13,7 @@ class Admin::LinksControllerTest < ActionController::TestCase
   def test_index
     get :index
     links = assigns :links
-    refute_equal links.count, 0, 'did not expect zero count'
+    refute_equal links.count(:all), 0, 'did not expect zero count'
     
     assert_template :index
     assert_response :success
