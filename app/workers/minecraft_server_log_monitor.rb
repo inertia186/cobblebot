@@ -1,7 +1,7 @@
 class MinecraftServerLogMonitor
   @queue = :minecraft_server_log_monitor
 
-  LOG_LENGTH = 1
+  LOG_LENGTH = 100
   MONITOR_TICK = 0.25
 
   def self.before_perform_log_job(*args)
@@ -22,12 +22,16 @@ class MinecraftServerLogMonitor
         server_log_ctime = new_server_log_ctime
         
         File.open(server_log) do |log|
+          unique_lines = []
           log.extend(File::Tail)
-          log.max_interval = MONITOR_TICK * 5
+          log.max_interval = MONITOR_TICK * 2
           log.interval = MONITOR_TICK
           log.backward(0)
           log.tail LOG_LENGTH do |line|
-            MinecraftServerLogHandler.handle line
+            unless unique_lines.include?(line)
+              MinecraftServerLogHandler.handle line
+              unique_lines << line
+            end
           end
         end
       end

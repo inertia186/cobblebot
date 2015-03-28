@@ -68,6 +68,11 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_equal player.last_nick, 'yYPlayerYy', 'expect last_nick to update'
   end
 
+  def test_message_of_the_day
+    MinecraftServerLogHandler.send(:handle_server_message, '[08:57:14] [Server thread/INFO]: inertia186 joined the game')
+    refute_nil ServerCallback.find_by_name('Message of the Day').ran_at, 'did not expect nil ran_at'
+  end
+
   def test_latest_player_chat
     player = Player.find_by_nick('inertia186')
     callback = ServerCallback.find_by_name('Latest Player Chat')
