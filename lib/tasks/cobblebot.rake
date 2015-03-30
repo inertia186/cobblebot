@@ -2,6 +2,7 @@ require 'csv'
 
 namespace :cobblebot do
   PLAYER_KEYS = %w(uuid nick last_nick last_ip last_chat last_login_at last_logout_at registered_at vetted_at created_at updated_at)
+  LINK_KEYS = %w(url title actor_nick expires_at last_modified_at created_at updated_at)
   
   desc 'display the current information of rake'
   task :info do
@@ -26,6 +27,33 @@ namespace :cobblebot do
 
       puts data
     end
+
+    desc 'dump out links to csv'
+    task links: :environment do
+      data = CSV.generate do |csv|
+        csv << LINK_KEYS
+
+        Link.all.find_each do |link|
+          row = []
+          LINK_KEYS.each do |key|
+            case key
+            when 'actor_nick'
+              if !!link.actor
+                row << link.actor.nick
+              else
+                row << nil
+              end
+            else
+              row << link.send(key)
+            end
+          end
+          csv << row
+        end
+
+      end
+
+      puts data
+    end
   end
   
   namespace :import do
@@ -40,19 +68,25 @@ namespace :cobblebot do
         Player.create(player_params)
       end
     end
-  end
-private
-  def dump_csv ( record, keys )
-    keys.each do |key|
-      value = record.send(key).to_s
-      if value =~ /([",])/
-        print "\"#{value.gsub(/([",])/, "\\#{$1}")}\""
-      else
-        print value
+        
+    desc 'pump in links from csv'
+    task links: :environment do
+      CSV.parse(STDIN, headers: true) do |row|
+        link_params = {}
+        LINK_KEYS.each do |key|
+          case key
+          when 'actor_nick'
+            if (nick = row[key]).present?
+              player = Player.any_nick(nick).first
+              link_params[:actor] = player
+            end
+          else
+            link_params[key] = row[key]
+          end
+        end
+
+        Link.create(link_params)
       end
-      print ',' unless key == keys.last
     end
-    
-    print "\n"
   end
 end
