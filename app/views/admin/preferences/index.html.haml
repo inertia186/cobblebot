@@ -21,7 +21,7 @@
               - elsif preference.value == '1'
                 true
               - else
-                = preference.value
+                = preference.value.truncate(60)
             - else
-              = preference.value
+              = preference.value.truncate(60)
           %td= link_to 'Edit', edit_admin_preference_path(preference), class: 'btn btn-info btn-xs'
