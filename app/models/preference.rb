@@ -3,8 +3,8 @@ class Preference < ActiveRecord::Base
   PATH_TO_SERVER = 'path_to_server'
   COMMAND_SCHEME = 'command_scheme'
   MOTD = 'motd'
-  LATEST_RESOURCE_PACK_HASH = 'latest_resource_pack_hash'
-  LATEST_RESOURCE_PACK_TIMESTAMP = 'latest_resource_pack_timestamp'
+  RULES_JSON = 'rules_json'
+  TUTORIAL_JSON = 'tutorial_json'
   IRC_ENABLED = 'irc_enabled'
   IRC_INFO = 'irc_info'
   IRC_WEB_CHAT_ENABLED = 'irc_web_chat_enabled'
@@ -17,12 +17,16 @@ class Preference < ActiveRecord::Base
   IRC_CHANNEL_OPS = 'irc_channel_ops'
   IRC_NICKSERV_PASSWORD = 'irc_nickserv_password'
 
+  # System keys are used internally, typically hidden from the web views.
+  LATEST_RESOURCE_PACK_HASH = 'latest_resource_pack_hash'
+  LATEST_RESOURCE_PACK_TIMESTAMP = 'latest_resource_pack_timestamp'
+
   ALL_KEYS = [
-    WEB_ADMIN_PASSWORD, PATH_TO_SERVER, COMMAND_SCHEME, MOTD,
-    LATEST_RESOURCE_PACK_HASH, LATEST_RESOURCE_PACK_TIMESTAMP, IRC_ENABLED,
-    IRC_INFO, IRC_WEB_CHAT_ENABLED, IRC_WEB_CHAT_URL_LABEL, IRC_WEB_CHAT_URL,
-    IRC_SERVER_HOST, IRC_SERVER_PORT, IRC_NICK, IRC_CHANNEL, IRC_CHANNEL_OPS,
-    IRC_NICKSERV_PASSWORD
+    WEB_ADMIN_PASSWORD, PATH_TO_SERVER, COMMAND_SCHEME, MOTD, RULES_JSON,
+    TUTORIAL_JSON, LATEST_RESOURCE_PACK_HASH, LATEST_RESOURCE_PACK_TIMESTAMP,
+    IRC_ENABLED, IRC_INFO, IRC_WEB_CHAT_ENABLED, IRC_WEB_CHAT_URL_LABEL,
+    IRC_WEB_CHAT_URL, IRC_SERVER_HOST, IRC_SERVER_PORT, IRC_NICK, IRC_CHANNEL,
+    IRC_CHANNEL_OPS, IRC_NICKSERV_PASSWORD
   ]
 
   SYSTEM_KEYS = [
