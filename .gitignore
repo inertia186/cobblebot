@@ -17,3 +17,4 @@ dragonfly/*
 resque_web.*
 coverage/*
 test/models/coverage/*
+todo.*
