@@ -43,7 +43,6 @@ gem 'redis'
 gem 'redis-store'
 gem "resque", require: 'resque/server'
 gem 'resque-scheduler'
-gem 'resque-pool'
 
 # IRC
 gem 'summer'
