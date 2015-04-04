@@ -52,7 +52,7 @@ class IrcBot < Summer::Connection
     self.bot_started_at = Time.now
     log "Started IRC Bot at #{@bot_started_at}"
 
-    count = IrcReply.destroy_all.size
+    count = Message::IrcReply.destroy_all.size
     log "Removed stale irc replies: #{count}" if count > 0
     
     monitor_replies
@@ -102,9 +102,10 @@ class IrcBot < Summer::Connection
     @shall_monitor = true
     @replies = Thread.start do
       begin
+        sleep 15 and next unless Server.up?
         sleep 15 and next unless ServerQuery.numplayers.to_i > 0
         
-        IrcReply.all.find_each do |reply|
+        Message::IrcReply.all.find_each do |reply|
           channel_say(channel: config[:channel], reply: reply.body)
           sleep THROTTLE
         

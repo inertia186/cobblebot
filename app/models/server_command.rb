@@ -74,11 +74,11 @@ class ServerCommand
     nil
   end
   
-  def self.eval_pattern(pattern, name = nil)
+  def self.eval_pattern(pattern, name = nil, options = {})
     eval(pattern, Proc.new {}.binding, name)
   end
   
-  def self.eval_command(command, name = nil)
+  def self.eval_command(command, name = nil, options = {})
     eval(command, Proc.new{}.binding, name)
   end
   
@@ -99,6 +99,33 @@ class ServerCommand
   def self.emote(selector, message, options = {color: 'white', as: 'Server'})
     execute <<-DONE
       tellraw #{selector} [{ "color": "white", "text": "* #{options[:as]} "}, { "color": "#{options[:color]}", "text": "#{message}" }]
+    DONE
+  end
+
+  def self.say_fake_achievement(selector, nick, achievement, hover_text = 'AH YISS', hover_obfuscated = false)
+    if nick =~ /herobrine/i
+      play_sound('@a', 'heretic_wizsit')
+      hover_obfuscated = true
+      hover_text ||= 'Scary'
+    end
+    
+    if hover_obfuscated
+      # Apparently, even setting "obfuscated: true" in the json will not cause
+      # tellraw to make hover text obfuscated.  So, we force it with the old
+      # inline strategy originally introduced by Notch.
+      hover_text = "§k#{hover_text}§r".force_encoding('US-ASCII')
+    end
+
+    execute <<-DONE
+      tellraw #{selector} {
+        text: "#{nick} has just earned the achievement ", extra: [{
+          text: "[#{achievement}]", color: "dark_purple",
+          hoverEvent: {
+            action: "show_text", value: "#{hover_text}",
+            obfuscated: #{hover_obfuscated}
+          }
+        }]
+      }
     DONE
   end
 
@@ -131,11 +158,13 @@ class ServerCommand
   end
 
   def self.irc_reply(nick, message)
-    IrcReply.create(body: "<#{nick}> #{message}")
+    player = Player.find_by_nick(nick)
+    
+    Message::IrcReply.create(body: "<#{nick}> #{message}", author: player)
   end
 
   def self.irc_event(message)
-    IrcReply.create(body: message)
+    Message::IrcReply.create(body: message)
   end
 
   ## Simuates /tell
@@ -240,8 +269,8 @@ class ServerCommand
     execute "execute #{selector} ~ ~ ~ playsound #{sound} @p ~0 ~0 ~0 #{options[:volume]} #{options[:pitch]}"
   end
 
-  def self.tp(selector, destination)
-    execute "tp #{selector} #{destination}"
+  def self.tp(selector, destination, options = {})
+    execute "tp #{selector} #{destination}" unless !!options[:pretend]
   end
   
   def self.player_authenticated(nick, uuid)
@@ -325,6 +354,22 @@ class ServerCommand
     results
   end
   
+  def self.say_rules(selector)
+    return unless (lines = Preference.rules_json).present?
+    
+    lines.split("\n").each do |line|
+      execute "tellraw #{selector} #{line}"
+    end
+  end
+  
+  def self.say_tutorial(selector)
+    return unless (lines = Preference.tutorial_json).present?
+    
+    lines.split("\n").each do |line|
+      execute "tellraw #{selector} #{line}"
+    end
+  end
+  
   def self.kick(nick, reason = "Have A Nice Day")
     execute "kick #{nick} #{reason}"
   end
@@ -350,5 +395,71 @@ class ServerCommand
     end
     
     line.split(' ')[4..-1].join(' ') unless line.nil?
+  end
+  
+  def self.add_tip(nick, tip)
+    return tell(nick, 'Tip not added.  Nice try.') if tip =~ /@@/
+    return tell(nick, 'Tip not added.  Entity selector no longer supported.') if tip =~ /@e/
+    return tell(nick, 'Tip not added.  Sheez, do you know how annoying that selector would be?') if tip =~ /@a/
+    return tell(nick, 'Tip not added.  Similar tip exists.') if Message::Tip.where("lower(messages.body) LIKE ?", "%#{tip.downcase}%").any?
+    
+    author = Player.any_nick(nick).first
+    _tip = Message::Tip.new(body: tip, author: author)
+    
+    if _tip.save
+      tell(nick, 'Tip added, thank you.')
+    else
+      tell(nick, "Tip not added.")
+    end
+  end
+  
+  def self.say_random_tip(selector, nick, keywords = '')
+    @no_tips ||= 0
+    keywords = keywords.split(' ').map(&:strip)
+    
+    tip = Message::Tip.query(keywords).in_cooldown(false).sample
+    
+    if !!tip
+      tip_body = tip.body
+      tip_body.sub!(/@r/, Server.players.sample.nick) while tip_body =~ /@r/
+      tip_body.sub!(/@p/, Server.players.sample.nick) while tip_body =~ /@p/
+      tip_body.sub!(/@e\[c=1\]/, 'Spy Chicken') while tip_body =~ /@e\[c=1\]/
+      tip_body.sub!(/@e/, 'Spy Chicken') while tip_body =~ /@e/
+      tip.update_attribute(:read_at, Time.now) # set cooldown
+      if tip_body =~ /^server/i
+        emote('@a', tip_body.split(' ')[1, -1].join(' '))
+      elsif tip_body =~ /^herobrine/i
+        say_fake_achievement('@a', 'Herobrine', tip_body)
+      elsif tip_body =~ /^slap/i
+        slap('@a', tip_body.split(' ')[1, -1].join(' '))
+      elsif tip_body =~ /^>/i
+        say(selector, tip_body, color: 'green', as: 'Server')
+      else
+        say(selector, tip_body)
+      end
+      
+      # FIXME Doing the simulate_server_message is a security risk until the
+      # pretend flag can be enabled.  For now, just do simlated_player_chat
+      # only.
+      #
+      # result = MinecraftServerLogHandler.simulate_server_message(tip_body)
+      # result = MinecraftServerLogHandler.simulate_player_chat(nick, tip_body) unless !!result
+      MinecraftServerLogHandler.simulate_player_chat(nick, tip_body)
+    else
+      @no_tips += 1
+      if @no_tips < 3
+        say(selector, 'I got nothin.')
+      else
+        say(selector, 'I still got nothin.')
+        @no_tips = 0
+      end
+    end
+  end
+  
+  def self.tips
+    tips = Message::Tip.all
+    tips_in_cooldown = Message::Tip.in_cooldown
+    
+    say('@a', "There are currently #{tips.count} tips.  In cooldown: #{tips_in_cooldown.count}")
   end
 end

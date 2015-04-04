@@ -1,5 +1,6 @@
 class ServerCallback < ActiveRecord::Base
   ALL_MATCH_SCHEMES = %w(any player_chat player_emote player_chat_or_emote server_message)
+  PLAYER_INPUT_MATCH_SCHEMES = %(any player_chat player_emote player_chat_or_emote)
   
   validates :name, presence: true
   validates_uniqueness_of :name, case_sensitive: true
@@ -80,6 +81,17 @@ class ServerCallback < ActiveRecord::Base
     if !!syntax_error
       errors[key] << 'has syntax error(s)'
       errors[:base] << syntax_error
+    end
+  end
+
+  def player_input?(input = nil)
+    case match_scheme
+    when 'any'
+      # FIXME This match scheme will trigger on any log line, if there is a
+      # match.  We now need to determine if the message is from a player.
+      raise NotImplementedError, 'Unable to determine if input is from player'
+    else
+      PLAYER_INPUT_MATCH_SCHEMES.include? match_scheme
     end
   end
 

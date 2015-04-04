@@ -44,6 +44,8 @@ class Player < ActiveRecord::Base
   scope :matching_banned_ip, lambda { |matching_banned_ip = true| matching_last_ip(Player.banned.select(:last_ip), matching_banned_ip) }
 
   has_many :links, as: :actor
+  has_many :messages, -> { where(type: nil) }, as: :recipient
+  has_many :tips, class_name: 'Message::Tip', as: :author
 
   def self.max_explore_all_biome_progress
     all.map(&:explore_all_biome_progress).map(&:to_i).max
@@ -55,6 +57,10 @@ class Player < ActiveRecord::Base
   
   def logged_in?
     Server.players.include? self
+  end
+  
+  def new?
+    created_at.nil? || created_at > 24.hours.ago
   end
   
   def registered?
