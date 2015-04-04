@@ -7,7 +7,6 @@ CobbleBot is a rails application and external scripting tool that interacts with
 
 There is also an optional IRC bot that allows players to interact.
 
-
 ## Features
 
   * Player List + Today's Players
@@ -84,12 +83,49 @@ In IRC, messages can be sent back to the game by typing, for example:
 @cb say Hello, Minecraft!
 ```
 
-
 Enjoy!
+
+## Installation Troubleshooting
+
+### nokogiri
+
+If you're having trouble with nokogiri, you might have some library conflicts.  One solution:
+
+```
+$ bundle config build.nokogiri --use-system-libraries
+```
+
+### better_errors
+
+If you're having trouble with better_errors, you may need to update to a more recent version of ruby.  I suggest [rvm](https://rvm.io/).  If you have rvm, try:
+
+```
+$ rvm install 2.1.5
+```
+
+## Updating CobbleBot
+
+In the alpha stage of development, migrations are non-cumulative.  This means that every time the migrations change, you must drop the database and start from scratch.  To mitigate this, CobbleBot can export data to CSV for re-import after the database is recreated.  When development progresses to beta, migrations will become cumulative so that export/import is not required during update.
+
+Make sure you take note of everything in CobbleBot's admin/preferences, because in alpha, you must enter all of these fields after the update.
+
+To update CobbleBot, make sure the rails server is stopped.  Also stop the resque scheduler and workers.  Once everything has been stopped:
+
+    $ cd cobblebot
+    $ git pull
+    $ rake cobblebot:export:players > players.csv
+    $ rake cobblebot:export:links > links.csv
+    $ rake db:drop
+    $ rake db:migrate
+    $ rake db:seed
+    $ cat players.csv | rake cobblebot:import:players
+    $ cat links.csv | rake cobblebot:import:links
+    
+Now you can start rails and resque.
 
 ## Advantages
 
-CobbleBot does not rely upon any Java API.  It does not require modifications to the server jar.  There are no plugins to Minecraft itself.  This means CobbleBot should (theoretically) run even in snapshots.
+CobbleBot itself does not rely directly upon any Java API.  It does not require modifications to the server jar.  There are no plugins to Minecraft itself.  This means CobbleBot should (theoretically) run even in snapshots.
 
 ## Disadvantages
 
