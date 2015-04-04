@@ -423,6 +423,7 @@ class ServerCommand
       tip_body = tip.body
       tip_body.sub!(/@r/, Server.players.sample.nick) while tip_body =~ /@r/
       tip_body.sub!(/@p/, Server.players.sample.nick) while tip_body =~ /@p/
+      tip_body.sub!(/@e\[c=-1\]/, 'Spy Chicken') while tip_body =~ /@e\[c=-1\]/
       tip_body.sub!(/@e\[c=1\]/, 'Spy Chicken') while tip_body =~ /@e\[c=1\]/
       tip_body.sub!(/@e/, 'Spy Chicken') while tip_body =~ /@e/
       tip.update_attribute(:read_at, Time.now) # set cooldown
