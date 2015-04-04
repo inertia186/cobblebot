@@ -1,4 +1,21 @@
 class Server
+  def self.up?
+    begin
+      query = Query::simpleQuery(ServerProperties.server_ip, ServerProperties.server_port)
+    rescue
+      false
+    end
+    
+    query.class == Hash
+  end
+  
+  def self.latest_log_entry_at
+    return unless up?
+    
+    server_log = "#{ServerProperties.path_to_server}/logs/latest.log"
+    File.ctime(server_log)
+  end
+  
   def self.server_icon_path
     @server_icon_path ||= "#{ServerProperties.path_to_server}/server-icon.png"
   end

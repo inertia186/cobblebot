@@ -12,14 +12,14 @@ class MinecraftServerLogMonitor
     Rails.logger.info "Started #{self}"
 
     server_log = "#{ServerProperties.path_to_server}/logs/latest.log"
-    server_log_ctime = nil
+    latest_log_entry_at = nil
     server_msgs = []
 
     begin
-      new_server_log_ctime = File.ctime(server_log)
+      new_latest_log_entry_at = Server.latest_log_entry_at
 
-      if server_log_ctime != new_server_log_ctime
-        server_log_ctime = new_server_log_ctime
+      if latest_log_entry_at != new_latest_log_entry_at
+        latest_log_entry_at = new_latest_log_entry_at
         
         File.open(server_log) do |log|
           unique_lines = []

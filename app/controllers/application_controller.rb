@@ -11,6 +11,16 @@ class ApplicationController < ActionController::Base
   helper_method :sign_in_admin
   helper_method :admin_signed_in?
 
+  before_filter :check_server_status, unless: Proc.new { self.class.parent == Admin }
+
+  def check_server_status
+    unless Server.up?
+      Rails.logger.error 'Minecraft Server is currently down.'
+    
+      render file: "#{Rails.root}/public/500.html", status: 500
+    end
+  end
+
   def authenticate_admin!
     redirect_to new_admin_session_url unless admin_signed_in?
   end
