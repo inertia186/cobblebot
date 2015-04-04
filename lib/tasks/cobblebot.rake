@@ -168,7 +168,7 @@ namespace :cobblebot do
     desc 'pump in links from csv'
     task links: :environment do
       CSV.parse(STDIN, headers: true) do |row|
-        link_params = {}
+        link_params = {skip_populate_from_response: true}
         LINK_KEYS.each do |key|
           case key
           when 'actor_uuid'

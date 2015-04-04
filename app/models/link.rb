@@ -1,4 +1,6 @@
 class Link < ActiveRecord::Base
+  attr_accessor :skip_populate_from_response
+  
   belongs_to :actor, polymorphic: true
 
   scope :optionally_for_url, lambda { |url = nil|
@@ -34,6 +36,7 @@ class Link < ActiveRecord::Base
   end
     
   def populate_from_response(refresh_persisted = false)
+    return if !!skip_populate_from_response
     return unless !!url
     return if !new_record? && expired? && !refresh_persisted
 
