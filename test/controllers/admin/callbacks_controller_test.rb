@@ -2,7 +2,7 @@ require 'test_helper'
 
 class Admin::CallbacksControllerTest < ActionController::TestCase
   def setup
-    sym = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
+    method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
     session[:admin_signed_in] = true
   end
 

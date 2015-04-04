@@ -2,7 +2,7 @@ require 'test_helper'
 
 class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   def setup
-    sym = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
+    method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
     
     Preference.path_to_server = "#{Rails.root}/tmp"
     

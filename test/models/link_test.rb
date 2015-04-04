@@ -2,7 +2,7 @@ require 'test_helper'
 
 class LinkTest < ActiveSupport::TestCase
   def setup
-    sym = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
+    method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
   end
   
   def test_title

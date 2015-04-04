@@ -6,7 +6,7 @@ class ServerCallbackTest < ActiveSupport::TestCase
   SKIP_CALLBACKS_NAMED = []
   
   def setup
-    sym = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
+    method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
   end
 
   def test_all_patterns
@@ -28,13 +28,13 @@ class ServerCallbackTest < ActiveSupport::TestCase
       begin
         MinecraftServerLogHandler.execute_command(callback, "@a", "Test")
       rescue SyntaxError => e
+        # :nocov:
         if [SKIP_CALLBACKS_NAMED].include? callback.name 
           skip "SyntaxError while evaluating callback command named \"#{callback.name}\":\nCommand: #{callback.command}\n#{e.inspect}"
         else
-          # :nocov:
           fail "SyntaxError while evaluating callback command named \"#{callback.name}\":\nCommand: #{callback.command}\n#{e.inspect}"
-          # :nocov:
         end
+        # :nocov:
       rescue Errno::ENOENT => e
         # skip
       end

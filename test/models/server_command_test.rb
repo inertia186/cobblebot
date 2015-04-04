@@ -2,7 +2,7 @@ require 'test_helper'
 
 class ServerCommandTest < ActiveSupport::TestCase
   def setup
-    sym = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
+    method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
     
     TestServerCommand.commands_executed = nil
   end
@@ -21,23 +21,23 @@ class ServerCommandTest < ActiveSupport::TestCase
   end
 
   # TODO
-  # def test_say_rules
-  #   TestServerCommand.say_rules 'inertia186'
-  #   
-  #   commands = TestServerCommand.commands_executed
-  #   assert_equal 3, commands.size, 'expect three commands'
-  #   assert commands.first =~ %r(Don't do mean things.), 'expect correct rules'
-  #   assert commands.second =~ %r(Don't say mean things.), 'expect correct rules'
-  #   assert commands.last =~ %r(Have fun.), 'expect correct rules'
-  # end
-  # 
-  # def test_say_tutorial
-  #   TestServerCommand.say_tutorial 'inertia186'
-  #   
-  #   commands = TestServerCommand.commands_executed
-  #   assert_equal 1, commands.size, 'expect one command'
-  #   assert commands.first =~ %r(Don't die.), 'expect correct tutorial'
-  # end
+  def test_say_rules
+    TestServerCommand.say_rules 'inertia186'
+    
+    commands = TestServerCommand.commands_executed
+    assert_equal 9, commands.size, 'expect three commands'
+    assert commands.first =~ %r(Server Rules), 'expect correct rules'
+    assert commands.second =~ %r(===), 'expect correct rules'
+    assert commands.last =~ %r(random tip), 'expect correct rules'
+  end
+  
+  def test_say_tutorial
+    TestServerCommand.say_tutorial 'inertia186'
+    
+    commands = TestServerCommand.commands_executed
+    assert_equal 1, commands.size, 'expect one command'
+    assert commands.first =~ %r(Don't die.), 'expect correct tutorial'
+  end
 
   def test_say_playercheck
     TestServerCommand.say_playercheck '@a', 'inertia186'
