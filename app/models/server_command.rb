@@ -428,11 +428,11 @@ class ServerCommand
       tip_body.sub!(/@e/, 'Spy Chicken') while tip_body =~ /@e/
       tip.update_attribute(:read_at, Time.now) # set cooldown
       if tip_body =~ /^server/i
-        emote('@a', tip_body.split(' ')[1, -1].join(' '))
+        emote('@a', tip_body.split(' ')[1..-1].join(' '))
       elsif tip_body =~ /^herobrine/i
         say_fake_achievement('@a', 'Herobrine', tip_body)
       elsif tip_body =~ /^slap/i
-        slap('@a', tip_body.split(' ')[1, -1].join(' '))
+        slap('@a', tip_body.split(' ')[1..-1].join(' '))
       elsif tip_body =~ /^>/i
         say(selector, tip_body, color: 'green', as: 'Server')
       else
