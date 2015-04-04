@@ -420,7 +420,7 @@ class ServerCommand
     tip = Message::Tip.query(keywords).in_cooldown(false).sample
     
     if !!tip
-      tip_body = tip.body
+      tip_body = tip.body.dup
       tip_body.sub!(/@r/, Server.players.sample.nick) while tip_body =~ /@r/
       tip_body.sub!(/@p/, Server.players.sample.nick) while tip_body =~ /@p/
       tip_body.sub!(/@e\[c=-1\]/, 'Spy Chicken') while tip_body =~ /@e\[c=-1\]/
