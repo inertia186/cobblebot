@@ -432,7 +432,7 @@ class ServerCommand
       elsif tip_body =~ /^herobrine/i
         say_fake_achievement('@a', 'Herobrine', tip_body)
       elsif tip_body =~ /^slap/i
-        slap('@a', tip_body.split(' ')[1..-1].join(' '))
+        emote "@a", McSlap.slap(tip_body.split(' ')[1..-1].join(' '))
       elsif tip_body =~ /^>/i
         say(selector, tip_body, color: 'green', as: 'Server')
       else
