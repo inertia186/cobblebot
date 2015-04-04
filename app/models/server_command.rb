@@ -413,6 +413,10 @@ class ServerCommand
     end
   end
   
+  def self.escape(message)
+    message.gsub(/"/, "\"").force_encoding('US-ASCII')
+  end
+  
   def self.say_random_tip(selector, nick, keywords = '')
     @no_tips ||= 0
     keywords = keywords.split(' ').map(&:strip)
@@ -420,7 +424,7 @@ class ServerCommand
     tip = Message::Tip.query(keywords).in_cooldown(false).sample
     
     if !!tip
-      tip_body = tip.body.dup
+      tip_body = escape(tip.body.dup)
       tip_body.sub!(/@r/, Server.players.sample.nick) while tip_body =~ /@r/
       tip_body.sub!(/@p/, Server.players.sample.nick) while tip_body =~ /@p/
       tip_body.sub!(/@e\[c=-1\]/, 'Spy Chicken') while tip_body =~ /@e\[c=-1\]/
