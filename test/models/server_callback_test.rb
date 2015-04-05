@@ -26,7 +26,7 @@ class ServerCallbackTest < ActiveSupport::TestCase
   def test_all_commands
     ServerCallback.all.find_each do |callback|
       begin
-        MinecraftServerLogHandler.execute_command(callback, "@a", "Test")
+        callback.execute_command("@a", "Test")
       rescue SyntaxError => e
         # :nocov:
         if [SKIP_CALLBACKS_NAMED].include? callback.name 
@@ -45,7 +45,7 @@ class ServerCallbackTest < ActiveSupport::TestCase
   def test_error_flag
     callback = ServerCallback.first
     callback.update_attribute(:command, '1/0')
-    MinecraftServerLogHandler.execute_command(callback, "@a", "Test")
+    callback.execute_command("@a", "Test")
     assert callback.ran?, 'expect callback ran'
     assert callback.error_flag?, 'expect callback to have error flag'
   end

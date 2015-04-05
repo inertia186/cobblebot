@@ -17,12 +17,12 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
 
   def test_check_version
-    MinecraftServerLogHandler.send(:handle_player_chat, '[15:17:25] [Server thread/INFO]: <inertia186> @server version')
+    ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server version')
     refute_nil ServerCallback.find_by_name('Check Version').ran_at, 'did not expect nil ran_at'
   end
 
   def test_playercheck
-    MinecraftServerLogHandler.send(:handle_player_chat, '[08:23:03] [Server thread/INFO]: <inertia186> @server playercheck inertia186')
+    ServerCallback::PlayerChat.handle('[08:23:03] [Server thread/INFO]: <inertia186> @server playercheck inertia186')
     refute_nil ServerCallback.find_by_name('Player Check').ran_at, 'did not expect nil ran_at'
   end
 
@@ -31,7 +31,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     cobblebot.update_attribute(:expires_at, 2.days.from_now)
     
     assert_no_difference -> { Link.count }, 'did not expect new link record' do
-      MinecraftServerLogHandler.send(:handle_player_chat, '[08:23:03] [Server thread/INFO]: <inertia186> http://github.com/inertia186/cobblebot')
+      ServerCallback::PlayerChat.handle('[08:23:03] [Server thread/INFO]: <inertia186> http://github.com/inertia186/cobblebot')
     end
     
     refute_nil ServerCallback.find_by_name('Autolink').ran_at, 'did not expect nil ran_at'
@@ -39,19 +39,19 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
 
   def test_player_authenticated
     assert_difference -> { Player.count }, 1, 'expect new player' do
-      MinecraftServerLogHandler.send(:handle_server_message, '[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')
+      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')
     end
     refute_nil ServerCallback.find_by_name('Player Authenticated').ran_at, 'did not expect nil ran_at'
 
     assert_no_difference -> { Player.count }, 'did not expect new player' do
-      MinecraftServerLogHandler.send(:handle_server_message, '[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')
+      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')
     end
 
     player = Player.last
     assert_nil player.last_nick, 'expect last_nick to be nil'
 
     assert_no_difference -> { Player.count }, 'did not expect new player' do
-      MinecraftServerLogHandler.send(:handle_server_message, '[14:12:05] [User Authenticator #23/INFO]: UUID of player yYPlayerYy is f6ddf946-f162-8d48-a21b-ac00929fb848')
+      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player yYPlayerYy is f6ddf946-f162-8d48-a21b-ac00929fb848')
     end
 
     player.reload
@@ -60,7 +60,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute_equal player.nick, player.last_nick, 'expect last_nick not to be equal to nick'
 
     assert_no_difference -> { Player.count }, 'did not expect new player' do
-      MinecraftServerLogHandler.send(:handle_server_message, '[14:12:05] [User Authenticator #23/INFO]: UUID of player zZPlayerZz is f6ddf946-f162-8d48-a21b-ac00929fb848')
+      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player zZPlayerZz is f6ddf946-f162-8d48-a21b-ac00929fb848')
     end
 
     player.reload
@@ -69,7 +69,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
 
   def test_message_of_the_day
-    MinecraftServerLogHandler.send(:handle_server_message, '[08:57:14] [Server thread/INFO]: inertia186 joined the game')
+    ServerCallback::ServerEntry.handle('[08:57:14] [Server thread/INFO]: inertia186 joined the game')
     refute_nil ServerCallback.find_by_name('Message of the Day').ran_at, 'did not expect nil ran_at'
   end
 
@@ -77,31 +77,31 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     player = Player.find_by_nick('inertia186')
     callback = ServerCallback.find_by_name('Latest Player Chat')
     
-    MinecraftServerLogHandler.send(:handle_player_chat, '[15:04:50] [Server thread/INFO]: <inertia186> Hello!')
+    ServerCallback::PlayerChat.handle('[15:04:50] [Server thread/INFO]: <inertia186> Hello!')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
     refute_nil player.reload.last_chat, 'did not expect nil last_chat'
 
     callback.update_attribute(:ran_at, nil)
     player.update_attribute(:last_chat, nil)
-    MinecraftServerLogHandler.send(:handle_player_chat, '[15:04:50] [Server thread/INFO]: <inertia186> "quoted"')
+    ServerCallback::PlayerChat.handle('[15:04:50] [Server thread/INFO]: <inertia186> "quoted"')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
     refute_nil player.reload.last_chat, 'did not expect nil last_chat'
 
     callback.update_attribute(:ran_at, nil)
     player.update_attribute(:last_chat, nil)
-    MinecraftServerLogHandler.send(:handle_player_chat, '[15:04:50] [Server thread/INFO]: <inertia186> #{0}')
+    ServerCallback::PlayerChat.handle('[15:04:50] [Server thread/INFO]: <inertia186> #{0}')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
     refute_nil player.reload.last_chat, 'did not expect nil last_chat'
 
     callback.update_attribute(:ran_at, nil)
     player.update_attribute(:last_chat, nil)
-    MinecraftServerLogHandler.send(:handle_player_chat, '[15:04:50] [Server thread/INFO]: <inertia186> #{1/0}')
+    ServerCallback::PlayerChat.handle('[15:04:50] [Server thread/INFO]: <inertia186> #{1/0}')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
     refute_nil player.reload.last_chat, 'did not expect nil last_chat'
   end
 
   def test_latest_player_ip
-    MinecraftServerLogHandler.send(:handle_server_message, '[17:45:49] [Server thread/INFO]: inertia186[/127.0.0.1:63640] logged in with entity id 7477 at (15.11891680919476, 63.0, 296.4194632969733)')
+    ServerCallback::ServerEntry.handle('[17:45:49] [Server thread/INFO]: inertia186[/127.0.0.1:63640] logged in with entity id 7477 at (15.11891680919476, 63.0, 296.4194632969733)')
     refute_nil ServerCallback.find_by_name('Latest Player IP').ran_at, 'did not expect nil ran_at'
     refute_nil Player.find_by_nick('inertia186').last_ip, 'did not expect nil last_ip'
   end
@@ -109,73 +109,110 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   def test_player_logged_out
     callback = ServerCallback.find_by_name('Player Logged Out')
     
-    MinecraftServerLogHandler.send(:handle_server_message, '[15:29:35] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'Disconnected\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+    ServerCallback::ServerEntry.handle('[15:29:35] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'Disconnected\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
     refute_nil Player.find_by_nick('inertia186').last_logout_at, 'did not expect nil last_chat'
 
     # Variations
     
     callback.update_attribute(:ran_at, nil)
-    MinecraftServerLogHandler.send(:handle_server_message, '[11:44:45] [Server thread/INFO]: inertia186 lost connection: TranslatableComponent{key=\'disconnect.timeout\', args=[], siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+    ServerCallback::ServerEntry.handle('[11:44:45] [Server thread/INFO]: inertia186 lost connection: TranslatableComponent{key=\'disconnect.timeout\', args=[], siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
 
     callback.update_attribute(:ran_at, nil)
-    MinecraftServerLogHandler.send(:handle_server_message, '[19:27:46] [Server thread/INFO]: inertia186 lost connection: TranslatableComponent{key=\'disconnect.genericReason\', args=[Internal Exception: java.io.IOException: Connection reset by peer], siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+    ServerCallback::ServerEntry.handle('[19:27:46] [Server thread/INFO]: inertia186 lost connection: TranslatableComponent{key=\'disconnect.genericReason\', args=[Internal Exception: java.io.IOException: Connection reset by peer], siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
 
     callback.update_attribute(:ran_at, nil)
-    MinecraftServerLogHandler.send(:handle_server_message, '[18:28:53] [Server thread/INFO]: blackhat186 lost connection: TextComponent{text=\'Flying is not enabled on this server\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+    ServerCallback::ServerEntry.handle('[18:28:53] [Server thread/INFO]: blackhat186 lost connection: TextComponent{text=\'Flying is not enabled on this server\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
 
     callback.update_attribute(:ran_at, nil)
-    MinecraftServerLogHandler.send(:handle_server_message, '[10:21:31] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'You logged in from another location\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+    ServerCallback::ServerEntry.handle('[10:21:31] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'You logged in from another location\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
 
     callback.update_attribute(:ran_at, nil)
-    MinecraftServerLogHandler.send(:handle_server_message, '[00:03:37] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'You have been idle for too long!\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+    ServerCallback::ServerEntry.handle('[00:03:37] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'You have been idle for too long!\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
 
     callback.update_attribute(:ran_at, nil)
-    MinecraftServerLogHandler.send(:handle_server_message, '[03:05:08] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'Have a Nice Day!\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+    ServerCallback::ServerEntry.handle('[03:05:08] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'Have a Nice Day!\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
 
     callback.update_attribute(:ran_at, nil)
-    MinecraftServerLogHandler.send(:handle_server_message, '[08:01:11] [Server thread/INFO]: jackass186 lost connection: TextComponent{text=\'disconnect.spam\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+    ServerCallback::ServerEntry.handle('[08:01:11] [Server thread/INFO]: jackass186 lost connection: TextComponent{text=\'disconnect.spam\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
 
     callback.update_attribute(:ran_at, nil)
-    MinecraftServerLogHandler.send(:handle_server_message, '[11:11:38] [Server thread/INFO]: jackass186 lost connection: TextComponent{text=\'Kicked by an operator.\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+    ServerCallback::ServerEntry.handle('[11:11:38] [Server thread/INFO]: jackass186 lost connection: TextComponent{text=\'Kicked by an operator.\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
 
     # Ignore
 
     callback.update_attribute(:ran_at, nil)
-    MinecraftServerLogHandler.send(:handle_server_message, '[15:12:31] [Server thread/INFO]: /127.0.0.1:50472 lost connection: Failed to verify username!')
+    ServerCallback::ServerEntry.handle('[15:12:31] [Server thread/INFO]: /127.0.0.1:50472 lost connection: Failed to verify username!')
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
-    MinecraftServerLogHandler.send(:handle_server_message, '[19:06:04] [Server thread/INFO]: /127.0.0.1:52748 lost connection: Internal Exception: io.netty.handler.codec.DecoderException: The received string length is longer than maximum allowed (22 > 16)')
+    ServerCallback::ServerEntry.handle('[19:06:04] [Server thread/INFO]: /127.0.0.1:52748 lost connection: Internal Exception: io.netty.handler.codec.DecoderException: The received string length is longer than maximum allowed (22 > 16)')
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
-    MinecraftServerLogHandler.send(:handle_server_message, '[09:59:11] [Server thread/INFO]: com.mojang.authlib.GameProfile@77550cf1[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:56157) lost connection: Authentication servers are down. Please try again later, sorry!')
+    ServerCallback::ServerEntry.handle('[09:59:11] [Server thread/INFO]: com.mojang.authlib.GameProfile@77550cf1[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:56157) lost connection: Authentication servers are down. Please try again later, sorry!')
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
-    MinecraftServerLogHandler.send(:handle_server_message, '[13:28:33] [Server thread/INFO]: com.mojang.authlib.GameProfile@22ad3285[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:53908) lost connection: Timed out')
+    ServerCallback::ServerEntry.handle('[13:28:33] [Server thread/INFO]: com.mojang.authlib.GameProfile@22ad3285[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:53908) lost connection: Timed out')
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
-    MinecraftServerLogHandler.send(:handle_server_message, '[00:22:23] [Server thread/INFO]: com.mojang.authlib.GameProfile@622ca134[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:15274) lost connection: Internal Exception: java.io.IOException: Connection reset by peer')
+    ServerCallback::ServerEntry.handle('[00:22:23] [Server thread/INFO]: com.mojang.authlib.GameProfile@622ca134[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:15274) lost connection: Internal Exception: java.io.IOException: Connection reset by peer')
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
-    MinecraftServerLogHandler.send(:handle_server_message, '[17:01:27] [Server thread/INFO]: com.mojang.authlib.GameProfile@e509a8b[id=ffffffff-ffff-ffff-ffff-ffffffffffff,name=blackhat186,properties={textures=[com.mojang.authlib.properties.Property@6688ce2c]},legacy=false] (/127.0.0.1:57235) lost connection: You are banned from this server!')
+    ServerCallback::ServerEntry.handle('[17:01:27] [Server thread/INFO]: com.mojang.authlib.GameProfile@e509a8b[id=ffffffff-ffff-ffff-ffff-ffffffffffff,name=blackhat186,properties={textures=[com.mojang.authlib.properties.Property@6688ce2c]},legacy=false] (/127.0.0.1:57235) lost connection: You are banned from this server!')
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
   end
   
   def test_autosync
-    MinecraftServerLogHandler.send(:handle_server_message, '[19:23:22] [Server thread/WARN]: inertia186 moved wrongly!')
+    ServerCallback::ServerEntry.handle('[19:23:22] [Server thread/WARN]: inertia186 moved wrongly!')
     refute_nil ServerCallback.find_by_name('Autosync').ran_at, 'did not expect nil ran_at'
   end
 
   def test_search_replace
-    MinecraftServerLogHandler.send(:handle_player_chat, '[15:05:10] [Server thread/INFO]: <inertia186> %s/axe/sword/')
+    ServerCallback::PlayerChat.handle('[15:05:10] [Server thread/INFO]: <inertia186> %s/axe/sword/')
     refute_nil ServerCallback.find_by_name('Search Replace').ran_at, 'did not expect nil ran_at'
+  end
+  
+  def test_spam_detect
+    MinecraftServerLogHandler.handle "[08:33:03] [User Authenticator #23/INFO]: UUID of player GracieBoo is a5077378-81eb-4215-96f9-16679e3401cb"
+
+    spam_event = <<-DONE
+      [08:33:03] [Server thread/INFO]: GracieBoo[/127.0.0.1:54212] logged in with entity id 315010 at (5583.5, 40.0, -5573.5)
+      [08:33:03] [Server thread/INFO]: GracieBoo joined the game
+      [08:33:10] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:11] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:12] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:12] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:13] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:13] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:14] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:15] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:16] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:16] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:17] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:17] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:18] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:18] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:19] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:19] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:20] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:20] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+    DONE
+
+    File.open("#{Preference.path_to_server}/logs/latest.log", 'a') do |f|
+      spam_event.each_line do |line|
+        f << line.strip + "\n"
+      end
+    end
+
+    MinecraftServerLogHandler.handle "[08:33:21] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN"
+    refute_nil ServerCallback.find_by_name('Spammy').ran_at, 'did not expect nil ran_at'
+    assert_equal 0.05555555555555555, Player.find_by_nick('GracieBoo').spam_ratio, 'expect spam ratio'
   end
 end
