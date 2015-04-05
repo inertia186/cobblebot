@@ -470,4 +470,31 @@ class ServerCommand
     
     say('@a', "There are currently #{tips.count} tips.  In cooldown: #{tips_in_cooldown.count}")
   end
+  
+  def self.detect_spam(nick, message)
+    server_log = "#{ServerProperties.path_to_server}/logs/latest.log"
+    lines = IO.readlines(server_log)
+    lines = lines[([-(lines.size - 1), -50].max)..-1]
+    return if lines.nil?
+    
+    chat_regex = %r(: \<#{nick}\> .*#{message}.*)i
+    emote_regex = %r(: \* #{nick} .*#{message}.*)i
+    all = []
+
+    lines.each do |line|
+      all << line.split(' ')[3..4].join(' ') if line =~ chat_regex || line =~ emote_regex
+    end
+    
+    return "No spam detected for #{nick}." if all.size == 0
+    
+    ratio = all.uniq.size.to_f / all.size.to_f
+    
+    if ratio <= 0.1
+      execute("kick #{nick} Spammy ratio #{ratio}")
+    elsif ratio <= 0.2
+      say(nick, 'Warning, spam detected.', color: 'yellow', as: 'Server')
+    end
+    
+    Player.find_by_nick(nick).update_attribute(:spam_ratio, ratio)
+  end
 end
