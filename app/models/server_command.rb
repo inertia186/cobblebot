@@ -420,6 +420,7 @@ class ServerCommand
   def self.say_random_tip(selector, nick, keywords = '')
     @no_tips ||= 0
     keywords = keywords.split(' ').map(&:strip)
+    tip_body = nil
     
     tip = Message::Tip.query(keywords).in_cooldown(false).sample
     
@@ -459,6 +460,8 @@ class ServerCommand
         @no_tips = 0
       end
     end
+    
+    tip_body
   end
   
   def self.tips
