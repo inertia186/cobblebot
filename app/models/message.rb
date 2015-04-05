@@ -5,7 +5,9 @@ class Message < ActiveRecord::Base
     clauses = []
     keywords.size.times { clauses << "lower(messages.body) LIKE ?" }
     keywords.size.times { clauses << "lower(messages.keywords) LIKE ?" }
-    where(clauses.join(" OR "), *keywords, *keywords)
+    select("messages.*, ( SELECT COUNT(*) WHERE lower(messages.body) LIKE '#{keywords.join('%')}' OR lower(messages.keywords) LIKE '#{keywords.join('%')}' ) as weight").
+    where(clauses.join(" OR "), *keywords, *keywords).
+    order('weight DESC')
   }
   
   scope :read, lambda { |read = true|

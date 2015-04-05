@@ -422,7 +422,7 @@ class ServerCommand
     keywords = keywords.split(' ').map(&:strip)
     tip_body = nil
     
-    tip = Message::Tip.query(keywords).in_cooldown(false).sample
+    tip = Message::Tip.query(keywords).in_cooldown(false).first(10).sample
     
     if !!tip
       tip_body = escape(tip.body.dup)
