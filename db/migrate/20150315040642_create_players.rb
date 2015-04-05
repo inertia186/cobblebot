@@ -6,6 +6,7 @@ class CreatePlayers < ActiveRecord::Migration
       t.string :last_nick
       t.string :last_ip
       t.string :last_chat
+      t.float :spam_ratio
       t.timestamp :last_login_at
       t.timestamp :last_logout_at
       t.timestamp :registered_at
