@@ -1,10 +1,10 @@
 class CreateServerCallbacks < ActiveRecord::Migration
   def change
     create_table :server_callbacks do |t|
+      t.string :type
       t.string :name, null: false
       t.string :pattern, null: false
       t.string :pretty_pattern
-      t.string :match_scheme, null: false, default: 'player_chat'
       t.text :last_match
       t.text :command, null: false
       t.text :pretty_command

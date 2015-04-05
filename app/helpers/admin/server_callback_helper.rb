@@ -11,17 +11,18 @@ module Admin::ServerCallbackHelper
     end.join.html_safe
   end
   
-  def callback_match_scheme_options_for_select(default = nil)
-    label_option = "Match Scheme"
-    options = [label_option] + ServerCallback::ALL_MATCH_SCHEMES
+  def callback_type_options_for_select(default = nil)
+    label_option = "Type"
+    options = [label_option] + ServerCallback::ALL_TYPES
 
     options.map do |option|
+      display_option = option.split('::')[1..-1].join(' ').titleize
       if option == label_option
         content_tag(:option, option, value: '')
       elsif default == option
-        content_tag(:option, option.titleize, value: option, selected: 'selected')
+        content_tag(:option, display_option, value: option, selected: 'selected')
       else
-        content_tag(:option, option.titleize, value: option)
+        content_tag(:option, display_option, value: option)
       end
     end.join.html_safe
   end

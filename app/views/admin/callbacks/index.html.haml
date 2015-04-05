@@ -20,7 +20,7 @@
     = hidden_field_tag :filter, @filter
     = text_field_tag :query, @query, placeholder: 'Query Text'
     = select_tag :status, callback_status_options_for_select(@status)
-    = select_tag :match_scheme, callback_match_scheme_options_for_select(@match_scheme)
+    = select_tag :type, callback_type_options_for_select(@type)
     = submit_tag 'Search', class: 'btn btn-info btn-xs'
     = link_to 'Reset All', reset_all_cooldown_admin_server_callbacks_path, method: :patch, class: 'btn btn-warning btn-xs', data: { confirm: 'Are you sure?  This will attempt to reset ALL callbacks, including any debugging information.' }
 
@@ -40,7 +40,7 @@
         %thead
           %tr
             %th=sortable_header_link 'Name', 'lower(name)'
-            %th=sortable_header_link 'Match Scheme', 'match_scheme'
+            %th=sortable_header_link 'Type', 'type'
             %th=sortable_header_link 'Ran', 'ran_at'
             %th=sortable_header_link 'Status', 'status'
             %th=sortable_header_link 'Created', 'created_at'

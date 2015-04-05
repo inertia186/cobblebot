@@ -1,6 +1,6 @@
 %tr{class: callback_status_class(callback), id: "callback_tr_#{callback.id}", data: { id: callback.id } }
   %td.clickable-cell=callback.name
-  %td.clickable-cell=callback.match_scheme.titleize
+  %td.clickable-cell=callback.display_type
   %td.clickable-cell=callback_ran(callback)
   %td.clickable-cell=callback_status(callback)
   %td.clickable-cell=created(callback.created_at)

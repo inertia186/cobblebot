@@ -1,6 +1,12 @@
 class ServerCallback < ActiveRecord::Base
-  ALL_MATCH_SCHEMES = %w(any player_chat player_emote player_chat_or_emote server_message)
-  PLAYER_INPUT_MATCH_SCHEMES = %(any player_chat player_emote player_chat_or_emote)
+  ALL_TYPES = %w(ServerCallback::AnyEntry ServerCallback::PlayerChat ServerCallback::PlayerEmote ServerCallback::AnyPlayerEntry ServerCallback::ServerEntry)
+  PLAYER_ENTRY_TYPES = %(ServerCallback::AnyEntry ServerCallback::PlayerChat ServerCallback::PlayerEmote ServerCallback::AnyPlayerEntry)
+
+  REGEX_ANY = %r{^\[\d{2}:\d{2}:\d{2}\] .*$}
+  REGEX_PLAYER_CHAT = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: <[^<]+> .*$}
+  REGEX_PLAYER_EMOTE = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: \* [^<]+ .*$}
+  REGEX_PLAYER_CHAT_OR_EMOTE = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: [\* ]*[ ]*[<]*[^<]+[>]* .*$}
+  REGEX_USER_AUTHENTICATOR = %r{^\[\d{2}:\d{2}:\d{2}\] \[User Authenticator #\d+/INFO\]: .*$}
   
   validates :name, presence: true
   validates_uniqueness_of :name, case_sensitive: true
@@ -13,12 +19,12 @@ class ServerCallback < ActiveRecord::Base
   after_validation :remove_pretty_command, if: :command_changed?
 
   scope :system, lambda { |system = true| where(system: system) }
-  scope :match_scheme, lambda { |match_scheme = ALL_MATCH_SCHEMES| where(match_scheme: match_scheme) }
-  scope :match_any, -> { match_scheme('any') }
-  scope :match_player_chat, -> { match_scheme('player_chat') }
-  scope :match_player_emote, -> { match_scheme('player_emote') }
-  scope :match_player_chat_or_emote, -> { match_scheme('player_chat_or_emote') }
-  scope :match_server_message, -> { where(match_scheme: 'server_message') }
+  scope :type, lambda { |type = ALL_TYPES| where(type: type) }
+  scope :any_entry, -> { type('ServerCallback::AnyEntry') }
+  scope :player_chat, -> { type('ServerCallback::PlayerChat') }
+  scope :player_emote, -> { type('ServerCallback::PlayerEmote') }
+  scope :any_player_entry, -> { type('ServerCallback::AnyPlayerEntry') }
+  scope :server_entry, -> { type('ServerCallback::ServerEntry') }
   scope :enabled, lambda { |enabled = true| where(enabled: enabled) }
   scope :ready, lambda { |ready = true|
     if ready
@@ -57,6 +63,10 @@ class ServerCallback < ActiveRecord::Base
     "#{id}-#{name.parameterize}"
   end
   
+  def display_type
+    type.split('::')[1..-1].join(' ').titleize
+  end
+  
   def valid_pattern
     eval_check(:pattern)
   end
@@ -64,9 +74,9 @@ class ServerCallback < ActiveRecord::Base
   def valid_command
     eval_check(:command)
     
-    unless ['player_chat', 'player_emote', 'player_chat_or_emote'].include? match_scheme
+    unless ['ServerCallback::PlayerChat', 'ServerCallback::PlayerEmote', 'ServerCallback::AnyPlayerEntry'].include? type
       if command =~ /%nick%/
-        errors[:command] << "cannot reference %nick% in a #{match_scheme.titleize} callback.  Try %1% if you intend to capture the nick yourself."
+        errors[:command] << "cannot reference %nick% in a #{type.titleize} callback.  Try %1% if you intend to capture the nick yourself."
       end
     end
   end
@@ -85,13 +95,13 @@ class ServerCallback < ActiveRecord::Base
   end
 
   def player_input?(input = nil)
-    case match_scheme
-    when 'any'
-      # FIXME This match scheme will trigger on any log line, if there is a
-      # match.  We now need to determine if the message is from a player.
+    case type
+    when 'ServerCallback::AnyEntry'
+      # FIXME This type will trigger on any log line, if there is a match.  We
+      # now need to determine if the message is from a player.
       raise NotImplementedError, 'Unable to determine if input is from player'
     else
-      PLAYER_INPUT_MATCH_SCHEMES.include? match_scheme
+      PLAYER_ENTRY_TYPES.include? type
     end
   end
 
@@ -99,6 +109,70 @@ class ServerCallback < ActiveRecord::Base
     return true unless ran?
     
     ServerCallback.where(id: self).ready.any?
+  end
+  
+  def handle_entry(player, message, line, options = {})
+    case message
+    when ServerCommand.eval_pattern(pattern, to_param)
+      execute_command(player, message)
+      update_attribute(:last_match, line)
+      true
+    else
+      nil
+    end
+  end
+  
+  def execute_command(nick, message, options = {})
+    update_attribute(:error_flag_at, nil)
+    
+    if player_input?(message)
+      begin
+        message_escaped = message
+      
+        # TODO Also look for and escape: []\^$.|?*+()
+        %w( [ ] \\ ^ $ . | ? * + \( \)).each do |c|
+          message_escaped.gsub!(c, "\\#{c}")
+        end
+      
+        # Find quotes to avoid breaking json.
+        message_escaped.gsub!(/"/, '\"')
+      
+        # Find ruby escaped #{vars} in strings and just remove them.
+        message_escaped.gsub!(/\#{[^}]+}/, '')
+
+        pre_eval = nil
+        eval("pre_eval = \"#{message_escaped}\"", Proc.new{}.binding)
+        Rails.logger.warn "Possible problem with pre eval for messsage: \"#{message}\" became \"#{pre_eval}\"" unless message == pre_eval
+        message = message_escaped
+      rescue SyntaxError => e
+        Rails.logger.error "Syntax error escaping message: #{e.inspect}"
+      rescue StandardError => e
+        Rails.logger.error "Problem escaping message: #{e.inspect}"
+      end
+    end
+    
+    cmd = command.
+      gsub("%message%", "#{message}").
+      gsub("%nick%", "#{nick}").
+      gsub("%cobblebot_version%", COBBLEBOT_VERSION)
+
+    message.match(ServerCommand.eval_pattern(pattern, to_param)).captures.each_with_index do |capture, index|
+      cmd.gsub!("%#{index + 1}%", "#{capture}")
+    end if message.match(ServerCommand.eval_pattern(pattern, to_param))
+
+    # Remove matched vars.
+    cmd.gsub!(/%[^%]*%/, '')
+
+    begin
+      result = ServerCommand.eval_command(cmd, to_param)
+      # TODO clear the error flag
+    rescue StandardError => e
+      result = e.inspect
+      error_flag!
+    end
+    
+    ran!
+    update_attribute(:last_command_output, result.inspect)
   end
   
   def ran!

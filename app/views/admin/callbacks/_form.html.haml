@@ -1,4 +1,4 @@
-= form_for [:admin, @callback], role: :form do |f|
+= form_for [:admin, @callback.becomes(ServerCallback)], role: :form do |f|
   - if @callback.errors.any?
     .alert.alert-danger
       %h4 #{pluralize((@callback.errors.keys - [:base]).size, "error")} prohibited this template from being saved:
@@ -32,33 +32,33 @@
             .modal-body
               %p Regex match on a log entry.
     .input-group
-      = f.label :match_scheme
+      = f.label :type
       %br
-      = f.select :match_scheme, ServerCallback::ALL_MATCH_SCHEMES
-      %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_match_scheme'}} ?
-      .modal.fade{id: :explain_match_scheme, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_match_scheme_label', 'aria-hidden' => true}
+      = f.select :type, ServerCallback::ALL_TYPES.map { |option| [option.split('::')[1..-1].join(' ').titleize, option] }
+      %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_type'}} ?
+      .modal.fade{id: :explain_type, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_type_label', 'aria-hidden' => true}
         .modal-dialog
           .modal-content
             .modal-header
               %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
                 %span{'aria-hidden' => true} &times;
-              %h4.modal-title#explain_match_scheme_label Explanation of Match Scheme
+              %h4.modal-title#explain_type_label Explanation of Type
             .modal-body
               %p This option defines which log event will cause the callback to fire.
-              %p One of the purposes of this field is to keep players from being able to initiate certain patterns.  For example, we do not want players to see the Message of the Day if they manually type "joined the game" into chat.  But we would like the server to trigger this event.  If we arbitrarily look for "joined the game" without looking at the context, players could trigger the message.
-              %p On the other hand, we also do not want the server to initiate certain commands that are intended for the player only.  If the server generates a log entry like '@server help' which contains the text '@server help', it would get stuck in a loop.  Choosing the correct Match Scheme helps to avoid this.
+              %p One of the purposes of the type is to keep players from being able to initiate certain patterns.  For example, we do not want players to see the Message of the Day if they manually type "joined the game" into chat.  But we would like the server to trigger this event.  If we arbitrarily look for "joined the game" without looking at the context, players could trigger the message.
+              %p On the other hand, we also do not want the server to initiate certain commands that are intended for the player only.  Theoretically, the server could generate a log entry which contains the text '@server help' (players could achieve this by naming a sword '@server help' then killing another player).  Choosing the correct type helps to avoid this.
               %p Setting this will cause CobbleBot to selectively apply a pattern as:
               %table.table
                 %tbody
                 %tr
-                  %th any
+                  %th AnyEntry
                   %td
                     any log entry that occurs, e.g.:
                     .well.well-sm
                       %code
                         %strong [10:54:50] [Server thread/INFO]: Starting minecraft server version 1.8.3
                 %tr
-                  %th player_chat
+                  %th PlayerChat
                   %td
                     only player chat, e.g.:
                     .well.well-sm
@@ -66,7 +66,7 @@
                         [09:42:50] [Server thread/INFO]: &lt;inertia186&gt;
                         %strong Look, I'm in a small well!
                 %tr
-                  %th player_emote
+                  %th PlayerEmote
                   %td
                     only player emotes (/me)
                     .well.well-sm
@@ -74,11 +74,11 @@
                         [13:14:37] [Server thread/INFO]: * inertia186
                         %b pretends to work really hard on something
                 %tr
-                  %th player_chat_or_emote
+                  %th AnyPlayerEntry
                   %td
                     either player chat or player emotes
                 %tr
-                  %th server_messages
+                  %th ServerEntry
                   %td
                     only messages that are none of the above
                     .well.well-sm

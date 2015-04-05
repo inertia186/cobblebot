@@ -5,7 +5,7 @@ class Admin::CallbacksController < ApplicationController
     @filter = params[:filter].present? ? params[:filter] : 'all'
     @query = params[:query]
     @status = params[:status]
-    @match_scheme = params[:match_scheme]
+    @type = params[:type]
     @sort_field = params[:sort_field].present? ? params[:sort_field] : 'ran_at'
     @sort_order = params[:sort_order] == 'asc' ? 'asc' : 'desc'
     @callbacks = ServerCallback.all
@@ -31,8 +31,8 @@ class Admin::CallbacksController < ApplicationController
       end
     end
 
-    if @match_scheme.present?
-      @callbacks = @callbacks.match_scheme(@match_scheme)
+    if @type.present?
+      @callbacks = @callbacks.type(@type)
     end
     
     case @sort_field
@@ -106,7 +106,7 @@ class Admin::CallbacksController < ApplicationController
   def execute_command
     @callback = ServerCallback.find(params[:id])
 
-    MinecraftServerLogHandler.execute_command(@callback, "@a", "Test")
+    @callback.execute_command("@a", "Test")
     @callback.update_attribute(:last_match, 'Manual Run from Web Console')
 
     respond_to do |format|
@@ -133,7 +133,7 @@ class Admin::CallbacksController < ApplicationController
   end
 private
   def server_callback_params
-    attributes = [:name, :pattern, :match_scheme, :command, :cooldown, :enabled]
+    attributes = [:name, :pattern, :type, :command, :cooldown, :enabled]
 
     params.require(:server_callback).permit *attributes
   end
