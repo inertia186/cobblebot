@@ -79,13 +79,13 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     
     ServerCallback::PlayerChat.handle('[15:04:50] [Server thread/INFO]: <inertia186> Hello!')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
-    refute_nil player.reload.last_chat, 'did not expect nil last_chat'
+    assert_equal 'Hello!', player.reload.last_chat, 'did not expect nil last_chat'
 
     callback.update_attribute(:ran_at, nil)
     player.update_attribute(:last_chat, nil)
     ServerCallback::PlayerChat.handle('[15:04:50] [Server thread/INFO]: <inertia186> "quoted"')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
-    refute_nil player.reload.last_chat, 'did not expect nil last_chat'
+    assert_equal '"quoted"', player.reload.last_chat, 'did not expect nil last_chat'
 
     callback.update_attribute(:ran_at, nil)
     player.update_attribute(:last_chat, nil)
@@ -179,6 +179,13 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute_nil ServerCallback.find_by_name('Search Replace').ran_at, 'did not expect nil ran_at'
   end
   
+  def test_random_tip
+    ServerCallback::PlayerChat.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip')
+    refute_nil ServerCallback.find_by_name('Random Tip').ran_at, 'did not expect nil ran_at'
+    # Make sure the "pretend" option reaches the callback for simulated chat.
+    assert_equal '@server tip', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip'
+  end
+  
   def test_spam_detect
     MinecraftServerLogHandler.handle "[08:33:03] [User Authenticator #23/INFO]: UUID of player GracieBoo is a5077378-81eb-4215-96f9-16679e3401cb"
 
@@ -214,5 +221,40 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     MinecraftServerLogHandler.handle "[08:33:21] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN"
     refute_nil ServerCallback.find_by_name('Spammy').ran_at, 'did not expect nil ran_at'
     assert_equal 0.05555555555555555, Player.find_by_nick('GracieBoo').spam_ratio, 'expect spam ratio'
+  end
+
+  def test_spam_detect_alt
+    MinecraftServerLogHandler.handle "[08:33:03] [User Authenticator #23/INFO]: UUID of player GracieBoo is a5077378-81eb-4215-96f9-16679e3401cb"
+
+    spam_event = <<-DONE
+      [08:33:03] [Server thread/INFO]: GracieBoo[/127.0.0.1:54212] logged in with entity id 315010 at (5583.5, 40.0, -5573.5)
+      [08:33:03] [Server thread/INFO]: GracieBoo joined the game
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spam
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamt
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamtt
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamttt
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttt
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttt
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttt
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttt
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttt
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttttt
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttt
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttttttt
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttttt
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttttttttt
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttttttt
+      [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttttttttttt
+    DONE
+
+    File.open("#{Preference.path_to_server}/logs/latest.log", 'a') do |f|
+      spam_event.each_line do |line|
+        f << line.strip + "\n"
+      end
+    end
+
+    MinecraftServerLogHandler.handle "[08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttttttttt"
+    refute_nil ServerCallback.find_by_name('Spammy').ran_at, 'did not expect nil ran_at'
+    assert_equal 0.08333333333333333, Player.find_by_nick('GracieBoo').spam_ratio, 'expect spam ratio'
   end
 end

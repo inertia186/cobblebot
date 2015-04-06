@@ -291,7 +291,8 @@ class ServerCommand
     player
   end
   
-  def self.update_player_last_chat(nick, message)
+  def self.update_player_last_chat(nick, message, options = {})
+    return if !!options[:pretend]
     player = Player.find_by_nick(nick)
     return unless !!player
     
@@ -477,14 +478,15 @@ class ServerCommand
     lines = lines[([-(lines.size - 1), -50].max)..-1]
     return if lines.nil?
     
-    chat_regex = %r(: \<#{nick}\> .*#{message}.*)i
-    emote_regex = %r(: \* #{nick} .*#{message}.*)i
+    chat_regex = %r(: \<#{nick}\> .*#{message[0..[message.size - 1, 7].min]}.*)i
+    emote_regex = %r(: \* #{nick} .*#{message[0..[message.size - 1, 7].min]}.*)i
     all = []
 
     lines.each do |line|
-      all << line.split(' ')[3..4].join(' ') if line =~ chat_regex || line =~ emote_regex
+      sample = line.split(' ')[4..-1].join(' ')
+      all << sample[0..[sample.size - 1, 7].min] if line =~ chat_regex || line =~ emote_regex
     end
-    
+
     return "No spam detected for #{nick}." if all.size == 0
     
     ratio = all.uniq.size.to_f / all.size.to_f
