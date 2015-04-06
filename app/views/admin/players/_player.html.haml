@@ -1,0 +1,32 @@
+%table.table
+  %tr
+    %th Nick
+    %td=player.nick
+  %tr
+    %th Last Nick
+    %td=player.last_nick
+  %tr
+    %th Last IP
+    %td=player.last_ip
+  %tr
+    %th{nowrap: :nowrap} Last Chat
+    %td= player_last_chat(player)
+  %tr
+    %th Spam Ratio
+    %td=player.spam_ratio
+  %tr
+    %th Last Login
+    %td=player.last_login_at
+  %tr
+    %th Last Logout
+    %td=player.last_logout_at
+    
+.modal-footer
+  %span{style: 'float: left;'}
+    = link_delete_player(player)
+  %span{style: 'float: right;'}
+    - if defined? modal
+      = modal_nav_links(admin_players_path, "player")
+      %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close
+    - else
+      = link_to 'Close', admin_players_path, class: 'btn btn-default'

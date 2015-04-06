@@ -27,6 +27,8 @@
             - if admin_signed_in?
               %li{class: active_nav('admin_preferences')}
                 = link_to 'Preferences', admin_preferences_path
+              %li{class: active_nav('admin_players')}
+                = link_to 'Players', admin_players_path
               %li{class: active_nav('admin_callbacks')}
                 = link_to 'Callbacks', admin_server_callbacks_path
               %li{class: active_nav('admin_links')}

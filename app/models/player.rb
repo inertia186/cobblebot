@@ -12,6 +12,11 @@ class Player < ActiveRecord::Base
     search_nick = "%#{nick.downcase.chars.each.map { |c| c }.join('%')}%"
     where('LOWER(nick) LIKE ? OR LOWER(last_nick) LIKE ?', search_nick, search_nick)
   }
+  scope :query, lambda { |query|
+    nick = "%#{query.downcase.chars.each.map { |c| c }.join('%')}%"
+    query = "%#{query}%"
+    where('LOWER(nick) LIKE ? OR LOWER(last_nick) LIKE ? OR LOWER(last_chat) LIKE ? OR LAST_IP LIKE ?', nick, nick, query, query)
+  }
   scope :logged_in_today, -> { where('players.last_login_at > ?', Time.now.beginning_of_day).order(:last_login_at) }
   scope :opped, lambda { |opped = true|
     if opped
