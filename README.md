@@ -15,6 +15,7 @@ There is also an optional IRC bot that allows players to interact.
   * Message of the Day
   * Player tracking by UUID
   * IRC Bot with in-game messaging
+  * Optional Spam Detection + Warnings, Automatic Kick
 
 ## Installation
 
