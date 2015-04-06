@@ -32,6 +32,8 @@ class Admin::LinksController < ApplicationController
     else
       @links = @links.order("#{@sort_field} #{@sort_order}")
     end
+    
+    @links = @links.paginate(page: params[:page], per_page: 25)
   end
   
   def show

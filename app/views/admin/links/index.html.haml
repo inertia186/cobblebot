@@ -3,7 +3,7 @@
     Links
     - if @player
       by
-      = @player.nick
+      = link_to @player.nick, admin_player_path(@player)
     %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_links'}} ?
   .modal.fade#explain_links{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_links_label', 'aria-hidden' => true}
     .modal-dialog
@@ -44,3 +44,5 @@
         %tbody
           - @links.each do |link|
             = render 'link_row', link: link
+
+%p= will_paginate @links

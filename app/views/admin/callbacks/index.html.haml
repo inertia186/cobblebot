@@ -50,3 +50,5 @@
             = render 'callback_row', callback: callback
 
 = link_to 'New', new_admin_server_callback_path, class: 'btn btn-success'
+
+%p= will_paginate @callbacks

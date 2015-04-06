@@ -41,6 +41,8 @@ class Admin::CallbacksController < ApplicationController
     else
       @callbacks = @callbacks.order("#{@sort_field} #{@sort_order}")
     end
+    
+    @callbacks = @callbacks.paginate(page: params[:page], per_page: 100)
   end
   
   def reset_all_cooldown
