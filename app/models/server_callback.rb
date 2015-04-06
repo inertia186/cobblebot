@@ -114,7 +114,7 @@ class ServerCallback < ActiveRecord::Base
   def handle_entry(player, message, line, options = {})
     case message
     when ServerCommand.eval_pattern(pattern, to_param)
-      execute_command(player, message)
+      execute_command(player, message, options)
       update_attribute(:last_match, line)
       true
     else
@@ -164,7 +164,7 @@ class ServerCallback < ActiveRecord::Base
     cmd.gsub!(/%[^%]*%/, '')
 
     begin
-      result = ServerCommand.eval_command(cmd, to_param)
+      result = ServerCommand.eval_command(cmd, to_param, options)
       # TODO clear the error flag
     rescue StandardError => e
       result = e.inspect
