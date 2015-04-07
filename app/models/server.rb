@@ -24,15 +24,27 @@ class Server
     File.binread(server_icon_path) if File.exists? server_icon_path rescue return
   end
   
-  def self.players
-    result = ServerCommand.execute 'list'
-    return Player.none unless !!result
+  def self.player_nicks(selector = nil)
+    nicks = []
     
-    nicks = result.split(':')[1]
+    if !!selector
+      result = ServerCommand.execute("entitydata #{selector} {}")
+      if result =~ / is a player and cannot be changed/
+        nicks = result.split(' is a player and cannot be changed')
+      end
+    else
+      result = ServerCommand.execute 'list'
+      n = result.split(':')[1] if !!result
+      nicks = n.split(', ') if !!n
+    end
 
-    return Player.none unless !!nicks
+    nicks ||= []
+  end
+  
+  def self.players(selector = nil)
+    return Player.none unless (nicks = player_nicks(selector)).any?
 
-    Player.where(nick: nicks.split(", ")).order(:last_login_at)
+    Player.where(nick: nicks).order(:last_login_at)
   end
   
   def self.banned_players_file_path

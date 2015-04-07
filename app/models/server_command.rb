@@ -426,19 +426,14 @@ class ServerCommand
     tip = Message::Tip.query(keywords).in_cooldown(false).first(10).sample
     
     if !!tip
-      tip_body = escape(tip.body.dup)
-      tip_body.sub!(/@r/, Server.players.sample.nick) while tip_body =~ /@r/
-      tip_body.sub!(/@p/, Server.players.sample.nick) while tip_body =~ /@p/
-      tip_body.sub!(/@e\[c=-1\]/, 'Spy Chicken') while tip_body =~ /@e\[c=-1\]/
-      tip_body.sub!(/@e\[c=1\]/, 'Spy Chicken') while tip_body =~ /@e\[c=1\]/
-      tip_body.sub!(/@e/, 'Spy Chicken') while tip_body =~ /@e/
+      tip_body = sub_safe_selectors(escape(tip.body.dup))
       tip.update_attribute(:read_at, Time.now) # set cooldown
       if tip_body =~ /^server/i
         emote('@a', tip_body.split(' ')[1..-1].join(' '))
       elsif tip_body =~ /^herobrine/i
         say_fake_achievement('@a', 'Herobrine', tip_body)
       elsif tip_body =~ /^slap/i
-        emote "@a", McSlap.slap(tip_body.split(' ')[1..-1].join(' '))
+        say_slap("@a", tip_body.split(' ')[1..-1].join(' '))
       elsif tip_body =~ /^>/i
         say(selector, tip_body, color: 'green', as: 'Server')
       else
@@ -464,6 +459,32 @@ class ServerCommand
     
     tip_body
   end
+
+  # The purpose of this method is to allow players to use limited selectors in
+  # certain situations.
+  #
+  # Setting deep true allows this method to search for players using full
+  # selector logic, like:
+  #
+  # @r[r=1000]
+  #
+  # The default is false because allowing players to express full selectors
+  # can lead to security risks, possibly exposing server crash scenarios.
+  #
+  def self.sub_safe_selectors(text, options = {deep: false})
+    text.sub!(/(@r\[.*\])/i, Server.player_nicks($1).sample.to_s) while text =~ /(@r\[.*\])/i && !!options[:deep]
+    text.sub!(/@r/i, Server.player_nicks.sample) while text =~ /@r/i
+    text.sub!(/(@p\[.*\])/i, Server.player_nicks($1).sample.to_s) while text =~ /(@p\[.*\])/i && !!options[:deep]
+    text.sub!(/@p/i, Server.player_nicks.sample) while text =~ /@p/i
+    text.sub!(/(@a\[.*\])/i, Server.player_nicks($1).sample.to_s) while text =~ /(@a\[.*\])/i && !!options[:deep]
+    text.sub!(/@a/i, Server.player_nicks.sample) while text =~ /@a/i && !!options[:deep]
+    text.sub!(/@a/i, 'everyone') while text =~ /@a/i
+    text.sub!(/@e\[c=-1\]/i, 'Spy Chicken') while text =~ /@e\[c=-1\]/i
+    text.sub!(/@e\[c=1\]/i, 'Spy Chicken') while text =~ /@e\[c=1\]/i
+    text.sub!(/@e/i, 'Spy Chicken') while text =~ /@e/i
+    
+    text
+  end  
   
   def self.tips
     tips = Message::Tip.all
@@ -473,6 +494,9 @@ class ServerCommand
   end
   
   def self.detect_spam(nick, message)
+    # Don't bother to check for spam if there's only one player on.
+    return if Server.player_nicks.size < 2
+    
     server_log = "#{ServerProperties.path_to_server}/logs/latest.log"
     lines = IO.readlines(server_log)
     lines = lines[([-(lines.size - 1), -50].max)..-1]
@@ -490,13 +514,30 @@ class ServerCommand
     return "No spam detected for #{nick}." if all.size == 0
     
     ratio = all.uniq.size.to_f / all.size.to_f
-    
-    if ratio <= 0.1
-      execute("kick #{nick} Spammy ratio #{ratio}")
-    elsif ratio <= 0.2
+
+    if ratio <= 0.2 && ratio > 0.126
       say(nick, 'Warning, spam detected.', color: 'yellow', as: 'Server')
+    elsif ratio <= 0.126 && ratio > 0.1
+      say(nick, 'Warning, spam detected.', color: 'red', as: 'Server')
+      play_sound(nick, 'oot_navi_listen')
+    elsif ratio <= 0.1
+      execute("kick #{nick} Spammy ratio #{ratio}")
     end
     
     Player.find_by_nick(nick).update_attribute(:spam_ratio, ratio)
+  end
+  
+  def self.say_slap(selector = "@a", nick = "Server", target = nil)
+    result = nil
+    target = target.strip if !!target
+    
+    if target.present?
+      emote selector, result = McSlap.slap(sub_safe_selectors(target)), color: 'white', as: nick
+    else
+      emote selector, "has #{McSlap.combinations} slap combinations, see:"
+      say_link selector, "https://gist.github.com/inertia186/5002463", only_title: true
+    end
+    
+    result
   end
 end

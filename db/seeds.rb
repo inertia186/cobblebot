@@ -31,7 +31,7 @@ ServerCallback::ServerEntry.send method, name: 'Latest Player IP', pattern: "/([
 ServerCallback::ServerEntry.send method, name: 'Player Logged Out', pattern: "/^([a-zA-Z0-9_]+) lost connection/", command: "irc_event \"%1% left the game\"\ntouch_player_last_logged_out \"%1%\"", system: 't'
 ServerCallback::PlayerChat.send method, name: 'Player Check', pattern: "/^@server playercheck ([a-z0-9_]+)$/i", command: "say_playercheck \"@a\", \"%1%\"", system: 't'
 ServerCallback::PlayerChat.send method, name: 'IRC Reply', pattern: "/^@irc (.*)$/i", command: "irc_reply \"%nick%\", \"%1%\"", system: 't'
-ServerCallback::PlayerChat.send method, name: 'Slap', pattern: "/^@server slap(.*)/i", command: "target = \"%1%\".strip\n\nif target.present?\n  if target =~ /@r/\n    emote \"@a\", McSlap.slap(random_nick)\n  else\n    emote \"@a\", McSlap.slap(target)\n  end\nelse\n  emote \"@a\", \"has \#{McSlap.combinations} slap combinations, see:\"\n  say_link \"@a\", \"https://gist.github.com/inertia186/5002463\", only_title: true\nend", system: 't'
+ServerCallback::PlayerChat.send method, name: 'Slap', pattern: "/^@server slap(.*)/i", command: "say_slap \"@a\", \"%nick%\", \"%1%\"", system: 't'
 ServerCallback::PlayerChat.send method, name: 'Add Tip', pattern: "/^@server addtip (.*)/i", command: "add_tip \"%nick%\", \"%1%\"", system: 't'
 ServerCallback::PlayerChat.send method, name: 'Random Tip', pattern: "/^@server tip(.*)/i", command: "say_random_tip \"@a\", \"%nick%\", \"%1%\"", system: 't'
 ServerCallback::PlayerChat.send method, name: 'Tip Info', pattern: "/^@server tips/i", command: "tips", system: 't'

@@ -187,7 +187,12 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
   
   def test_spam_detect
+    MinecraftServerLogHandler.handle '[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848'
     MinecraftServerLogHandler.handle "[08:33:03] [User Authenticator #23/INFO]: UUID of player GracieBoo is a5077378-81eb-4215-96f9-16679e3401cb"
+
+    def Server.player_nicks(selector = nil)
+      ['GracieBoo', 'xXPlayerXx'] # need at least two players for spam detection to work
+    end
 
     spam_event = <<-DONE
       [08:33:03] [Server thread/INFO]: GracieBoo[/127.0.0.1:54212] logged in with entity id 315010 at (5583.5, 40.0, -5573.5)
@@ -224,7 +229,12 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
 
   def test_spam_detect_alt
+    MinecraftServerLogHandler.handle '[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848'
     MinecraftServerLogHandler.handle "[08:33:03] [User Authenticator #23/INFO]: UUID of player GracieBoo is a5077378-81eb-4215-96f9-16679e3401cb"
+
+    def Server.player_nicks(selector = nil)
+      ['GracieBoo', 'xXPlayerXx'] # need at least two players for spam detection to work
+    end
 
     spam_event = <<-DONE
       [08:33:03] [Server thread/INFO]: GracieBoo[/127.0.0.1:54212] logged in with entity id 315010 at (5583.5, 40.0, -5573.5)
