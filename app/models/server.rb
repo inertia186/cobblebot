@@ -47,7 +47,7 @@ class Server
   def self.entity_data(selector = "@e[c=1]")
     end_response = 'Unknown command. Try /help for a list of commands'
     rcon = RCON::Minecraft.new(ServerProperties.server_ip, ServerProperties.rcon_port)
-    rcon.auth('password')
+    rcon.auth(ServerProperties.rcon_password)
     response = []
     
     response << rcon.command("entitydata #{selector} {}")
