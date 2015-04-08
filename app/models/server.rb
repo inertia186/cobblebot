@@ -44,12 +44,26 @@ class Server
   end
   
   # Experimental entity data lookup.
-  def self.entity_data(selector = "@e[c=1]")
+  def self.entity_data(options = {selector: "@e[c=1]", near_player: nil, radius: 0})
     end_response = 'Unknown command. Try /help for a list of commands'
+    error_response = 'The entity UUID provided is in an invalid format'
     rcon = RCON::Minecraft.new(ServerProperties.server_ip, ServerProperties.rcon_port)
     rcon.auth(ServerProperties.rcon_password)
     response = []
     
+    selector = if !!options[:selector]
+      options[:selector]
+    elsif !!options[:near_player] && !!options[:radius]
+      radius = options[:radius]
+      player = options[:near_player]
+      player = Player.find_by_nick player if player.class == String
+      
+      pos = player.current_location
+      raise "Unable to find #{player.nick} position." unless !!pos
+      
+      "@e[r=#{radius},x=#{pos[0].to_i},y=#{pos[1].to_i},z=#{pos[2].to_i}]"
+    end
+
     response << rcon.command("entitydata #{selector} {}")
     begin
       response << r = rcon.command('') until r == end_response
@@ -57,6 +71,11 @@ class Server
       Rails.logger.warn "#{self} :: #{e.inspect}"
     end
     response -= [end_response]
+    response -= [error_response]
+
+    response = response.map do |r|
+      r unless r =~ /.* is a player and cannot be changed/
+    end
 
     rcon.disconnect
     
