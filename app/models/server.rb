@@ -1,3 +1,5 @@
+require 'rcon/rcon'
+
 class Server
   def self.up?
     begin
@@ -39,6 +41,26 @@ class Server
     end
 
     nicks ||= []
+  end
+  
+  # Experimental entity data lookup.
+  def self.entity_data(selector = "@e[c=1]")
+    end_response = 'Unknown command. Try /help for a list of commands'
+    rcon = RCON::Minecraft.new(ServerProperties.server_ip, ServerProperties.rcon_port)
+    rcon.auth('password')
+    response = []
+    
+    response << rcon.command("entitydata #{selector} {}")
+    begin
+      response << r = rcon.command('') until r == end_response
+    rescue StandardError => e
+      Rails.logger.warn "#{self} :: #{e.inspect}"
+    end
+    response -= [end_response]
+
+    rcon.disconnect
+    
+    entities = response.join.split('The data tag did not change: ').reject(&:empty?)
   end
   
   def self.players(selector = nil)
