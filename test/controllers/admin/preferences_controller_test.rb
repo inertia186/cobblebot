@@ -19,4 +19,27 @@ class Admin::PreferencesControllerTest < ActionController::TestCase
     assert_template :index
     assert_response :success
   end
+  
+  def test_edit
+    get :edit, id: Preference.first
+    preference = assigns :preference
+    assert preference, 'expect preference'
+    
+    assert_template :edit
+    assert_response :success
+  end
+  
+  def test_update
+    preference = Preference.first
+    preference_params = {
+      value: 'value'
+    }
+    
+    post :update, id: preference, preference: preference_params
+    
+    preference = assigns :preference
+    assert preference.errors.empty?, preference.errors.inspect
+    
+    assert_redirected_to admin_preferences_url
+  end
 end

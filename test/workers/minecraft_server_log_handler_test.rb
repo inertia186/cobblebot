@@ -292,6 +292,36 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_equal 0.08333333333333333, Player.find_by_nick('GracieBoo').spam_ratio, 'expect spam ratio'
   end
 
+  def test_spam_detect_alt_alt
+    MinecraftServerLogHandler.handle '[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848'
+    MinecraftServerLogHandler.handle '[08:47:21] [User Authenticator #20/INFO]: UUID of player Genevieve05 is 5000277b-6f04-41d9-ba1a-f477f2b4810e'
+
+    def Server.player_nicks(selector = nil)
+      ['Genevieve05', 'xXPlayerXx'] # need at least two players for spam detection to work
+    end
+
+    spam_event = <<-DONE
+    [08:47:21] [Server thread/INFO]: Genevieve05[/72.91.207.142:51737] logged in with entity id 303539 at (5000.3521081755625, 34.0, -5199.300000011921)
+    [08:47:21] [Server thread/INFO]: Genevieve05 joined the game
+    [08:47:33] [Server thread/INFO]: <Genevieve05> Γ¥û ╬⌐ ╬▓ ╬ª ╬ú ╬₧ Γƒü Γª╗ Γºë Γº¡ Γº┤ Γê₧ Γëî Γèò Γïì Γï░ Γï▒ Γ£û Γô╡ Γô╢ Γô╖ Γô╕ Γô╣ Γô║ Γô╗ Γô╝ Γô╜ Γô╛ ß┤ò Γ╕¿ Γ╕⌐ Γ¥¬ Γ¥½ Γô╡ Γô╢ Γô╖ Γô╕ Γô╣ Γô║ Γô╗ Γô╝ Γô╜ Γô╛ ΓÆê ΓÆë ΓÆè ΓÆï ΓÆî ΓÆì ΓÆÄ
+    [08:47:55] [Server thread/INFO]: <Genevieve05> ΓÆê ΓÆë ΓÆè ΓÆï ΓÆî ΓÆì ΓÆÄ
+    [08:48:01] [Server thread/INFO]: <Genevieve05> ΓÆê ΓÆë ΓÆè ΓÆï ΓÆî ΓÆì ΓÆÄ 8. 9. 10.
+    DONE
+    File.open("#{Preference.path_to_server}/logs/latest.log", 'a') do |f|
+      spam_event.each_line do |line|
+        f << line.strip + "\n"
+      end
+    end
+
+    MinecraftServerLogHandler.handle '[08:49:03] [Server thread/INFO]: <Genevieve05> Γ¥û ╬⌐ ╬▓ ╬ª ╬ú ╬₧ Γƒü Γª╗ Γºë Γº¡ Γº┤ Γê₧ Γëî Γèò Γïì Γï░ Γï▒ Γ£û Γô╡ Γô╢ Γô╖ Γô╕ Γô╣ Γô║ Γô╗ Γô╝ Γô╜ Γô╛ ß┤ò Γ╕¿ Γ╕⌐ Γ¥¬ Γ¥½ Γô╡ Γô╢ Γô╖ Γô╕ Γô╣ Γô║ Γô╗ Γô╝ Γô╜ Γô╛ ΓÆê ΓÆë ΓÆè ΓÆï ΓÆî ΓÆì ΓÆÄ'
+    refute_nil ServerCallback.find_by_name('Spammy').ran_at, 'did not expect nil ran_at'
+    skip 'needs to be < 1.0' if Player.find_by_nick('Genevieve05').spam_ratio == 1.0
+    # :nocov:
+    fail
+    # :nocov:
+    #assert_equal ?, Player.find_by_nick('Genevieve05').spam_ratio, 'expect spam ratio'
+  end
+
   def test_emote_spam_detect
     MinecraftServerLogHandler.handle '[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848'
     MinecraftServerLogHandler.handle "[08:33:03] [User Authenticator #23/INFO]: UUID of player GracieBoo is a5077378-81eb-4215-96f9-16679e3401cb"

@@ -25,7 +25,15 @@ class Admin::SessionsControllerTest < ActionController::TestCase
     assert_redirected_to admin_preferences_url
   end
 
+  def test_create_wrong
+    post :create, admin_password: 'wrong'
+
+    assert_template nil
+    assert_redirected_to new_admin_session_url
+  end
+
   def test_destroy
+    post :create, admin_password: Preference.web_admin_password
     get :destroy
 
     assert_template nil
