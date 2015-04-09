@@ -84,6 +84,8 @@ class ServerCommand
   
   ## Simuates /say
   def self.say(selector, message, options = {color: 'white', as: 'Server'})
+    return if selector.nil?
+    
     if options[:as].present?
       execute <<-DONE
         tellraw #{selector} [{ "color": "white", "text": "[#{options[:as]}] "}, { "color": "#{options[:color]}", "text": "#{message}" }]
@@ -97,12 +99,16 @@ class ServerCommand
 
   ## Simuates /me
   def self.emote(selector, message, options = {color: 'white', as: 'Server'})
+    return if selector.nil?
+    
     execute <<-DONE
       tellraw #{selector} [{ "color": "white", "text": "* #{options[:as]} "}, { "color": "#{options[:color]}", "text": "#{message}" }]
     DONE
   end
 
   def self.say_fake_achievement(selector, nick, achievement, hover_text = 'AH YISS', hover_obfuscated = false)
+    return if selector.nil?
+
     if nick =~ /herobrine/i
       play_sound('@a', 'heretic_wizsit')
       hover_obfuscated = true
@@ -130,6 +136,8 @@ class ServerCommand
   end
 
   def self.irc_say(selector, irc_nick, message)
+    return if selector.nil?
+    
     Rails.logger.info "From IRC: <#{irc_nick}> #{message}"
     
     if Preference.irc_web_chat_enabled?
@@ -164,11 +172,15 @@ class ServerCommand
   end
 
   def self.irc_event(message)
+    return unless Preference.irc_enabled?
+    
     Message::IrcReply.create(body: message)
   end
 
   ## Simuates /tell
   def self.tell(selector, message, options = {as: 'Server'})
+    return if selector.nil?
+    
     execute <<-DONE
       tellraw #{selector} { "color": "gray", "text":"#{options[:as]} whispers to you: #{message}" }
     DONE
@@ -215,7 +227,7 @@ class ServerCommand
       last_modified_at = link.last_modified_at
     end
     
-    execute <<-DONE
+    execute(<<-DONE
       tellraw #{selector} { "text": "", "extra": [{
         "text": "#{title}", "color": "dark_purple", "underlined": "true", "hoverEvent": {
           "action": "show_text", "value": "Last Modified: #{last_modified_at ? last_modified_at : '???'}"
@@ -224,6 +236,13 @@ class ServerCommand
         }
       }]}
     DONE
+    ) unless selector.nil?
+    
+    if !!link
+      link
+    else
+      [url, title, last_modified_at]
+    end
   end
   
   def self.say_lmgtfy_link(selector, query)
@@ -233,12 +252,16 @@ class ServerCommand
     is_gd_request_url = URI.parse(base_url + generate_lmgtfy_url)
     url = JSON.parse(Net::HTTP.get_response(is_gd_request_url).body).fetch("shorturl")
     
+    return if selector.nil?
+    
     say_link selector, url, title: query, only_title: true
   end
   
   def self.tell_motd(selector)
     return unless !!Preference.motd
     results = []
+    
+    return if selector.nil?
     
     results << execute(
     <<-DONE
@@ -370,6 +393,7 @@ class ServerCommand
   
   def self.say_rules(selector)
     return unless (lines = Preference.rules_json).present?
+    return if selector.nil?
     
     lines.split("\n").each do |line|
       execute "tellraw #{selector} #{line}"
@@ -378,6 +402,7 @@ class ServerCommand
   
   def self.say_tutorial(selector)
     return unless (lines = Preference.tutorial_json).present?
+    return if selector.nil?
     
     lines.split("\n").each do |line|
       execute "tellraw #{selector} #{line}"
@@ -442,11 +467,11 @@ class ServerCommand
       tip_body = sub_safe_selectors(escape(tip.body.dup))
       tip.update_attribute(:read_at, Time.now) # set cooldown
       if tip_body =~ /^server/i
-        emote('@a', tip_body.split(' ')[1..-1].join(' '))
+        emote(selector, tip_body.split(' ')[1..-1].join(' '))
       elsif tip_body =~ /^herobrine/i
-        say_fake_achievement('@a', 'Herobrine', tip_body)
+        say_fake_achievement(selector, 'Herobrine', tip_body)
       elsif tip_body =~ /^slap/i
-        say_slap("@a", tip_body.split(' ')[1..-1].join(' '))
+        say_slap(selector, tip_body.split(' ')[1..-1].join(' '))
       elsif tip_body =~ /^>/i
         say(selector, tip_body, color: 'green', as: 'Server')
       else
@@ -537,7 +562,13 @@ class ServerCommand
       execute("kick #{nick} Spammy ratio #{ratio}")
     end
     
-    Player.find_by_nick(nick).update_attribute(:spam_ratio, ratio)
+    player = Player.find_by_nick(nick)
+    
+    if !!player
+      player.update_attribute(:spam_ratio, ratio)
+      
+      return player
+    end
   end
   
   def self.say_slap(selector = "@a", nick = "Server", target = nil)
