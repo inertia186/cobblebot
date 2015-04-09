@@ -1,12 +1,8 @@
 class Admin::LinksController < Admin::AdminController
   before_filter :authenticate_admin!
+  before_filter :setup_params, only: :index
   
   def index
-    @filter = params[:filter].present? ? params[:filter] : 'all'
-    @query = params[:query]
-    @status = params[:status]
-    @sort_field = params[:sort_field].present? ? params[:sort_field] : 'created_at'
-    @sort_order = params[:sort_order] == 'asc' ? 'asc' : 'desc'
     @player_id = params[:player_id]
     @player = Player.find @player_id if @player_id.present?
     
@@ -16,13 +12,32 @@ class Admin::LinksController < Admin::AdminController
       @links = Link.all
     end
 
+    timeframe
+    query
+    sort
+    paginate
+  end
+  
+  def show
+    @link = Link.find(params[:id])
+  end
+
+  def destroy
+    super Link, 'link', params[:id], admin_links_url, 'remove_link_row'
+  end
+private
+  def timeframe
     @links = @links.where('links.created_at BETWEEN ? AND ?', Time.now.beginning_of_day, Time.now.end_of_day) if @filter == 'only_today'
-    
+  end
+  
+  def query
     if @query.present?
       q = "%#{@query}%"
       @links = @links.query(q)
     end
-
+  end
+  
+  def sort
     case @sort_field
     when
       sort_nulls = 
@@ -32,15 +47,9 @@ class Admin::LinksController < Admin::AdminController
     else
       @links = @links.order("#{@sort_field} #{@sort_order}")
     end
-    
-    @links = @links.paginate(page: params[:page], per_page: 25)
   end
   
-  def show
-    @link = Link.find(params[:id])
-  end
-
-  def destroy
-    super Link, 'link', params[:id], admin_links_url, 'remove_link_row'
+  def paginate
+    @links = @links.paginate(page: params[:page], per_page: 25)
   end
 end

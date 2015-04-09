@@ -1,6 +1,14 @@
 class Admin::AdminController < ApplicationController
   helper_method :sign_in_admin
+  helper_method :setup_params
 private
+  def setup_params
+    @filter = params[:filter].present? ? params[:filter] : 'all'
+    @query = params[:query]
+    @sort_field = params[:sort_field].present? ? params[:sort_field] : 'created_at'
+    @sort_order = params[:sort_order] == 'asc' ? 'asc' : 'desc'
+  end
+
   def destroy(clazz, assign, id, return_to, js_template)
     object = clazz.find(params[:id])
     object.destroy

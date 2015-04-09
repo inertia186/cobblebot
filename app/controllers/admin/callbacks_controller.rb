@@ -1,48 +1,19 @@
 class Admin::CallbacksController < Admin::AdminController
   before_filter :authenticate_admin!
+  before_filter :setup_params, only: :index
 
   def index
-    @filter = params[:filter].present? ? params[:filter] : 'all'
-    @query = params[:query]
     @status = params[:status]
     @type = params[:type]
     @sort_field = params[:sort_field].present? ? params[:sort_field] : 'ran_at'
-    @sort_order = params[:sort_order] == 'asc' ? 'asc' : 'desc'
     @callbacks = ServerCallback.all
 
-    @callbacks = @callbacks.system if @filter == 'only_system'
-    @callbacks = @callbacks.system(false) if @filter == 'exclude_system'
-    
-    if @query.present?
-      q = "%#{@query}%"
-      @callbacks = @callbacks.query(q)
-    end
-
-    if @status.present?
-      case @status
-      when 'ready'
-        @callbacks = @callbacks.ready
-      when 'in_cooldown'
-        @callbacks = @callbacks.ready(false).enabled
-      when 'enabled'
-        @callbacks = @callbacks.enabled
-      when 'disabled'
-        @callbacks = @callbacks.enabled(false)
-      end
-    end
-
-    if @type.present?
-      @callbacks = @callbacks.type(@type)
-    end
-    
-    case @sort_field
-    when 'status'
-      @callbacks = @callbacks.select('*, datetime(server_callbacks.ran_at, server_callbacks.cooldown) AS status').order("enabled #{@sort_order}, status #{@sort_order}")
-    else
-      @callbacks = @callbacks.order("#{@sort_field} #{@sort_order}")
-    end
-    
-    @callbacks = @callbacks.paginate(page: params[:page], per_page: 100)
+    system
+    query
+    status
+    type
+    sort
+    paginate
   end
   
   def reset_all_cooldown
@@ -127,6 +98,50 @@ class Admin::CallbacksController < Admin::AdminController
     end
   end
 private
+  def system
+    @callbacks = @callbacks.system if @filter == 'only_system'
+    @callbacks = @callbacks.system(false) if @filter == 'exclude_system'
+  end
+
+  def query
+    if @query.present?
+      q = "%#{@query}%"
+      @callbacks = @callbacks.query(q)
+    end
+  end
+
+  def status
+    if @status.present?
+      case @status
+      when 'ready'
+        @callbacks = @callbacks.ready
+      when 'in_cooldown'
+        @callbacks = @callbacks.ready(false).enabled
+      when 'enabled'
+        @callbacks = @callbacks.enabled
+      when 'disabled'
+        @callbacks = @callbacks.enabled(false)
+      end
+    end
+  end
+
+  def type
+    @callbacks = @callbacks.type(@type) if @type.present?
+  end
+
+  def sort
+    case @sort_field
+    when 'status'
+      @callbacks = @callbacks.select('*, datetime(server_callbacks.ran_at, server_callbacks.cooldown) AS status').order("enabled #{@sort_order}, status #{@sort_order}")
+    else
+      @callbacks = @callbacks.order("#{@sort_field} #{@sort_order}")
+    end
+  end
+
+  def paginate
+    @callbacks = @callbacks.paginate(page: params[:page], per_page: 100)
+  end
+
   def server_callback_params
     attributes = [:name, :pattern, :type, :command, :cooldown, :enabled]
 
