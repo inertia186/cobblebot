@@ -10,47 +10,31 @@ class ServerQuery
     Rails.env == 'test' ? 0 : RETRY_SLEEP
   end
   
-  def self.query
+  def self.query(method = :simpleQuery)
     query = nil
-    
+  
     try_max.times do
       begin
-        query = Query::simpleQuery(ServerProperties.server_ip, ServerProperties.server_port)
-    
-        if query.class == Errno::ECONNREFUSED
-          raise StandardError.new("Minecraft Server not started? #{query}")
-        end
+        query = Query.send(method, ServerProperties.server_ip, ServerProperties.server_port)
       rescue StandardError => e
         Rails.logger.warn e.inspect
         sleep retry_sleep
         ServerProperties.reset_vars
       end
     end
+
+    if query.class != Hash
+      ServerProperties.reset_vars
+      ServerCommand.reset_vars
     
+      raise StandardError.new("Minecraft Server not started? #{query}")
+    end
+  
     query
   end
 
   def self.full_query
-    full_query = nil
-    
-    try_max.times do
-      begin
-        full_query = Query::fullQuery(ServerProperties.server_ip, ServerProperties.server_port)
-      rescue StandardError => e
-        Rails.logger.warn e.inspect
-        sleep retry_sleep
-        ServerProperties.reset_vars
-      end
-    end
-
-    if full_query.class != Hash
-      ServerProperties.reset_vars
-      ServerCommand.reset_vars
-      
-      raise StandardError.new("Minecraft Server not started? #{full_query}")
-    end
-    
-    full_query
+    query(:fullQuery)
   end
   
   def self.method_missing(m, *args, &block)
