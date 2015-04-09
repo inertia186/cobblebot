@@ -24,21 +24,19 @@ module ApplicationHelper
   end
   
   def modal_nav_links(path, id)
-    link_to(path, id: "first_#{id}", class: 'btn btn-default', accesskey: 'f', data: { remote: true, target: "#show_#{id}"}) do
-      content_tag(:u) { 'F' } + 'irst'
-    end +
-    link_to(path, id: "previous_#{id}", class: 'btn btn-default', accesskey: 'p', data: { remote: true, target: "#show_#{id}"}) do
-      content_tag(:u) { 'P' } + 'revious'
-    end +
-    link_to(path, id: "next_#{id}", class: 'btn btn-default', accesskey: 'n', data: { remote: true, target: "#show_#{id}"}) do
-      content_tag(:u) { 'N' } + 'ext'
-    end +
-    link_to(path, id: "last_#{id}", class: 'btn btn-default', accesskey: 'l', data: { remote: true, target: "#show_#{id}"}) do
-      content_tag(:u) { 'L' } + 'ast'
-    end
+    nav_link(path, "first_#{id}", 'f', "#show_#{id}", 'F', 'irst') +
+    nav_link(path, "previous_#{id}", 'p', "#show_#{id}", 'P', 'revious') +
+    nav_link(path, "next_#{id}", 'n', "#show_#{id}", 'N', 'ext') +
+    nav_link(path, "last_#{id}", 'l', "#show_#{id}", 'L', 'ext')
   end
   
   def link_remote_delete(action, options = {class: 'btn btn-danger', confirm: 'Are you sure?'})
     link_to 'Delete', action, class: options[:class], data: { confirm: options[:confirm], remote: true, method: :delete }
+  end
+private
+  def nav_link(path, id, target, accesskey, prefix, suffix)
+    link_to(path, id: id, class: 'btn btn-default', accesskey: accesskey, data: { remote: true, target: target}) do
+      content_tag(:u) { prefix } + suffix
+    end
   end
 end
