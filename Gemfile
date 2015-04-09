@@ -67,6 +67,7 @@ group :test do
   gem 'simplecov'
   gem 'simplecov-csv'
   gem 'webmock'
+  gem 'codeclimate-test-reporter'
 end
 
 group :development, :test do

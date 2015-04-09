@@ -4,9 +4,11 @@ require 'rails/test_help'
 require "minitest/hell"
 require 'simplecov'
 require 'webmock/minitest'
+require "codeclimate-test-reporter"
 
 SimpleCov.start
-WebMock.disable_net_connect!(allow_localhost: true)
+WebMock.disable_net_connect!(allow_localhost: true, allow: 'codeclimate.com:443')
+CodeClimate::TestReporter.start
 
 class ActiveSupport::TestCase
   # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.

@@ -1,6 +1,8 @@
 cobblebot
 =========
 
+[![Build Status](https://travis-ci.org/inertia186/cobblebot.svg?branch=master)](https://travis-ci.org/inertia186/cobblebot) [![Code Climate](https://codeclimate.com/github/inertia186/cobblebot/badges/gpa.svg)](https://codeclimate.com/github/inertia186/cobblebot) [![Test Coverage](https://codeclimate.com/github/inertia186/cobblebot/badges/coverage.svg)](https://codeclimate.com/github/inertia186/cobblebot)
+
 Minecraft Server Automation ... *For Vanilla*
 
 CobbleBot is a rails application and external scripting tool that interacts with (vanilla) Minecraft SMP.  It primarily uses the server logs to detect events and can be configured to send commands back to the server with RCON and/or a multiplexor.
