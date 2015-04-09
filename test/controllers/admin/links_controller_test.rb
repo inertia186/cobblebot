@@ -18,4 +18,13 @@ class Admin::LinksControllerTest < ActionController::TestCase
     assert_template :index
     assert_response :success
   end
+  
+  def test_destroy
+    assert_difference -> { Link.count }, -1, 'expect different count' do
+      delete :destroy, id: Link.first
+    end
+
+    assert_template nil
+    assert_redirected_to admin_links_url
+  end
 end

@@ -69,4 +69,13 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
     assert_template :new
     assert_response :success
   end
+
+  def test_destroy
+    assert_difference -> { ServerCallback.count }, -1, 'expect different count' do
+      delete :destroy, id: ServerCallback.first
+    end
+
+    assert_template nil
+    assert_redirected_to admin_server_callbacks_url
+  end
 end
