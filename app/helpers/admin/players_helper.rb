@@ -11,8 +11,4 @@ module Admin::PlayersHelper
     end
     
   end
-  
-  def link_delete_player(player, options = {class: 'btn btn-danger'})
-    link_to 'Delete', admin_player_path(player), class: options[:class], data: { confirm: 'Are you sure?  Deleting a player record only deletes the database row for that player.  If they log in again, a new row will then be created.', remote: true, method: :delete }
-  end
 end

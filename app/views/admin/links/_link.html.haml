@@ -4,7 +4,7 @@
     
 .modal-footer
   %span{style: 'float: left;'}
-    = link_delete_link(link)
+    = link_remote_delete(admin_link_path(link))
   %span{style: 'float: right;'}
     - if defined? modal
       = modal_nav_links(admin_links_path, "link")

@@ -2,7 +2,7 @@
   %td
     = link_to link.title, link.url, target: link.to_param
   - unless @player
-    %td=link_to link.actor.nick, "?player_id=#{link.actor_id}" if link.actor_type == 'Player'
+    %td=link_to((link.actor.nick rescue '[REDACTED]'), "?player_id=#{link.actor_id}") if link.actor_type == 'Player'
   %td=created(link.created_at)
   %td
     %span{style: 'float: right'}
@@ -17,4 +17,4 @@
             .modal-body{id: 'show_link_body'}
               %center
                 %img{src: '/images/large_spinner.gif'}
-      = link_delete_link(link, class: 'btn btn-danger btn-xs')
+      = link_remote_delete(admin_link_path(link), class: 'btn btn-danger btn-xs', confirm: 'Are you sure?')

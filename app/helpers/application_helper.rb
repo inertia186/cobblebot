@@ -37,4 +37,8 @@ module ApplicationHelper
       content_tag(:u) { 'L' } + 'ast'
     end
   end
+  
+  def link_remote_delete(action, options = {class: 'btn btn-danger', confirm: 'Are you sure?'})
+    link_to 'Delete', action, class: options[:class], data: { confirm: options[:confirm], remote: true, method: :delete }
+  end
 end

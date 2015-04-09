@@ -22,7 +22,7 @@
       %wbr
       = callback_reset_link(callback, class: 'btn btn-warning btn-xs')
       = callback_enable_link(callback, class: 'btn btn-info btn-xs')
-      = callback_delete_link(callback, class: 'btn btn-danger btn-xs')
+      = link_remote_delete(admin_server_callback_path(callback), class: 'btn btn-danger btn-xs', confirm: 'Are you sure?')
 
     :javascript
       jQuery(document).ready(function($) {

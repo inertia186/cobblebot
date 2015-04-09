@@ -121,8 +121,4 @@ module Admin::ServerCallbackHelper
   def callback_enable_link(callback, options = {class: 'btn btn-info'})
     link_to callback_toggle_enabled(callback), toggle_enabled_admin_server_callback_path(callback), class: options[:class], data: { remote: true, method: :patch }
   end
-  
-  def callback_delete_link(callback, options = {class: 'btn btn-danger'})
-    link_to 'Delete', admin_server_callback_path(callback), class: options[:class], data: { confirm: 'Are you sure?', remote: true, method: :delete }
-  end
 end

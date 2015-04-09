@@ -18,4 +18,4 @@
             .modal-body{id: 'show_player_body'}
               %center
                 %img{src: '/images/large_spinner.gif'}
-      = link_delete_player(player, class: 'btn btn-danger btn-xs')
+      = link_remote_delete(admin_player_path(player), class: 'btn btn-danger btn-xs', confirm: 'Are you sure?  Deleting a player record only deletes the database row for that player.  If they log in again, a new row will then be created.')

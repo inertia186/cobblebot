@@ -34,7 +34,7 @@ class Admin::PlayersController < ApplicationController
   end
 
   def destroy
-    @player = Link.find(params[:id])
+    @player = Player.find(params[:id])
 
     @player.destroy
 

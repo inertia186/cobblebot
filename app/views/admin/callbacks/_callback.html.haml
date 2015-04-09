@@ -49,7 +49,7 @@
   %span{style: 'float: left;'}
     = callback_edit_link(callback)
     = callback_enable_link(callback)
-    = callback_delete_link(callback)
+    = link_remote_delete(admin_server_callback_path(callback))
     = callback_gist_link(callback)
   %span{style: 'float: right;'}
     - if defined? modal
