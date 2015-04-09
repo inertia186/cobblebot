@@ -103,7 +103,7 @@ class IrcBot < Summer::Connection
     @replies = Thread.start do
       begin
         sleep 15 and next unless Server.up?
-        sleep 15 and next unless ServerQuery.numplayers.to_i > 0
+        sleep 15 and next unless ServerQuery.numplayers.to_i > 0 || Message::IrcReply.all.any?
         
         Message::IrcReply.all.find_each do |reply|
           channel_say(channel: config[:channel], reply: reply.body)
@@ -115,6 +115,7 @@ class IrcBot < Summer::Connection
         sleep 5
 
         quit_irc if @bot_started_at.nil? || @bot_started_at < 24.hours.ago
+        quit_irc unless Preference.irc_enabled?
       rescue StandardError => e
         log_error e.inspect
         sleep 30
@@ -259,22 +260,15 @@ class IrcBot < Summer::Connection
     channel = options[:channel]
 
     nick = message.split(' ').last
-    players = Player.any_nick(nick).order(:nick)
+    lines = ServerCommand.say_playercheck(nil, nick)
     
-    if players.any?
-      player = players.first
-      reply sender: sender, channel: channel, reply: "Latest activity for #{player.nick} was #{distance_of_time_in_words_to_now(player.last_activity_at)} ago."
-      sleep THROTTLE
-      reply sender: sender, channel: channel, reply: "<#{player.nick}> #{player.last_chat} #{player.registered? ? '®' : ''}"
-      sleep THROTTLE
-      reply sender: sender, channel: channel, reply: "Biomes explored: #{player.explore_all_biome_progress}"
-      # TODO get rate:
-      # reply sender: sender, channel: channel, reply: "Sum of all trust: ..."
+    if lines.class == Array
+      lines.each do |line|
+        reply sender: sender, channel: channel, reply: line
+        sleep THROTTLE
+      end
     else
-      reply sender: sender, channel: channel, reply: "Player not found: #{nick}"
-      sleep THROTTLE
-      players = Player.search_any_nick(nick)
-      reply sender: sender, channel: channel, reply: "Did you mean: #{players.first.nick}" if players.any?
+      Rails.logger.warn("Don't know what to do with: #{lines}")
     end
   end
 

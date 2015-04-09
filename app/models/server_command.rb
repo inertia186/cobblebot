@@ -326,30 +326,43 @@ class ServerCommand
     if players.any?
       player = players.first
       
-      results << execute(
+      line_1a = "Latest activity for #{player.nick} was "
+      line_1b = distance_of_time_in_words_to_now(player.last_activity_at)
+      line_1c = player.last_activity_at.to_s
+      line_1d = ' ago.'
+      execute(
       <<-DONE
         tellraw #{selector} [
-          { "color": "white", "text": "[Server] Latest activity for #{player.nick} was " },
+          { "color": "white", "text": "[Server] #{line_1a}" },
           {
-            "color": "white", "text": "#{distance_of_time_in_words_to_now(player.last_activity_at)}",
+            "color": "white", "text": "#{line_1b}",
             "hoverEvent": {
-              "action": "show_text", "value": "#{player.last_activity_at}"
+              "action": "show_text", "value": "#{line_1c}"
             }
           },
-          { "color": "white", "text": " ago." }
+          { "color": "white", "text": "#{line_1d}" }
         ]
       DONE
-      )
+      ) unless selector.nil?
+      results << "#{line_1a}#{line_1b}#{line_1d} (#{line_1c})"
+      
       if !!player.last_chat
-        results << say(selector, "<#{player.nick}> #{player.last_chat}#{player.registered? ? ' ®' : ''}")
+        results << line_2 = "<#{player.nick}> #{player.last_chat}#{player.registered? ? ' ®' : ''}"
+        say(selector, line_2)
       end
-      results << say(selector, "Biomes explored: #{player.explore_all_biome_progress}")
+      
+      results << line_3 = "Biomes explored: #{player.explore_all_biome_progress}"
+      say(selector, line_3)
       # TODO get rate:
       # say selector, "Sum of all trust: ..."
     else
-      results << say(selector, "Player not found: #{nick}")
+      results << line_1 = "Player not found: #{nick}"
+      say(selector, line_1)
       players = Player.search_any_nick(nick)
-      results << say(selector, "Did you mean: #{players.first.nick}") if players.any?
+      if players.any?
+        results << line_2 = "Did you mean: #{players.first.nick}"
+        say(selector, line_2)
+      end
     end
     
     results
