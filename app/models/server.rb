@@ -1,11 +1,28 @@
 require 'rcon/rcon'
 
 class Server
+  TRY_MAX = 5
+  RETRY_SLEEP = 5
+
+  def self.try_max
+    Rails.env == 'test' ? 1 : TRY_MAX
+  end
+  
+  def self.retry_sleep
+    Rails.env == 'test' ? 0 : RETRY_SLEEP
+  end
+  
   def self.up?
-    begin
-      query = Query::simpleQuery(ServerProperties.server_ip, ServerProperties.server_port)
-    rescue
-      false
+    query = nil
+    
+    try_max.times do
+      begin
+        query = Query::simpleQuery(ServerProperties.server_ip, ServerProperties.server_port)
+      rescue StandardError => e
+        Rails.logger.warn e.inspect
+        sleep retry_sleep
+        ServerProperties.reset_vars
+      end
     end
     
     query.class == Hash
