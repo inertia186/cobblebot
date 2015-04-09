@@ -72,6 +72,16 @@ class ServerCommandTest < ActiveSupport::TestCase
     assert_equal 1, commands.size, 'expect one command'
     assert_equal commands.last, 'kick jackass186 Have A Nice Day', 'expect player kick'
   end
+  
+  def test_merge_selectors
+    assert_equal '@a', ServerCommand.merge_selectors('@a', '@a')
+    assert_equal '@a[r=1]', ServerCommand.merge_selectors('@a[r=1]', '@a')
+    assert_equal '@a[r=1]', ServerCommand.merge_selectors('@a', '@a[r=1]')
+    assert_equal '@a[r=1,x=2]', ServerCommand.merge_selectors('@a[r=1]', '@a[x=2]')
+    assert_equal '@a[r=1,r=2]', ServerCommand.merge_selectors('@a[r=1]', '@a[r=2]')
+    assert_equal '@a[score_points_min=30,score_points=39,x=10,y=20,z=30,r=4]', ServerCommand.merge_selectors('@a[score_points_min=30,score_points=39]', '@a[x=10,y=20,z=30,r=4]')
+    assert_equal '@e[type=Creeper,c=3,type=Cow]', ServerCommand.merge_selectors('@e[type=Creeper,c=3]', '@e[type=Cow]')
+  end
 end
 
 class TestServerCommand < ServerCommand
