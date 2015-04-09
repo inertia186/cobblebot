@@ -540,4 +540,27 @@ class ServerCommand
     
     result
   end
+  
+  # Imagine you have two selectors, for example:
+  # 
+  # a: @a[r=1000]
+  #   -and-
+  # b: @a[name=!inertia186]
+  #
+  # This method will merge them into:
+  #
+  # c: @a[r=1000,name=!inertia186]
+  #
+  def self.merge_selectors(a, b)
+    raise "Cannot merge unlike selectors: @#{a[1]} .. @#{b[1]}" if a[1] != b[1]
+    
+    _a = a.split('[')[1]
+    _a = _a.split(']')[0] if _a
+    _b = b.split('[')[1]
+    _b = _b.split(']')[0] if _b
+    _c = [_a, _b].reject(&:nil?)
+
+    return "@#{a[1]}" if _c.empty?
+    return "@#{a[1]}[#{_c.join(',')}]"
+  end
 end
