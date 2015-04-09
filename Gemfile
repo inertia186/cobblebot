@@ -66,6 +66,7 @@ gem 'will_paginate'
 group :test do
   gem 'simplecov'
   gem 'simplecov-csv'
+  gem 'webmock'
 end
 
 group :development, :test do

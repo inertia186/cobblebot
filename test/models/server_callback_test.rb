@@ -7,6 +7,11 @@ class ServerCallbackTest < ActiveSupport::TestCase
   
   def setup
     method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
+    
+    stub_request(:get, "https://gist.github.com/inertia186/5002463").
+      to_return(status: 200)
+    stub_request(:get, "https://ajax.googleapis.com/ajax/services/search/news?q=florida%20man&v=1.0").
+      to_return(status: 200)
   end
 
   def test_all_patterns
