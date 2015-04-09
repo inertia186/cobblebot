@@ -16,7 +16,9 @@ ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
   end
 end
 
-if Resque.size("minecraft_watchdog") == 0
-  Rails.logger.info "Equeuing minecraft_watchdog.  Current queue: #{Resque.size('minecraft_watchdog')}"
-  Resque.enqueue(MinecraftWatchdog)
+unless Rails.env == 'test'
+  if Resque.size("minecraft_watchdog") == 0
+    Rails.logger.info "Equeuing minecraft_watchdog.  Current queue: #{Resque.size('minecraft_watchdog')}"
+    Resque.enqueue(MinecraftWatchdog)
+  end
 end
