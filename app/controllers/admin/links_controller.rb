@@ -1,4 +1,4 @@
-class Admin::LinksController < ApplicationController
+class Admin::LinksController < Admin::AdminController
   before_filter :authenticate_admin!
   
   def index
@@ -41,13 +41,6 @@ class Admin::LinksController < ApplicationController
   end
 
   def destroy
-    @link = Link.find(params[:id])
-
-    @link.destroy
-
-    respond_to do |format|
-      format.html { redirect_to admin_links_url }
-      format.js { render 'remove_link_row' }
-    end
+    super Link, 'link', params[:id], admin_links_url, 'remove_link_row'
   end
 end

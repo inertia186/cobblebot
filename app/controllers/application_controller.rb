@@ -8,7 +8,6 @@ class ApplicationController < ActionController::Base
 
   add_flash_types :error, :info
 
-  helper_method :sign_in_admin
   helper_method :admin_signed_in?
 
   before_filter :check_server_status, unless: Proc.new { self.class.parent == Admin }
@@ -24,11 +23,7 @@ class ApplicationController < ActionController::Base
   def authenticate_admin!
     redirect_to new_admin_session_url unless admin_signed_in?
   end
-  
-  def sign_in_admin
-    session[:admin_signed_in] = true
-  end
-
+private
   def admin_signed_in?
     session[:admin_signed_in]
   end

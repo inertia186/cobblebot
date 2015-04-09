@@ -1,4 +1,4 @@
-class Admin::SessionsController < ApplicationController
+class Admin::SessionsController < Admin::AdminController
   before_filter :authenticate_admin!, except: [:new, :create]
 
   def new

@@ -1,6 +1,6 @@
 require 'digest/md5'
 
-class Admin::ConfigController < ApplicationController
+class Admin::ConfigController < Admin::AdminController
   before_filter :authenticate_admin!
   
   def console

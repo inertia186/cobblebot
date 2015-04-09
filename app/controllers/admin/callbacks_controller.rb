@@ -1,4 +1,4 @@
-class Admin::CallbacksController < ApplicationController
+class Admin::CallbacksController < Admin::AdminController
   before_filter :authenticate_admin!
 
   def index
@@ -84,14 +84,7 @@ class Admin::CallbacksController < ApplicationController
   end
   
   def destroy
-    @callback = ServerCallback.find(params[:id])
-
-    @callback.destroy
-
-    respond_to do |format|
-      format.html { redirect_to admin_server_callbacks_url }
-      format.js { render 'remove_callback_row' }
-    end
+    super ServerCallback, 'callback', params[:id], admin_server_callbacks_url, 'remove_callback_row'
   end
   
   def toggle_enabled

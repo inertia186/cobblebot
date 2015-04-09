@@ -1,6 +1,6 @@
 require 'digest/md5'
 
-class Admin::PlayersController < ApplicationController
+class Admin::PlayersController < Admin::AdminController
   before_filter :authenticate_admin!
   
   def index
@@ -34,13 +34,6 @@ class Admin::PlayersController < ApplicationController
   end
 
   def destroy
-    @player = Player.find(params[:id])
-
-    @player.destroy
-
-    respond_to do |format|
-      format.html { redirect_to admin_players_url }
-      format.js { render 'remove_player_row' }
-    end
+    super Player, 'player', params[:id], admin_players_url, 'remove_player_row'
   end
 end
