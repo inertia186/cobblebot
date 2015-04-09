@@ -40,14 +40,12 @@ class Preference < ActiveRecord::Base
   after_initialize :init_defaults
 
   def self.method_missing(m, *args, &block)
-    if m.to_s.ends_with?('=') && (ALL_KEYS.include? key = "#{m.to_s.split('=')[0]}")
-      return find_or_create_by!(key: key).update_attribute(:value, args[0])
-    elsif m.to_s.ends_with?('?') && (ALL_KEYS.include? key = "#{m.to_s.split('?')[0]}")
-      return ['true', true, 't', '1'].include? find_or_create_by!(key: key).value
-    elsif ALL_KEYS.include? key = m.to_s
-      return find_or_create_by!(key: key).value
-    end
-
+    m = m.to_s
+    
+    return update! prefix(m, '='), args[0] if prefixed?(m, '=')
+    return truthy? prefix(m, '?') if prefixed?(m, '?')
+    return find_or_create_by!(key: m).value if has? m
+      
     super
   end
   
@@ -59,5 +57,25 @@ class Preference < ActiveRecord::Base
   
   def to_param
     key.parameterize
+  end
+private
+  def self.prefixed?(method, op)
+    method.ends_with?(op) && has?(prefix(method, op))
+  end
+
+  def self.prefix(method, op)
+    method.split(op)[0]
+  end
+
+  def self.update!(key, value)
+    find_or_create_by!(key: key).update_attribute(:value, value)
+  end
+
+  def self.truthy?(key)
+    ['true', true, 't', '1'].include? find_or_create_by!(key: key).value
+  end
+  
+  def self.has?(key)
+    ALL_KEYS.include? key
   end
 end
