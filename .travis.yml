@@ -1,4 +1,4 @@
 language: ruby
 rvm:
   - "2.1.5"
-script: bundle exec rake test
+script: bundle exec rake db:migrate && bundle exec rake test
