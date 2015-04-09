@@ -38,6 +38,60 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
         f << line.strip + "\n"
       end
     end
+    
+    fake_server_properties = "#{tmp}/server.properties"
+    
+    File.delete(fake_server_properties) if File.exists?(fake_server_properties)
+    File.open(fake_server_properties, 'a') do |f|
+      server_properties = <<-DONE
+      #Minecraft server properties
+      #Thu Apr 09 07:38:13 PDT 2015
+      spawn-protection=16
+      max-tick-time=60000
+      query.port=25565
+      generator-settings=
+      force-gamemode=false
+      allow-nether=true
+      gamemode=0
+      enable-query=true
+      player-idle-timeout=0
+      difficulty=1
+      spawn-monsters=true
+      broadcast-rcon-to-ops=true
+      op-permission-level=4
+      resource-pack-hash=b19317b86580f607676c19c1a60d0b87
+      announce-player-achievements=true
+      pvp=true
+      snooper-enabled=true
+      level-type=DEFAULT
+      hardcore=false
+      enable-command-block=false
+      max-players=20
+      network-compression-threshold=256
+      max-world-size=29999984
+      rcon.port=25575
+      server-port=25565
+      debug=false
+      server-ip=
+      spawn-npcs=true
+      allow-flight=false
+      level-name=world
+      view-distance=10
+      resource-pack=https\://www.dropbox.com/s/uq143k8dlftccla/swim_resource_pack.zip?dl\=1
+      spawn-animals=true
+      white-list=false
+      rcon.password=password
+      generate-structures=true
+      max-build-height=256
+      online-mode=true
+      level-seed=
+      enable-rcon=true
+      motd=A Minecraft Server
+      DONE
+      server_properties.each_line do |line|
+        f << line.strip + "\n"
+      end
+    end
   end
 
   def test_check_version
