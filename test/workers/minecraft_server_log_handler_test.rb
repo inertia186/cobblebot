@@ -35,7 +35,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute_nil ServerCallback.find_by_name('Player Authenticated').ran_at, 'did not expect nil ran_at'
 
     assert_no_difference -> { Player.count }, 'did not expect new player' do
-      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticatedcator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')
+      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')
     end
 
     player = Player.last

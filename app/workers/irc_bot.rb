@@ -96,16 +96,10 @@ class IrcBot < Summer::Connection
       begin
         sleep 15 and next if should_monitor_sleep?
         
-        Message::IrcReply.all.find_each do |reply|
-          channel_say(channel: irc_channel, reply: reply.body)
-          sleep THROTTLE
-        
-          reply.destroy
-        end
-      
+        channel_say_irc_replies(channel: irc_channel)
         sleep 5
 
-        quit_irc if should_quit_ird?
+        quit_irc if should_quit_irc?
       rescue StandardError => e
         log_error e.inspect
         sleep 30
@@ -290,8 +284,18 @@ private
     COMMANDS.include? command
   end
 
+  def channel_say_irc_replies(options = {})
+    Message::IrcReply.all.find_each do |reply|
+      options[:reply] = reply.body
+      channel_say(options)
+      sleep THROTTLE
+    
+      reply.destroy
+    end
+  end
+
   def should_monitor_sleep?
-    !Server.up? || ( ServerQuery.numplayers.to_i < 1 || Message::IrcReply.all.none? )
+    !Server.up? || ( ServerQuery.numplayers.to_i < 1 && Message::IrcReply.all.none? )
   end
   
   def should_quit_irc?
