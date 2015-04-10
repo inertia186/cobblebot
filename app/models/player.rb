@@ -2,6 +2,13 @@ include ActionView::Helpers::DateHelper
 include ActionView::Helpers::TextHelper
 
 class Player < ActiveRecord::Base
+  include Commandable
+  include Commandable::ClassMethods
+  include Tellable
+  include Tellable::ClassMethods
+  include Teleportable
+  include Teleportable::ClassMethods
+  
   validates :uuid, presence: true
   validates_uniqueness_of :uuid, case_sensitive: true
   validates :nick, presence: true
@@ -47,10 +54,13 @@ class Player < ActiveRecord::Base
     end
   }
   scope :matching_banned_ip, lambda { |matching_banned_ip = true| matching_last_ip(Player.banned.select(:last_ip), matching_banned_ip) }
+  scope :play_sounds, lambda { |play_sounds = true| where(play_sounds: play_sounds) }
 
   has_many :links, as: :actor
   has_many :messages, -> { where(type: nil) }, as: :recipient
   has_many :tips, class_name: 'Message::Tip', as: :author
+
+  before_save :update_biomes_explored
 
   def self.max_explore_all_biome_progress
     all.map(&:explore_all_biome_progress).map(&:to_i).max
@@ -81,11 +91,11 @@ class Player < ActiveRecord::Base
   end
 
   def op!
-    ServerCommand.execute("op #{nick}")
+    execute("op #{nick}")
   end
   
   def deop!
-    ServerCommand.execute("deop #{nick}")
+    execute("deop #{nick}")
   end
   
   def whitelisted?
@@ -94,9 +104,9 @@ class Player < ActiveRecord::Base
   
   def whitelist!(yes = true)
     if yes
-      ServerCommand.execute("whitelist add #{nick}")
+      execute("whitelist add #{nick}")
     else
-      ServerCommand.execute("whitelist remove #{nick}")
+      execute("whitelist remove #{nick}")
     end
   end
   
@@ -117,19 +127,19 @@ class Player < ActiveRecord::Base
   end
   
   def ban!(reason = '')
-    ServerCommand.execute("ban #{nick} #{reason}")
+    execute("ban #{nick} #{reason}")
   end
   
   def pardon!
-    ServerCommand.execute("pardon #{nick}")
+    execute("pardon #{nick}")
   end
   
   def kick!(reason = 'Have A Nice Day!')
-    ServerCommand.execute("kick #{nick} #{reason}")
+    kick(nick, reason)
   end
   
   def kill!
-    ServerCommand.execute("kill #{nick}")
+    execute("kill #{nick}")
   end
 
   def tp!(options = {})
@@ -140,24 +150,24 @@ class Player < ActiveRecord::Base
     y_rot = options[:y_rot]
     target_nick = options[:nick]
     
-    return ServerCommand.execute("tp #{nick} #{x} #{y} #{z} #{x_rot} #{y_rot}") if !!x && !!y && !!z
-    return ServerCommand.execute("tp #{nick} #{target_nick}") if !!target
+    return tp(nick, "#{x} #{y} #{z} #{x_rot} #{y_rot}") if !!x && !!y && !!z
+    return tp(nick, "#{target_nick}") if !!target
   end
 
   def spawnpoint!(x, y, z)
-    ServerCommand.execute("spawnpoint #{nick} #{x} #{y} #{z}")
+    execute("spawnpoint #{nick} #{x} #{y} #{z}")
   end
   
   def title(type, json)
-    ServerCommand.execute("title #{nick} #{type} #{json}")
+    execute("title #{nick} #{type} #{json}")
   end
 
   def tell(message)
-    ServerCommand.execute("tell #{nick} #{message}")
+    super nick, message
   end
 
   def tellraw(json)
-    ServerCommand.execute("tellraw #{nick} #{json}")
+    execute("tellraw #{nick} #{json}")
   end
   
   def last_activity_at
@@ -183,10 +193,21 @@ class Player < ActiveRecord::Base
   end
   
   def current_location
-    response = ServerCommand.execute("tp #{nick} ~ ~ ~")
-    return if response == 'The entity UUID provided is in an invalid format'
+    response = tp(nick, "~ ~ ~")
     
-    response.split(' ')[3..-1].join(' ').split(/[\s,]+/)
+    reload.last_location
+  end
+  
+  def current_pos
+    [$1.to_i, $2.to_i, $3.to_i] if current_location =~ /^x=([0-9]+),y=([0-9]+),z=([0-9]+)$/
+  end
+
+  def last_pos
+    [$1.to_i, $2.to_i, $3.to_i] if last_location =~ /^x=([0-9]+),y=([0-9]+),z=([0-9]+)$/
+  end
+  
+  def update_biomes_explored
+    self.biomes_explored = explore_all_biome_progress
   end
   
   def method_missing(m, *args, &block)

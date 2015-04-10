@@ -2,6 +2,10 @@ require 'logger'
 require 'summer'
 
 class IrcBot < SummerBot
+  include Commandable
+  include Sayable
+  include Relayable
+
   attr_accessor :bot_started_at
   
   @queue = :irc_bot
@@ -49,7 +53,7 @@ class IrcBot < SummerBot
     player =  words[2]
     reason = words[3..-1].join(' ')
 
-    ServerCommand.kick player, reason
+    kick player, reason
   end
 
   def latest(options = {})
@@ -73,7 +77,7 @@ class IrcBot < SummerBot
     words = message.split(' ')
     cmd = words[2..-1].join(' ')
 
-    nick_msg sender: sender, reply: ServerCommand.execute(cmd)
+    nick_msg sender: sender, reply: execute(cmd)
   end
 
   # Regular commands.
@@ -126,7 +130,7 @@ class IrcBot < SummerBot
     channel = options[:channel]
 
     nick = message.split(' ').last
-    lines = ServerCommand.say_playercheck(nil, nick)
+    lines = say_playercheck(nil, nick)
     
     if lines.class == Array
       lines.each do |line|
@@ -141,7 +145,7 @@ class IrcBot < SummerBot
     sender = options[:sender]
     channel = options[:channel]
 
-    msg = ServerCommand.execute('list').strip
+    msg = execute('list').strip
     msg = msg.gsub(/:/, ': ')
 
     reply sender: sender, channel: channel, reply: msg
@@ -154,6 +158,6 @@ class IrcBot < SummerBot
     words = message.split(' ')
     msg = words[2..-1].join(' ').gsub(/['`"]/, "\'")
 
-    ServerCommand.irc_say "@a", sender[:nick], msg
+    irc_say "@a", sender[:nick], msg
   end
 end

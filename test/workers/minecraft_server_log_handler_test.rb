@@ -216,7 +216,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
 
     MinecraftServerLogHandler.handle "[08:33:21] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN"
     refute_nil ServerCallback.find_by_name('Spammy').ran_at, 'did not expect nil ran_at'
-    assert_equal 0.05555555555555555, Player.find_by_nick('GracieBoo').spam_ratio, 'expect spam ratio'
+    assert Player.find_by_nick('GracieBoo').spam_ratio <= 0.1, 'expect kickable spam ratio'
   end
 
   def test_spam_detect_alt
@@ -256,7 +256,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
 
     MinecraftServerLogHandler.handle "[08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttttttttt"
     refute_nil ServerCallback.find_by_name('Spammy').ran_at, 'did not expect nil ran_at'
-    assert_equal 0.08333333333333333, Player.find_by_nick('GracieBoo').spam_ratio, 'expect spam ratio'
+    assert Player.find_by_nick('GracieBoo').spam_ratio <= 0.1, 'expect kickable spam ratio'
   end
 
   def test_spam_detect_alt_alt
@@ -328,6 +328,6 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
 
     MinecraftServerLogHandler.handle "[08:33:21] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN"
     refute_nil ServerCallback.find_by_name('Spammy').ran_at, 'did not expect nil ran_at'
-    assert_equal 0.05555555555555555, Player.find_by_nick('GracieBoo').spam_ratio, 'expect spam ratio'
+    assert Player.find_by_nick('GracieBoo').spam_ratio <= 0.1, 'expect kickable spam ratio'
   end
 end
