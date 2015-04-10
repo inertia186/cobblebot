@@ -3,6 +3,8 @@ require 'summer'
 
 class SummerBot < Summer::Connection
   attr_accessor :bot_started_at, :shall_monitor, :op_commands, :commands
+
+  THROTTLE = 1
   
   @shall_monitor = false
   @bot_started_at = nil
