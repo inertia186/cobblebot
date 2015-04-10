@@ -130,7 +130,7 @@ class IrcBot < SummerBot
     channel = options[:channel]
 
     nick = message.split(' ').last
-    lines = say_playercheck(nil, nick)
+    lines = IrcBot.say_playercheck(nil, nick)
     
     if lines.class == Array
       lines.each do |line|

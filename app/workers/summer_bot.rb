@@ -2,21 +2,24 @@ require 'logger'
 require 'summer'
 
 class SummerBot < Summer::Connection
-  attr_accessor :bot_started_at, :shall_monitor, :op_commands, :commands
-
   THROTTLE = 1
   
+  attr_accessor :bot_started_at, :shall_monitor, :op_commands, :commands, :debug
+
   @shall_monitor = false
   @bot_started_at = nil
   @op_commands = nil
   @commands = nil
+  @debug = nil
   
   def initialize(options = {})
     options.each do |k, v|
       send("#{k}=", v)
     end
     
-    super Preference.irc_server_host, Preference.irc_server_port.to_i
+    unless @debug
+      super Preference.irc_server_host, Preference.irc_server_port.to_i
+    end
   end
 
   def log info
