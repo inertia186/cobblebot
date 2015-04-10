@@ -27,7 +27,7 @@ class PreferenceTest < ActiveSupport::TestCase
       # :nocov:
       fail 'did not expect method to exist'
       # :nocov:
-    rescue ArgumentError => e
+    rescue NoMethodError => e
       # success
     end
   end

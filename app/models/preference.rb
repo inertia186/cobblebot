@@ -40,11 +40,11 @@ class Preference < ActiveRecord::Base
   after_initialize :init_defaults
 
   def self.method_missing(m, *args, &block)
-    m = m.to_s
+    n = m.to_s
     
-    return update! prefix(m, '='), args[0] if prefixed?(m, '=')
-    return truthy? prefix(m, '?') if prefixed?(m, '?')
-    return find_or_create_by!(key: m).value if has? m
+    return update! prefix(n, '='), args[0] if prefixed? n, '='
+    return truthy? prefix(n, '?') if prefixed? n, '?'
+    return find_or_create_by!(key: n).value if has? n
       
     super
   end

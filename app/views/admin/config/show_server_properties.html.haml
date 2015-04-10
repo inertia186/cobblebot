@@ -10,10 +10,10 @@
           %td= key
           %td
             - if key =~ /password/i
-              = '*' * ServerProperties.send(key).length
+              = '*' * ServerProperties.send(key).length if !!ServerProperties.send(key)
             - else
               = ServerProperties.send(key)
-            - if key =~ /^resource-pack$/i && ServerProperties.send(key).empty?
+            - if key =~ /^resource-pack$/i && ( !ServerProperties.send(key) || ServerProperties.send(key).empty? )
               %button.btn.btn-info.badge{style: 'float: right', type: :button, data: { toggle: :modal, target: '#explain_command'}} Suggestion
               .modal.fade{id: :explain_command, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_command_label', 'aria-hidden' => true}
                 .modal-dialog

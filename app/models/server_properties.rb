@@ -41,24 +41,40 @@ class ServerProperties
   end
   
   def self.method_missing(m, *args, &block)
-    super unless !!properties
+    return super unless !!properties
 
     keys = properties.keys
     key = m.to_s.dasherize.to_sym
-    dotted_key = m.to_s.gsub(/_/, '.').to_sym
-    unquestioned_key = m.to_s.dasherize.gsub(/\?$/, '').to_sym
-    unquestioned_dotted_key = m.to_s.gsub(/_/, '.').gsub(/\?$/, '').to_sym
 
-    if keys.include?(key)
-      return properties[key]
-    elsif keys.include?(dotted_key)
-      return properties[dotted_key]
-    elsif keys.include?(unquestioned_key)
-      return properties[unquestioned_key] == 'true'
-    elsif keys.include?(unquestioned_dotted_key)
-      return properties[unquestioned_dotted_key] == 'true'
-    end
+    return properties[key] if keys.include? key
+    return properties[dotted m] if dotted? m
+    return properties[unquestioned m] == 'true' if unquestioned? m
+    return properties[unquestioned_dotted m] == 'true' if unquestioned_dotted? m
 
     super
+  end
+private
+  def self.dotted?(m)
+    properties.keys.include? dotted m
+  end
+
+  def self.dotted(m)
+    m.to_s.gsub(/_/, '.').to_sym
+  end
+
+  def self.unquestioned?(m)
+    properties.keys.include? unquestioned m
+  end
+  
+  def self.unquestioned(m)
+    m.to_s.dasherize.gsub(/\?$/, '').to_sym
+  end
+
+  def self.unquestioned_dotted?(m)
+    properties.keys.include? unquestioned_dotted m
+  end
+  
+  def self.unquestioned_dotted(m)
+    dotted m.to_s.gsub(/\?$/, '').to_sym
   end
 end

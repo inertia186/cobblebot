@@ -46,6 +46,14 @@ class IrcBot < Summer::Connection
     ops.split(/[\s,]+/) if !!ops
   end
 
+  def irc_channel
+    config[:channel]
+  end
+
+  def irc_nick
+    config[:nick]
+  end
+
   # Summer callbacks
 
   def did_start_up
@@ -65,17 +73,9 @@ class IrcBot < Summer::Connection
     return unless at == '@cobblebot' || at == '@cb' || at == '@server'
     command = command.downcase
 
-    if op_nicks.include?(sender[:nick]) && OP_COMMANDS.include?(command)
-      Thread.start do
-        send(command, sender: sender, channel: channel, message: message)
-      end
-    end
-
-    if COMMANDS.include?(command)
-      Thread.start do
-        send(command, sender: sender, channel: channel, message: message)
-      end
-    end
+    Thread.start do
+      send(command, sender: sender, channel: channel, message: message)
+    end if valid_op_command?(sender[:nick], command) || valid_command?(command)
   end
   
   def private_message sender, bot, message
@@ -83,17 +83,9 @@ class IrcBot < Summer::Connection
     words = message.split(' ')
     command = words[0].downcase
 
-    if op_nicks.include?(sender[:nick]) && OP_COMMANDS.include?(command)
-      Thread.start do
-        send(command, sender: sender, message: "@cobblebot #{message}")
-      end
-    end
-
-    if COMMANDS.include?(command)
-      Thread.start do
-        send(command, sender: sender, message: "@cobblebot #{message}")
-      end
-    end
+    Thread.start do
+      send(command, sender: sender, message: "@cobblebot #{message}")
+    end if valid_op_command?(sender[:nick], command) || valid_command?(command)
   end
   
   # Monitors
@@ -102,11 +94,10 @@ class IrcBot < Summer::Connection
     @shall_monitor = true
     @replies = Thread.start do
       begin
-        sleep 15 and next unless Server.up?
-        sleep 15 and next unless ServerQuery.numplayers.to_i > 0 || Message::IrcReply.all.any?
+        sleep 15 and next if should_monitor_sleep?
         
         Message::IrcReply.all.find_each do |reply|
-          channel_say(channel: config[:channel], reply: reply.body)
+          channel_say(channel: irc_channel, reply: reply.body)
           sleep THROTTLE
         
           reply.destroy
@@ -114,8 +105,7 @@ class IrcBot < Summer::Connection
       
         sleep 5
 
-        quit_irc if @bot_started_at.nil? || @bot_started_at < 24.hours.ago
-        quit_irc unless Preference.irc_enabled?
+        quit_irc if should_quit_ird?
       rescue StandardError => e
         log_error e.inspect
         sleep 30
@@ -147,7 +137,7 @@ class IrcBot < Summer::Connection
     channel = options[:channel]
     reply = options[:reply]
 
-    response "PRIVMSG #{config[:channel]} :#{reply}"
+    response "PRIVMSG #{irc_channel} :#{reply}"
     log ">> #{reply}"
   end
   
@@ -162,11 +152,11 @@ class IrcBot < Summer::Connection
   # OP Commands
   
   def opself(options = {})
-    response "PRIVMSG ChanServ OP #{config[:channel]} #{config[:nick]} +a"
+    response "PRIVMSG ChanServ OP #{irc_channel} #{irc_nick} +a"
   end
   
   def opme(options = {})
-    response "MODE #{config[:channel]} +o #{sender[:nick]}"
+    response "MODE #{irc_channel} +o #{sender[:nick]}"
   end
 
   def quit_irc(options = {})
@@ -206,7 +196,7 @@ class IrcBot < Summer::Connection
     words = message.split(' ')
     cmd = words[2..-1].join(' ')
 
-    nick_msg sender: sender, reply: rcon(cmd)
+    nick_msg sender: sender, reply: ServerCommand.execute(cmd)
   end
 
   # Regular commands.
@@ -290,6 +280,22 @@ class IrcBot < Summer::Connection
     msg = words[2..-1].join(' ').gsub(/['`"]/, "\'")
 
     ServerCommand.irc_say "@a", sender[:nick], msg
+  end
+private
+  def valid_op_command?(nick, command)
+    op_nicks.include?(nick) && OP_COMMANDS.include?(command)
+  end
+  
+  def valid_command?(command)
+    COMMANDS.include? command
+  end
+
+  def should_monitor_sleep?
+    !Server.up? || ( ServerQuery.numplayers.to_i < 1 || Message::IrcReply.all.none? )
+  end
+  
+  def should_quit_irc?
+    !Preference.irc_enabled? || @bot_started_at.nil? || @bot_started_at < 24.hours.ago
   end
 end
 
