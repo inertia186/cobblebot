@@ -16,6 +16,13 @@ class ServerQuery
     try_max.times do
       begin
         query = Query.send(method, ServerProperties.server_ip, ServerProperties.server_port)
+
+        if query.class != Hash
+          ServerProperties.reset_vars
+          ServerCommand.reset_vars
+        end
+        
+        break
       rescue StandardError => e
         Rails.logger.warn e.inspect
         sleep retry_sleep
@@ -23,13 +30,8 @@ class ServerQuery
       end
     end
 
-    if query.class != Hash
-      ServerProperties.reset_vars
-      ServerCommand.reset_vars
-    
-      raise StandardError.new("Minecraft Server not started? #{query}")
-    end
-  
+    raise StandardError.new("Minecraft Server not started? #{query}") if query.class != Hash
+
     query
   end
 
