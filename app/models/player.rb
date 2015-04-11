@@ -209,6 +209,10 @@ class Player < ActiveRecord::Base
   def update_biomes_explored
     self.biomes_explored = explore_all_biome_progress
   end
+
+  def toggle_play_sounds!
+    update_attribute(:play_sounds, !play_sounds)
+  end
   
   def method_missing(m, *args, &block)
     super unless !!player_data
