@@ -47,6 +47,7 @@ ServerCallback::PlayerChat.send method, name: 'boo', pattern: "/halloween/i", co
 ServerCallback::PlayerChat.send method, name: 'SEGA', pattern: "/blast processing/i", command: "play_sound \"@a\", \"sega\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::PlayerChat.send method, name: 'Soon', pattern: "/soon/i", command: "play_sound \"@a\", \"smb_warning\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::PlayerChat.send method, name: 'Navi', pattern: "/!!!/", command: "play_sound \"@a\", \"oot_navi_hey\"", cooldown: '+15 minutes', system: 'f'
+ServerCallback::PlayerChat.send method, name: 'The More You Know', pattern: "/tmyk/i", command: "play_sound \"@a\", \"cf_tmyk\"", cooldown: '+15 minutes', system: 'f'
 
 # Death sounds ...
 ServerCallback::ServerEntry.send method, name: 'Slain', pattern: "/was slain by/", command: "play_sound \"@a\", \"smb_mario_die\"", cooldown: '+15 minutes', system: 'f'
