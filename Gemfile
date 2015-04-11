@@ -79,6 +79,7 @@ group :test do
   gem 'simplecov-csv'
   gem 'webmock'
   gem 'codeclimate-test-reporter'
+  gem 'database_cleaner'
 end
 
 group :development, :test do

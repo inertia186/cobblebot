@@ -5,16 +5,26 @@ require "minitest/hell"
 require 'simplecov'
 require 'webmock/minitest'
 require "codeclimate-test-reporter"
+require 'database_cleaner'
 
 SimpleCov.start
 WebMock.disable_net_connect!(allow_localhost: true, allow: 'codeclimate.com:443')
 CodeClimate::TestReporter.start
+DatabaseCleaner[:active_record].strategy = :transaction
 
 class ActiveSupport::TestCase
   # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
   fixtures :all
 
-  # Add more helper methods to be used by all tests here...
+  def before_setup
+    super
+    DatabaseCleaner.start
+  end
+
+  def after_teardown
+    DatabaseCleaner.clean
+    super
+  end
 end
 
 tmp = Preference.path_to_server = "#{Rails.root}/tmp"
