@@ -1,6 +1,10 @@
 class ServerCallback::AnyPlayerEntry < ServerCallback
+  def self.for_handling(line)
+    line =~ REGEX_PLAYER_CHAT_OR_EMOTE
+  end
+
   def self.handle(line, options = {})
-    return unless line =~ REGEX_PLAYER_CHAT_OR_EMOTE
+    return unless for_handling(line)
     any_result = nil
 
     [ServerCallback::PlayerChat, ServerCallback::PlayerEmote].each do |c|
@@ -8,10 +12,8 @@ class ServerCallback::AnyPlayerEntry < ServerCallback
       any_result ||= result
     end
 
-    ready.find_each do |callback|
-      result = callback.handle_entry(*entry(line, options))
-      any_result ||= result
-    end
+    result = super(line, options)
+    any_result ||= result
     
     any_result
   end

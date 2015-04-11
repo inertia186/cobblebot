@@ -1,16 +1,8 @@
 class ServerCallback::ServerEntry < ServerCallback
-  def self.handle(line, options = {})
-    return if line =~ REGEX_PLAYER_CHAT || line =~ REGEX_PLAYER_EMOTE
-    any_result = nil
-
-    ready.find_each do |callback|
-      result = callback.handle_entry(*entry(line, options))
-      any_result ||= result
-    end
-    
-    any_result
+  def self.for_handling(line)
+    !(line =~ REGEX_PLAYER_CHAT || line =~ REGEX_PLAYER_EMOTE)
   end
-private
+  
   def self.entry(line, options)
     if line =~ REGEX_USER_AUTHENTICATOR
       segments = line.split(' ')

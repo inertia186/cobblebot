@@ -58,6 +58,22 @@ class ServerCallback < ActiveRecord::Base
     DONE
     where(clause, query, query, query, query, query)
   }
+  
+  def self.for_handling(line)
+    raise "Cannot handle undefine callback type for: #{line}"
+  end
+
+  def self.handle(line, options = {})
+    return unless for_handling(line)
+    any_result = nil
+
+    ready.find_each do |callback|
+      result = callback.handle_entry(*entry(line, options))
+      any_result ||= result
+    end
+    
+    any_result
+  end
 
   def to_param
     "#{id}-#{name.parameterize}"
