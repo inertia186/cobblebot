@@ -3,14 +3,19 @@ class ServerCallback::AnyEntry < ServerCallback
     return unless line =~ REGEX_ANY
     any_result = nil
 
-    segments = line.split(' ')
-    message = segments[3..-1].join(' ')
 
     ready.find_each do |callback|
-      result = callback.handle_entry(nil, message, line, options)
+      result = callback.handle_entry(*entry(line, options))
       any_result ||= result
     end
     
     any_result
+  end
+private
+  def self.entry(line, options)
+    segments = line.split(' ')
+    message = segments[3..-1].join(' ')
+  
+    [nil, message, line, options]
   end
 end

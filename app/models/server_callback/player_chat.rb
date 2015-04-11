@@ -3,15 +3,19 @@ class ServerCallback::PlayerChat < ServerCallback
     return unless line =~ REGEX_PLAYER_CHAT
     any_result = nil
     
-    segments = line.split(' ')
-    nick = segments[3].gsub(/[<>]+/, '')
-    message = segments[4..-1].join(' ')
-    
     ready.find_each do |callback|
-      result = callback.handle_entry(nick, message, line, options)
+      result = callback.handle_entry(*entry(line, options))
       any_result ||= result
     end
     
     any_result
+  end
+private
+  def self.entry(line, options)
+    segments = line.split(' ')
+    nick = segments[3].gsub(/[<>]+/, '')
+    message = segments[4..-1].join(' ')
+  
+    [nick, message, line, options]
   end
 end

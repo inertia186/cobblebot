@@ -3,6 +3,15 @@ class ServerCallback::ServerEntry < ServerCallback
     return if line =~ REGEX_PLAYER_CHAT || line =~ REGEX_PLAYER_EMOTE
     any_result = nil
 
+    ready.find_each do |callback|
+      result = callback.handle_entry(*entry(line, options))
+      any_result ||= result
+    end
+    
+    any_result
+  end
+private
+  def self.entry(line, options)
     if line =~ REGEX_USER_AUTHENTICATOR
       segments = line.split(' ')
       message = segments[4..-1].join(' ')
@@ -11,11 +20,6 @@ class ServerCallback::ServerEntry < ServerCallback
       message = segments[3..-1].join(' ')
     end
 
-    ready.find_each do |callback|
-      result = callback.handle_entry(nil, message, line, options)
-      any_result ||= result
-    end
-    
-    any_result
+    [nil, message, line, options]    
   end
 end

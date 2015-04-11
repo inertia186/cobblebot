@@ -8,12 +8,12 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
 
   def test_check_version
-    ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server version')
+    ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server version')
     refute_nil ServerCallback.find_by_name('Check Version').ran_at, 'did not expect nil ran_at'
   end
 
   def test_playercheck
-    ServerCallback::PlayerChat.handle('[08:23:03] [Server thread/INFO]: <inertia186> @server playercheck inertia186')
+    ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> @server playercheck inertia186')
     refute_nil ServerCallback.find_by_name('Player Check').ran_at, 'did not expect nil ran_at'
   end
 
@@ -22,7 +22,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     cobblebot.update_attribute(:expires_at, 2.days.from_now)
     
     assert_no_difference -> { Link.count }, 'did not expect new link record' do
-      ServerCallback::PlayerChat.handle('[08:23:03] [Server thread/INFO]: <inertia186> http://github.com/inertia186/cobblebot')
+      ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> http://github.com/inertia186/cobblebot')
     end
     
     refute_nil ServerCallback.find_by_name('Autolink').ran_at, 'did not expect nil ran_at'
@@ -68,25 +68,25 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     player = Player.find_by_nick('inertia186')
     callback = ServerCallback.find_by_name('Latest Player Chat')
     
-    ServerCallback::PlayerChat.handle('[15:04:50] [Server thread/INFO]: <inertia186> Hello!')
+    ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> Hello!')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
     assert_equal 'Hello!', player.reload.last_chat, 'did not expect nil last_chat'
 
     callback.update_attribute(:ran_at, nil)
     player.update_attribute(:last_chat, nil)
-    ServerCallback::PlayerChat.handle('[15:04:50] [Server thread/INFO]: <inertia186> "quoted"')
+    ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> "quoted"')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
     assert_equal '"quoted"', player.reload.last_chat, 'did not expect nil last_chat'
 
     callback.update_attribute(:ran_at, nil)
     player.update_attribute(:last_chat, nil)
-    ServerCallback::PlayerChat.handle('[15:04:50] [Server thread/INFO]: <inertia186> #{0}')
+    ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> #{0}')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
     refute_nil player.reload.last_chat, 'did not expect nil last_chat'
 
     callback.update_attribute(:ran_at, nil)
     player.update_attribute(:last_chat, nil)
-    ServerCallback::PlayerChat.handle('[15:04:50] [Server thread/INFO]: <inertia186> #{1/0}')
+    ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> #{1/0}')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
     refute_nil player.reload.last_chat, 'did not expect nil last_chat'
   end
@@ -166,12 +166,12 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
 
   def test_search_replace
-    ServerCallback::PlayerChat.handle('[15:05:10] [Server thread/INFO]: <inertia186> %s/axe/sword/')
+    ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> %s/axe/sword/')
     refute_nil ServerCallback.find_by_name('Search Replace').ran_at, 'did not expect nil ran_at'
   end
   
   def test_random_tip
-    ServerCallback::PlayerChat.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip')
+    ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip')
     refute_nil ServerCallback.find_by_name('Random Tip').ran_at, 'did not expect nil ran_at'
     # Make sure the "pretend" option reaches the callback for simulated chat.
     assert_equal '@server tip', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip'
