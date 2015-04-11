@@ -188,8 +188,9 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     spam_event = <<-DONE
       [08:33:03] [Server thread/INFO]: GracieBoo[/127.0.0.1:54212] logged in with entity id 315010 at (5583.5, 40.0, -5573.5)
       [08:33:03] [Server thread/INFO]: GracieBoo joined the game
-      [08:33:10] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:11] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:06] [Server thread/INFO]: <GracieBoo> hi
+      [08:33:10] [Server thread/INFO]: <GracieBoo> anybody here?
+      [08:33:11] [Server thread/INFO]: <GracieBoo> HELLO
       [08:33:12] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
       [08:33:12] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
       [08:33:13] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
@@ -206,15 +207,24 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       [08:33:19] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
       [08:33:20] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
       [08:33:20] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+      [08:33:21] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
     DONE
 
-    File.open("#{Preference.path_to_server}/logs/latest.log", 'a') do |f|
-      spam_event.each_line do |line|
-        f << line.strip + "\n"
-      end
+    spam_event.each_line do |line|
+      # We are trying to achieve the highest code coverage possible, so this 
+      # particular test flushes and blocks every line of the example log.
+      # Passing a block to open like we do in other tests is "too efficient" 
+      # and causes the test to skip certain spam conditions.
+      
+      # Note, it's good to test both ways because unflushed files more closely 
+      # simulate a laggy server.
+      
+      f = File.open("#{Preference.path_to_server}/logs/latest.log", 'a')
+      f << line.strip + "\n"
+      f.close
+      MinecraftServerLogHandler.handle line.strip
     end
 
-    MinecraftServerLogHandler.handle "[08:33:21] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN"
     refute_nil ServerCallback.find_by_name('Spammy').ran_at, 'did not expect nil ran_at'
     assert Player.find_by_nick('GracieBoo').spam_ratio <= 0.1, 'expect kickable spam ratio'
   end
@@ -329,5 +339,21 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     MinecraftServerLogHandler.handle "[08:33:21] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN"
     refute_nil ServerCallback.find_by_name('Spammy').ran_at, 'did not expect nil ran_at'
     assert Player.find_by_nick('GracieBoo').spam_ratio <= 0.1, 'expect kickable spam ratio'
+  end
+
+  def test_soundcheck
+    callback = ServerCallback.find_by_name('Sound Check')
+    ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server soundcheck')
+    refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
+
+    def Server.player_nicks(selector = nil)
+      ['inertia186']
+    end
+    
+    Player.find_by_nick('inertia186').update_attribute(:play_sounds, false)
+    
+    callback.update_attribute(:ran_at, nil)
+    ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server soundcheck')
+    refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
   end
 end

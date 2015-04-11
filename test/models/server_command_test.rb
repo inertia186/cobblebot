@@ -5,6 +5,7 @@ class ServerCommandTest < ActiveSupport::TestCase
     method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
     
     TestServerCommand.commands_executed = nil
+    Preference.path_to_server = "#{Rails.root}/tmp"
   end
 
   def test_say_link
@@ -81,6 +82,18 @@ class ServerCommandTest < ActiveSupport::TestCase
     assert_equal '@a[r=1,r=2]', ServerCommand.merge_selectors('@a[r=1]', '@a[r=2]')
     assert_equal '@a[score_points_min=30,score_points=39,x=10,y=20,z=30,r=4]', ServerCommand.merge_selectors('@a[score_points_min=30,score_points=39]', '@a[x=10,y=20,z=30,r=4]')
     assert_equal '@e[type=Creeper,c=3,type=Cow]', ServerCommand.merge_selectors('@e[type=Creeper,c=3]', '@e[type=Cow]')
+  end
+  
+  def test_random_nick
+    def Server.player_nicks(selector = nil)
+      ['inertia186', 'Dinnerbone']
+    end
+
+    refute_nil TestServerCommand.random_nick, 'expect random player'
+  end
+  
+  def test_find_latest_chat_by_nick
+    refute_nil TestServerCommand.find_latest_chat_by_nick('inertia186'), 'expect latest chat'
   end
 end
 

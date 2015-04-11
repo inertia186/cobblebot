@@ -1,5 +1,6 @@
 ENV['RAILS_ENV'] ||= 'test'
 require File.expand_path('../../config/environment', __FILE__)
+require 'rcon/rcon'
 require 'rails/test_help'
 require "minitest/hell"
 require 'simplecov'
@@ -24,6 +25,14 @@ class ActiveSupport::TestCase
   def after_teardown
     DatabaseCleaner.clean
     super
+  end
+end
+
+class ActiveRecord::Base
+  before_save do |record|
+    if record.respond_to? :last_command_output
+      record.last_command_output ||= 'FAKE SERVER OUTPUT'
+    end
   end
 end
 
@@ -114,4 +123,8 @@ File.open(fake_server_properties, 'a') do |f|
   server_properties.each_line do |line|
     f << line.strip + "\n"
   end
+end
+
+if Server.up?
+  raise "Warning, you are running a live minecraft server which tests are trying to fiddle with."
 end

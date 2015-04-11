@@ -11,6 +11,10 @@ class ServerPropertiesTest < ActiveSupport::TestCase
     assert ServerProperties.difficulty, "did expect web admin to be set"
   end
 
+  def test_keys_as_strings
+    refute_equal [], ServerProperties.keys_as_strings, 'expect non-empty array'
+  end
+
   def test_missing_method
     assert ServerProperties.itself, "expect method to exist"
     
