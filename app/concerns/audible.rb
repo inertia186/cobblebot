@@ -19,8 +19,15 @@ module Audible
   
     def clean_play_sound_result(result)
       unless result.nil?
-        result.split('Played sound ').reject(&:empty?).join(', ').
-          split('That player cannot be found').reject(&:empty?).join(', ')
+        [
+          'Played sound ',
+          'That player cannot be found',
+          /Player [^ ]* is too far away to hear the sound/
+        ].each do |junk|
+          result = result.split(junk).reject(&:empty?).join(', ')
+        end
+        
+        result
       end
     end
   end
