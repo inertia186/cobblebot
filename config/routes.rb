@@ -62,7 +62,9 @@ Rails.application.routes.draw do
       end
     end
     resources :links, except: [:new, :create, :edit, :update]
-    resources :players, except: [:new, :create, :edit, :update]
+    resources :players, except: [:new, :create, :edit, :update] do
+      resources :links, except: [:new, :create, :edit, :update]
+    end
     
     resources :sessions, only: [:new, :create]
     delete 'session' => 'sessions#destroy', as: :destroy_session

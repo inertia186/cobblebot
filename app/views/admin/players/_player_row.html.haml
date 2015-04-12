@@ -2,7 +2,7 @@
   %td= link_to player.nick, admin_player_path(player)
   %td= player.last_nick
   %td= player.spam_ratio
-  %td= link_to player.links.count, admin_links_path(player_id: player)
+  %td= link_to player.links.count, admin_player_links_path(player_id: player)
   %td= last_login(player.last_login_at)
   %td= created(player.created_at)
   %td
