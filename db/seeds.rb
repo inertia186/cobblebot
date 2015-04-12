@@ -154,3 +154,7 @@ Message::Tip.send method, body: 'When in the ocean, try a bucket.', keywords: 's
 Message::Tip.send method, body: 'Cheating might cause hunger.', keywords: 'flying speed hacks cheaters'
 Message::Tip.send method, body: 'You will never find a more wretched hive of scum and villainy.', keywords: 'obiwan'
 Message::Tip.send method, body: 'Always dedotate your dedotated wam dedotation.', keywords: 'dedicated ram'
+Message::Tip.send method, body: 'Server is up, what more do you want?', keywords: 'down'
+Message::Tip.send method, body: 'Herobrine is alyways watching...', keywords: 'never'
+Message::Tip.send method, body: 'slap @r', keywords: 'fish slappers'
+Message::Tip.send method, body: '>mfw', keywords: 'my face when'

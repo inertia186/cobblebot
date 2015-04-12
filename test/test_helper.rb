@@ -14,7 +14,7 @@ CodeClimate::TestReporter.start
 DatabaseCleaner[:active_record].strategy = :transaction
 
 class ActiveSupport::TestCase
-  # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
+  self.use_transactional_fixtures = true
   fixtures :all
 
   def before_setup
@@ -33,6 +33,16 @@ class ActiveRecord::Base
     if record.respond_to? :last_command_output
       record.last_command_output ||= 'FAKE SERVER OUTPUT'
     end
+  end
+end
+
+class TestServerCommand < ServerCommand
+  cattr_accessor :commands_executed
+  
+  def self.execute(command)
+    self.commands_executed ||= []
+    
+    commands_executed << command
   end
 end
 

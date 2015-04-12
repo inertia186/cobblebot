@@ -42,12 +42,15 @@ class Admin::LinksControllerTest < ActionController::TestCase
     assert_response :success
   end
   
-  def test_destroy
+  def test_show
     get :show, id: Link.first
 
-    assert_template nil
-    assert_redirected_to admin_links_url
+    assert_template :_link
+    assert_template :show
+    assert_template 'layouts/application'
+    assert_response :success
   end
+  
   def test_destroy
     assert_difference -> { Link.count }, -1, 'expect different count' do
       delete :destroy, id: Link.first

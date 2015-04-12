@@ -47,6 +47,25 @@ class ServerCallbackTest < ActiveSupport::TestCase
     end
   end
 
+  def test_all_command_as_base
+    callback = ServerCallback.first.becomes(ServerCallback)
+    
+    begin
+      callback.execute_command("@a", "Test")
+    rescue SyntaxError => e
+      # :nocov:
+      if [SKIP_CALLBACKS_NAMED].include? callback.name 
+        skip "SyntaxError while evaluating callback command named \"#{callback.name}\":\nCommand: #{callback.command}\n#{e.inspect}"
+      else
+        fail "SyntaxError while evaluating callback command named \"#{callback.name}\":\nCommand: #{callback.command}\n#{e.inspect}"
+      end
+      # :nocov:
+    rescue Errno::ENOENT => e
+      # skip
+    end
+    assert callback.ran_at, 'expect callback ran'
+  end
+
   def test_error_flag
     callback = ServerCallback.first
     callback.update_attribute(:command, '1/0')
