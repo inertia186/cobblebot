@@ -143,15 +143,12 @@ class Player < ActiveRecord::Base
   end
 
   def tp!(options = {})
-    x = options[:x]
-    y = options[:y]
-    z = options[:z]
-    x_rot = options[:x_rot]
-    y_rot = options[:y_rot]
+    x, y, z = options[:x], options[:y], options[:z]
+    x_rot, y_rot = options[:x_rot], options[:y_rot]
     target_nick = options[:nick]
     
     return tp(nick, "#{x} #{y} #{z} #{x_rot} #{y_rot}") if !!x && !!y && !!z
-    return tp(nick, "#{target_nick}") if !!target
+    return tp(nick, "#{target_nick}") if !!target_nick
   end
 
   def spawnpoint!(x, y, z)
