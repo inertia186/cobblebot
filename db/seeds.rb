@@ -51,6 +51,7 @@ ServerCallback::PlayerChat.send method, name: 'Navi', pattern: "/!!!/", command:
 ServerCallback::PlayerChat.send method, name: 'The More You Know', pattern: "/tmyk/i", command: "play_sound \"@a\", \"cf_tmyk\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::PlayerChat.send method, name: 'TROLOLO', pattern: "/trololo/i", command: "play_sound \"@a\", \"cf_trololo\"", cooldown: '+2 hours', system: 'f'
 ServerCallback::PlayerChat.send method, name: 'Bueller?', pattern: "/^anyone[^ ]*$/i", command: "# This sound is a little different in how it behaves.  Once the command is\r\n# triggered, it waits 5 seconds, then it checks to see if the player has typed \r\n# anything new.  If not, the sound plays.\r\n#\r\n# Thus, it doesn't always play, but it will always go into cooldown if it is\r\n# triggered.\r\n\r\nThread.start do\r\n  sleep 5\r\n  if \"%message%\" == find_latest_chat_by_nick(\"%nick%\")\r\n    play_sound \"@a\", \"cf_bueller\"\r\n  end\r\nend", cooldown: '+15 minutes', system: 'f'
+ServerCallback::PlayerChat.send method, name: 'Oops', pattern: "/oops/i", command: "play_sound \"@a\", \"cf_wups\"", system: 'f'
 
 # Death sounds ...
 ServerCallback::ServerEntry.send method, name: 'Slain', pattern: "/was slain by/", command: "play_sound \"@a\", \"smb_mario_die\"", cooldown: '+15 minutes', system: 'f'
@@ -83,7 +84,7 @@ ServerCallback::ServerEntry.send method, name: 'Another Client', pattern: "/You 
 # Achievement sounds ...
 ServerCallback::ServerEntry.send method, name: 'The Lie', pattern: "/The Lie/", command: "play_sound \"@a\", \"portal_still_alive\"", system: 'f'
 ServerCallback::ServerEntry.send method, name: 'On A Rail', pattern: "/On A Rail/", command: "play_sound \"@a\", \"smw_course_clear\"", system: 'f'
-ServerCallback::ServerEntry.send method, name: 'When Pigs Fly', pattern: "/When Pigs Fly/", command: "play_sound \"@a\", \"excellent\"", system: 'f'
+ServerCallback::ServerEntry.send method, name: 'When Pigs Fly', pattern: "/When Pigs Fly/", command: "play_sound \"@a\", \"cf_rumble\"", system: 'f'
 ServerCallback::ServerEntry.send method, name: 'Sniper Duel', pattern: "/Sniper Duel/", command: "play_sound \"@a\", \"excellent\"", system: 'f'
 ServerCallback::ServerEntry.send method, name: 'DIAMONDS', pattern: "/DIAMONDS/", command: "play_sound \"@a\", \"loz_secret\"", system: 'f'
 ServerCallback::ServerEntry.send method, name: 'We Need to Go Deeper', pattern: "/We Need to Go Deeper/", command: "play_sound \"@a\", \"sm64_bowser_message\"", cooldown: '+15 minutes', system: 'f'
