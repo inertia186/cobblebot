@@ -3,6 +3,7 @@ require 'test_helper'
 class PlayerTest < ActiveSupport::TestCase
   def setup
     seed
+    Preference.path_to_server = "#{Rails.root}/tmp"
   end
   
   def test_stats
