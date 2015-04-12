@@ -207,7 +207,7 @@ class Player < ActiveRecord::Base
     data = player_data
     
     if data.keys.include?(key)
-      return data[m]
+      return data[key]
     elsif data.keys.map { |key| key.split('.')[0] }.include?(key.singularize)
       data.keys.reduce({}) do |hash, (k, v)|
         if k.split('.')[0] == key.singularize
