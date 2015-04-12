@@ -2,7 +2,7 @@ ENV['RAILS_ENV'] ||= 'test'
 require File.expand_path('../../config/environment', __FILE__)
 require 'rcon/rcon'
 require 'rails/test_help'
-require "minitest/hell"
+require "minitest/hell" unless !!ENV['CODECLIMATE_REPO_TOKEN']
 require 'simplecov'
 require 'webmock/minitest'
 require "codeclimate-test-reporter"
