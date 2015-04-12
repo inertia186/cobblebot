@@ -83,6 +83,7 @@ File.open(fake_latest_log, 'a') do |f|
   startup_event.each_line do |line|
     f << line.strip + "\n"
   end
+  f.sync
 end
 
 fake_server_properties = "#{tmp}/server.properties"
@@ -137,6 +138,117 @@ File.open(fake_server_properties, 'a') do |f|
   server_properties.each_line do |line|
     f << line.strip + "\n"
   end
+  f.sync
+end
+
+fake_world = "#{tmp}/world"
+Dir.mkdir(fake_world) unless File.exists?(fake_world)
+fake_stats = "#{fake_world}/stats"
+Dir.mkdir(fake_stats) unless File.exists?(fake_stats)
+fake_inertia186_stats = "#{fake_stats}/d6edf996-6182-4d58-ac1b-4ca0321fb748.json"
+
+File.delete(fake_inertia186_stats) if File.exists?(fake_inertia186_stats)
+File.open(fake_inertia186_stats, 'a') do |f|
+  inertia186_stats = <<-DONE
+  {  
+    "stat.useItem.minecraft.bow":10,
+    "achievement.buildHoe":2,
+    "stat.leaveGame":212,
+    "achievement.killWither":1,
+    "stat.useItem.minecraft.soul_sand":4,
+    "stat.useItem.minecraft.skull":3,
+    "stat.useItem.minecraft.diamond_sword":22,
+    "stat.useItem.minecraft.potion":3,
+    "stat.jump":256,
+    "stat.swimOneCm":11246,
+    "stat.fallOneCm":174203,
+    "achievement.buildWorkBench":2,
+    "stat.crouchOneCm":148,
+    "stat.craftItem.minecraft.iron_ingot":1,
+    "stat.useItem.minecraft.obsidian":14,
+    "stat.useItem.minecraft.dirt":1,
+    "achievement.exploreAllBiomes":{  
+      "value":0,
+      "progress":[  
+        "Beach",
+        "ForestHills",
+        "River",
+        "Plains",
+        "Desert",
+        "The End",
+        "Savanna",
+        "Hell"
+      ]
+    },
+    "achievement.overpowered":1,
+    "stat.craftingTableInteraction":14,
+    "stat.craftItem.minecraft.golden_apple":1,
+    "stat.craftItem.minecraft.furnace":1,
+    "achievement.blazeRod":1,
+    "achievement.diamondsToYou":1,
+    "stat.brewingstandInteraction":4,
+    "stat.damageTaken":23450,
+    "achievement.diamonds":10,
+    "achievement.bakeCake":1,
+    "stat.craftItem.minecraft.stone_pickaxe":1,
+    "stat.useItem.minecraft.furnace":1,
+    "stat.craftItem.minecraft.wooden_sword":1,
+    "stat.flyOneCm":172678,
+    "stat.useItem.minecraft.end_portal_frame":42,
+    "achievement.buildPickaxe":2,
+    "stat.entityKilledBy.Zombie":8,
+    "stat.craftItem.minecraft.wooden_hoe":1,
+    "stat.damageDealt":5255,
+    "achievement.buildBetterPickaxe":1,
+    "stat.timeSinceDeath":18590,
+    "stat.mineBlock.minecraft.dirt":2,
+    "stat.useItem.minecraft.crafting_table":3,
+    "stat.craftItem.minecraft.wooden_pickaxe":1,
+    "achievement.theEnd":3,
+    "stat.craftItem.minecraft.cake":1,
+    "stat.walkOneCm":169594,
+    "stat.useItem.minecraft.torch":3,
+    "stat.playerKills":2,
+    "achievement.spawnWither":1,
+    "stat.furnaceInteraction":2,
+    "stat.craftItem.minecraft.crafting_table":1,
+    "achievement.enchantments":2,
+    "achievement.theEnd2":8,
+    "stat.entityKilledBy.Skeleton":10,
+    "achievement.overkill":22,
+    "achievement.buildSword":2,
+    "achievement.mineWood":1,
+    "stat.useItem.minecraft.dragon_egg":1,
+    "stat.sprintOneCm":13270,
+    "stat.craftItem.minecraft.brewing_stand":1,
+    "stat.killEntity.Skeleton":2,
+    "stat.craftItem.minecraft.bookshelf":1,
+    "achievement.portal":3,
+    "achievement.openInventory":69,
+    "stat.craftItem.minecraft.planks":4,
+    "stat.useItem.minecraft.flint_and_steel":2,
+    "stat.killEntity.Spider":1,
+    "stat.useItem.minecraft.ender_eye":36,
+    "stat.mobKills":6,
+    "achievement.killEnemy":2,
+    "achievement.buildFurnace":2,
+    "stat.deaths":60,
+    "achievement.acquireIron":1,
+    "stat.drop":19,
+    "stat.playOneMinute":4557311,
+    "achievement.bookcase":2,
+    "stat.useItem.minecraft.wooden_sword":5,
+    "stat.killEntity.Zombie":2,
+    "stat.useItem.minecraft.brewing_stand":1,
+    "stat.diveOneCm":3574,
+    "stat.craftItem.minecraft.enchanting_table":1,
+    "achievement.potion":3
+  }
+  DONE
+  inertia186_stats.each_line do |line|
+    f << line.strip + "\n"
+  end
+  f.sync
 end
 
 if Server.up?

@@ -55,7 +55,7 @@ class ServerCommandTest < ActiveSupport::TestCase
     assert_equal 3, commands.size, 'expect three commands'
     assert commands.first =~ %r(Latest activity for inertia186 was), 'expect correct player name'
     assert commands.second =~ %r("<inertia186> Normal Tuesday night for Shia Labeouf."), 'expect correct player last chat'
-    assert commands.last =~ %r(Biomes explored: 0), 'expect correct player biome info'
+    assert commands.last =~ %r(Biomes explored: 8), 'expect correct player biome info'
     
     TestServerCommand.commands_executed = nil
     TestServerCommand.say_playercheck '@a', 'Dinnerbone'
