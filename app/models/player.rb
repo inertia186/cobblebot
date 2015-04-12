@@ -201,17 +201,17 @@ class Player < ActiveRecord::Base
   end
   
   def method_missing(m, *args, &block)
-    super unless !!player_data
+    return super unless !!player_data
 
     key = m.to_s
     data = player_data
     
-    if data.keys.include?(key)
-      return data[key]
-    elsif data.keys.map { |key| key.split('.')[0] }.include?(key.singularize)
-      data.keys.reduce({}) do |hash, (k, v)|
-        if k.split('.')[0] == key.singularize
-          hash.merge(k.split('.')[1].underscore.to_sym => data[k])
+    return data[key] if data.keys.include?(key)
+      
+    if data.keys.map { |key| key.split('.')[0] }.include?(e = key.singularize)
+      return data.keys.reduce({}) do |hash, (k, v)|
+        if (group = k.split('.'))[0] == e
+          hash.merge(group[1].underscore.to_sym => data[k])
         else
           hash
         end
