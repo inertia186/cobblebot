@@ -5,6 +5,9 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
     
     Preference.path_to_server = "#{Rails.root}/tmp"
+
+    stub_request(:get, "https://gist.github.com/inertia186/5002463").
+      to_return(status: 200)
   end
 
   def test_check_version
@@ -175,6 +178,62 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute_nil ServerCallback.find_by_name('Random Tip').ran_at, 'did not expect nil ran_at'
     # Make sure the "pretend" option reaches the callback for simulated chat.
     assert_equal '@server tip', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip'
+  end
+  
+  def test_random_tip_server
+    Message::Tip.where.not("body LIKE 'server%'").update_all('read_at = CURRENT_TIMESTAMP')
+    ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip server')
+    refute_nil ServerCallback.find_by_name('Random Tip').ran_at, 'did not expect nil ran_at'
+    # Make sure the "pretend" option reaches the callback for simulated chat.
+    assert_equal '@server tip server', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip server'
+  end
+  
+  def test_random_tip_herobrine
+    Message::Tip.where.not("body LIKE 'herobrine%'").update_all('read_at = CURRENT_TIMESTAMP')
+    ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip herobrine')
+    refute_nil ServerCallback.find_by_name('Random Tip').ran_at, 'did not expect nil ran_at'
+    # Make sure the "pretend" option reaches the callback for simulated chat.
+    assert_equal '@server tip herobrine', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip herobrine'
+  end
+  
+  def test_random_tip_slap
+    Message::Tip.where.not("body LIKE 'slap%'").update_all('read_at = CURRENT_TIMESTAMP')
+    ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip slap')
+    refute_nil ServerCallback.find_by_name('Random Tip').ran_at, 'did not expect nil ran_at'
+    # Make sure the "pretend" option reaches the callback for simulated chat.
+    assert_equal '@server tip slap', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip slap'
+  end
+  
+  def test_random_tip_mfw
+    Message::Tip.where.not("body LIKE '>%'").update_all('read_at = CURRENT_TIMESTAMP')
+    ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip >')
+    refute_nil ServerCallback.find_by_name('Random Tip').ran_at, 'did not expect nil ran_at'
+    # Make sure the "pretend" option reaches the callback for simulated chat.
+    assert_equal '@server tip >', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip >'
+  end
+
+  def test_random_got_nothin
+    Message::Tip.update_all('read_at = CURRENT_TIMESTAMP')
+    ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip')
+    ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip')
+    ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip')
+    refute_nil ServerCallback.find_by_name('Random Tip').ran_at, 'did not expect nil ran_at'
+    # Make sure the "pretend" option reaches the callback for simulated chat.
+    assert_equal '@server tip', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip'
+  end
+  
+  def test_slap
+    ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server slap Dinnerbone')
+    refute_nil ServerCallback.find_by_name('Slap').ran_at, 'did not expect nil ran_at'
+    # Make sure the "pretend" option reaches the callback for simulated chat.
+    assert_equal '@server slap Dinnerbone', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server slap Dinnerbone'
+  end
+  
+  def test_slap_no_target
+    ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server slap')
+    refute_nil ServerCallback.find_by_name('Slap').ran_at, 'did not expect nil ran_at'
+    # Make sure the "pretend" option reaches the callback for simulated chat.
+    assert_equal '@server slap', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server slap'
   end
   
   def test_spam_detect

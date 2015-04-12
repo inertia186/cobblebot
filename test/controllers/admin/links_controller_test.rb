@@ -19,6 +19,35 @@ class Admin::LinksControllerTest < ActionController::TestCase
     assert_response :success
   end
   
+  def test_index
+    get :index, query: 'mit'
+    links = assigns :links
+    refute_equal links.count(:all), 0, 'did not expect zero count'
+    
+    assert_template :index
+    assert_response :success
+  end
+  
+  def test_index_for_players
+    player = Player.first
+    assert_difference -> { player.links.count }, 1, 'expect different count' do
+      Link.first.update_attribute(:actor, player)
+    end
+    
+    get :index, player_id: player
+    links = assigns :links
+    refute_equal links.count(:all), 0, 'did not expect zero count'
+    
+    assert_template :index
+    assert_response :success
+  end
+  
+  def test_destroy
+    get :show, id: Link.first
+
+    assert_template nil
+    assert_redirected_to admin_links_url
+  end
   def test_destroy
     assert_difference -> { Link.count }, -1, 'expect different count' do
       delete :destroy, id: Link.first

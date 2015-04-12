@@ -89,11 +89,30 @@ class ServerCommandTest < ActiveSupport::TestCase
       ['inertia186', 'Dinnerbone']
     end
 
-    refute_nil TestServerCommand.random_nick, 'expect random player'
+    refute_nil TestServerCommand.random_nick, 'expect random nick'
+  end
+  
+  def test_all_nicks
+    def Server.player_nicks(selector = nil)
+      ['inertia186', 'Dinnerbone']
+    end
+
+    assert_equal ['inertia186', 'Dinnerbone'], TestServerCommand.all_nicks, 'expect all nicks'
   end
   
   def test_find_latest_chat_by_nick
     refute_nil TestServerCommand.find_latest_chat_by_nick('inertia186'), 'expect latest chat'
+  end
+  
+  def test_command_scheme
+    Preference.command_scheme = 'multiplexor'
+    
+    assert_nil ServerCommand.execute('list'), 'expect command scheme to be unsupported'
+
+    ServerCommand.reset_vars
+    Preference.command_scheme = 'unsupported'
+    
+    assert_nil ServerCommand.execute('list'), 'expect command scheme to be unsupported'
   end
 end
 
