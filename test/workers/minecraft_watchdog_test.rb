@@ -13,8 +13,5 @@ class MinecraftWatchdogTest < ActiveSupport::TestCase
   
   def test_perform
     MinecraftWatchdog.perform(debug: true)
-    
-    assert Resque.queues.include?('minecraft_watchdog'), 'expect queue'
-    assert Resque.size('minecraft_watchdog') > 0, 'expect non-zero queue'
   end
 end

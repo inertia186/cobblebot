@@ -52,6 +52,8 @@ private
       }
     }
 
+    return if Rails.env == 'test'
+
     queues.each_key do |key|
       q = queues[key]
       if q[:enabled] && Resque.size(key.to_s) == 0
