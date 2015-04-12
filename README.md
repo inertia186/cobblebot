@@ -62,7 +62,44 @@ If you've configured IRC, you need to start a worker for that as well:
 
     $ TERM_CHILD=1 RAILS_ENV='development' QUEUE='irc_bot' rake resque:work
 
-Now you should be able to log into your Minecraft Server and interact with CobbleBot.  For example, in the Minecraft client, type:
+### tmux - optional
+
+If you like to use `tmux`, you can manage the various CobbleBot processes in a single `tmux` console.  Here's one way to go about that:
+
+	#!/bin/bash
+
+	BASE="$HOME/cobblebot"
+	cd $BASE
+
+	tmux start-server
+	tmux new-session -d -s CobbleBot -n Project
+	tmux new-window -t CobbleBot:1 -n resque-scheduler
+	tmux new-window -t CobbleBot:2 -n watchdog
+	tmux new-window -t CobbleBot:3 -n monitor
+	tmux new-window -t CobbleBot:4 -n irc
+	tmux new-window -t CobbleBot:5 -n server
+	tmux new-window -t CobbleBot:6 -n dev-log
+
+	tmux send-keys -t CobbleBot:0 "cd $BASE;" C-m
+	tmux send-keys -t CobbleBot:1 "cd $BASE; RAILS_ENV='development' rake resque:scheduler" C-m
+	tmux send-keys -t CobbleBot:2 "cd $BASE; TERM_CHILD=1 RAILS_ENV='development' QUEUE='minecraft_watchdog' rake resque:work" C-m
+	tmux send-keys -t CobbleBot:3 "cd $BASE; TERM_CHILD=1 RAILS_ENV='development' QUEUE='minecraft_server_log_monitor' rake resque:work" C-m
+	tmux send-keys -t CobbleBot:4 "cd $BASE; TERM_CHILD=1 RAILS_ENV='development' QUEUE='irc_bot' rake resque:work" C-m
+	tmux send-keys -t CobbleBot:5 "sudo su steve" C-m
+	tmux send-keys -t CobbleBot:6 "cd $BASE; tail -200 -f log/development.log" C-m
+
+	tmux select-window -t CobbleBot:0
+	tmux attach-session -t CobbleBot
+
+Please note, the `CobbleBot:5` window is intended to kick off the actual Minecraft Server.  If you use the same user as CobbleBot to run your Minecraft Server, instead of `sudo su steve` you can just use `cd /path/to/minecraft_server`.
+
+Once `CobbleBot:5` is there, you can execute the Minecraft Server:
+
+    $ java -jar minecraft_server.jar
+
+### Take it for a spin
+
+Once all of the process are running, you should be able to log into your Minecraft Server and interact with CobbleBot.  For example, in the Minecraft client, type:
 
 ```
 @server version
