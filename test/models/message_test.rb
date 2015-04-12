@@ -2,7 +2,7 @@ require 'test_helper'
 
 class MessageTest < ActiveSupport::TestCase
   def setup
-    method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
+    seed
   end
   
   def test_recipient

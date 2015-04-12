@@ -2,7 +2,7 @@ require 'test_helper'
 
 class ServerCommandTest < ActiveSupport::TestCase
   def setup
-    method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
+    seed
     
     TestServerCommand.commands_executed = nil
     Preference.path_to_server = "#{Rails.root}/tmp"

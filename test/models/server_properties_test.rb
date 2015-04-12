@@ -2,7 +2,7 @@ require 'test_helper'
 
 class ServerPropertiesTest < ActiveSupport::TestCase
   def setup
-    method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
+    seed
     
     Preference.path_to_server = "#{Rails.root}/tmp"
   end

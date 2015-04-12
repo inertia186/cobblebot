@@ -2,7 +2,7 @@ require 'test_helper'
 
 class Admin::LinksControllerTest < ActionController::TestCase
   def setup
-    method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
+    seed
     session[:admin_signed_in] = true
   end
 

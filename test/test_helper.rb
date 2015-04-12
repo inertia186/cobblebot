@@ -26,6 +26,10 @@ class ActiveSupport::TestCase
     DatabaseCleaner.clean
     super
   end
+  
+  def seed
+    method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
+  end
 end
 
 class ActiveRecord::Base

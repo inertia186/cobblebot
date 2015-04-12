@@ -6,7 +6,7 @@ class ServerCallbackTest < ActiveSupport::TestCase
   SKIP_CALLBACKS_NAMED = []
   
   def setup
-    method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
+    seed
     
     stub_request(:get, "https://gist.github.com/inertia186/5002463").
       to_return(status: 200)
