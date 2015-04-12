@@ -25,27 +25,16 @@ class Player < ActiveRecord::Base
     where('LOWER(nick) LIKE ? OR LOWER(last_nick) LIKE ? OR LOWER(last_chat) LIKE ? OR LAST_IP LIKE ?', nick, nick, query, query)
   }
   scope :logged_in_today, -> { where('players.last_login_at > ?', Time.now.beginning_of_day).order(:last_login_at) }
-  scope :opped, lambda { |opped = true|
-    if opped
-      where(uuid: Server.ops.map { |player| player["uuid"] })
+  scope :mode, lambda { |mode = :ops, enabled = true|
+    if enabled
+      where(uuid: Server.send(mode).map { |player| player["uuid"] })
     else
-      where.not(uuid: Server.ops.map { |player| player["uuid"] })
+      where.not(uuid: Server.send(mode).map { |player| player["uuid"] })
     end
   }
-  scope :whitelisted, lambda { |whitelisted = true|
-    if whitelisted
-      where(uuid: Server.whitelist.map { |player| player["uuid"] })
-    else
-      where.not(uuid: Server.whitelist.map { |player| player["uuid"] })
-    end
-  }
-  scope :banned, lambda { |banned = true|
-    if banned
-      where(uuid: Server.banned_players.map { |player| player["uuid"] })
-    else
-      where.not(uuid: Server.banned_players.map { |player| player["uuid"] })
-    end
-  }
+  scope :opped, lambda { |opped = true| mode(:ops, opped) }
+  scope :whitelisted, lambda { |whitelisted = true| mode(:whitelist, whitelisted) }
+  scope :banned, lambda { |banned = true| mode(:banned_players, banned) }
   scope :matching_last_ip, lambda { |ip, matching_last_ip = true|
     if matching_last_ip
       where(last_ip: ip)
