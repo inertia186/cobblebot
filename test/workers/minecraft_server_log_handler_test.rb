@@ -415,4 +415,11 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server soundcheck')
     refute_nil callback.reload.ran_at, 'did not expect nil ran_at'
   end
+  
+  def test_search_replace
+    callback = ServerCallback.find_by_name('Search Replace')
+    
+    result = ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> %s/axe/sword')
+    refute_nil callback.reload.ran_at, 'did not expect nil ran_at' 
+  end
 end
