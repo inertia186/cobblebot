@@ -98,16 +98,10 @@ class ServerCallback < ActiveRecord::Base
   end
 
   def eval_check key
-    begin
-      catch(:x) { eval("throw :x; #{send(key)};", Proc.new{}.binding) }
-    rescue SyntaxError => e
-      syntax_error = e
-    end
-
-    if !!syntax_error
-      errors[key] << 'has syntax error(s)'
-      errors[:base] << syntax_error
-    end
+    catch(:x) { eval("throw :x; #{send(key)};", Proc.new{}.binding) }
+  rescue SyntaxError => e
+    errors[key] << 'has syntax error(s)'
+    errors[:base] << e
   end
 
   def player_input?(input = nil)
