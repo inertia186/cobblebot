@@ -57,7 +57,7 @@ private
     queues.each_key do |key|
       q = queues[key]
       if q[:enabled] && Resque.size(key.to_s) == 0
-        Rails.logger.info "Adding queue for #{key}.  Current queue: #{Resque.size(kwy.to_s)}"
+        Rails.logger.info "Adding queue for #{key}.  Current queue: #{Resque.size(key.to_s)}"
         Resque.enqueue(q[:class])
       end
     end
