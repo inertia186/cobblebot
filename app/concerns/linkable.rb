@@ -1,6 +1,9 @@
 module Linkable
-  extend ActiveSupport::Concern
   extend Commandable
+  
+  def self.included(base)
+    base.extend ClassMethods
+  end
   
   module ClassMethods
     ## Renders a hyperlink.

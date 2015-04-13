@@ -1,6 +1,9 @@
 module Relayable
-  extend ActiveSupport::Concern
   extend Commandable
+  
+  def self.included(base)
+    base.extend ClassMethods
+  end
   
   module ClassMethods
     def irc_say(selector, irc_nick, message)

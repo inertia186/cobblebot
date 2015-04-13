@@ -3,11 +3,8 @@ include ActionView::Helpers::TextHelper
 
 class Player < ActiveRecord::Base
   include Commandable
-  include Commandable::ClassMethods
   include Tellable
-  include Tellable::ClassMethods
   include Teleportable
-  include Teleportable::ClassMethods
   
   validates :uuid, presence: true
   validates_uniqueness_of :uuid, case_sensitive: true
@@ -80,11 +77,11 @@ class Player < ActiveRecord::Base
   end
 
   def op!
-    execute("op #{nick}")
+    Player.execute("op #{nick}")
   end
   
   def deop!
-    execute("deop #{nick}")
+    Player.execute("deop #{nick}")
   end
   
   def whitelisted?
@@ -93,9 +90,9 @@ class Player < ActiveRecord::Base
   
   def whitelist!(yes = true)
     if yes
-      execute("whitelist add #{nick}")
+      Player.execute("whitelist add #{nick}")
     else
-      execute("whitelist remove #{nick}")
+      Player.execute("whitelist remove #{nick}")
     end
   end
   
@@ -116,19 +113,19 @@ class Player < ActiveRecord::Base
   end
   
   def ban!(reason = '')
-    execute("ban #{nick} #{reason}")
+    Player.execute("ban #{nick} #{reason}")
   end
   
   def pardon!
-    execute("pardon #{nick}")
+    Player.execute("pardon #{nick}")
   end
   
   def kick!(reason = 'Have A Nice Day!')
-    kick(nick, reason)
+    Player.kick(nick, reason)
   end
   
   def kill!
-    execute("kill #{nick}")
+    Player.execute("kill #{nick}")
   end
 
   def tp!(options = {})
@@ -136,24 +133,24 @@ class Player < ActiveRecord::Base
     x_rot, y_rot = options[:x_rot], options[:y_rot]
     target_nick = options[:nick]
     
-    return tp(nick, "#{x} #{y} #{z} #{x_rot} #{y_rot}") if !!x && !!y && !!z
-    return tp(nick, "#{target_nick}") if !!target_nick
+    return Player.tp(nick, "#{x} #{y} #{z} #{x_rot} #{y_rot}") if !!x && !!y && !!z
+    return Player.tp(nick, "#{target_nick}") if !!target_nick
   end
 
   def spawnpoint!(x, y, z)
-    execute("spawnpoint #{nick} #{x} #{y} #{z}")
+    Player.execute("spawnpoint #{nick} #{x} #{y} #{z}")
   end
   
   def title(type, json)
-    execute("title #{nick} #{type} #{json}")
+    Player.execute("title #{nick} #{type} #{json}")
   end
 
   def tell(message)
-    super nick, message
+    Player.tell(nick, message)
   end
 
   def tellraw(json)
-    execute("tellraw #{nick} #{json}")
+    Player.execute("tellraw #{nick} #{json}")
   end
   
   def last_activity_at

@@ -1,6 +1,9 @@
 module Sayable
-  extend ActiveSupport::Concern
   extend Commandable
+  
+  def self.included(base)
+    base.extend ClassMethods
+  end
   
   module ClassMethods
     ## Simuates /say

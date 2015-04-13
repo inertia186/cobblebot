@@ -1,6 +1,9 @@
 module Audible
-  extend ActiveSupport::Concern
   extend Commandable
+  
+  def self.included(base)
+    base.extend ClassMethods
+  end
   
   module ClassMethods
     def play_sound(selector, sound, options = {volume: '', pitch: ''})

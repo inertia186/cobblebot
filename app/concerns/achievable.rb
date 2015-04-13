@@ -1,7 +1,10 @@
 module Achievable
-  extend ActiveSupport::Concern
   extend Commandable
   extend Audible
+  
+  def self.included(base)
+    base.extend ClassMethods
+  end
   
   module ClassMethods
     def say_fake_achievement(selector, nick, achievement, hover_text = 'AH YISS', hover_obfuscated = false)

@@ -1,10 +1,11 @@
 require 'rcon/rcon'
 
 module Commandable
-  extend ActiveSupport::Concern
+  def self.included(base)
+    base.extend ClassMethods
+  end
   
   module ClassMethods
-  
     TRY_MAX = 5
     RETRY_SLEEP = 5
   

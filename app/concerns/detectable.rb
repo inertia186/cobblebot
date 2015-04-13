@@ -1,6 +1,9 @@
 module Detectable
-  extend ActiveSupport::Concern
   extend Commandable
+  
+  def self.included(base)
+    base.extend ClassMethods
+  end
   
   module ClassMethods
     def detect_spam(nick, message)

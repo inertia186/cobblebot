@@ -1,6 +1,9 @@
 module Teleportable
-  extend ActiveSupport::Concern
   extend Commandable
+  
+  def self.included(base)
+    base.extend ClassMethods
+  end
   
   module ClassMethods
     def tp(selector, destination, options = {})
