@@ -220,12 +220,16 @@ private
   end
   
   def player_data_key_group(key)
-    return player_data.keys.reduce({}) do |hash, (k, v)|
-      if (group = k.split('.'))[0] == key.singularize
-        hash.merge(group[1].underscore.to_sym => player_data[k])
-      else
-        hash
-      end
+    player_data.keys.reduce({}) do |hash, (k, v)|
+      single_key_group?(k, key) ? single_key_group(k, hash) : hash
     end.tap { |these| return Struct.new(*these.keys).new(*these.values) }
+  end
+  
+  def single_key_group?(k, key)
+    k.split('.')[0] == key.singularize
+  end
+  
+  def single_key_group(key, hash)
+    hash.merge(key.split('.')[1].underscore.to_sym => player_data[key])
   end
 end
