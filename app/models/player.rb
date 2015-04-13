@@ -202,21 +202,8 @@ class Player < ActiveRecord::Base
   
   def method_missing(m, *args, &block)
     return super unless !!player_data
-
-    key = m.to_s
-    data = player_data
-    
-    return data[key] if data.keys.include?(key)
-      
-    if data.keys.map { |key| key.split('.')[0] }.include?(e = key.singularize)
-      return data.keys.reduce({}) do |hash, (k, v)|
-        if (group = k.split('.'))[0] == e
-          hash.merge(group[1].underscore.to_sym => data[k])
-        else
-          hash
-        end
-      end.tap { |these| return Struct.new(*these.keys).new(*these.values) }
-    end
+    return player_data[m.to_s] if player_data.keys.include?(m.to_s)
+    return player_data_key_group(m.to_s) if player_data_key_group?(m.to_s)
 
     super
   end
@@ -226,5 +213,19 @@ class Player < ActiveRecord::Base
     @player_data = nil
     
     super
+  end
+private  
+  def player_data_key_group?(key)
+    player_data.keys.map { |key| key.split('.')[0] }.include?(key.singularize)
+  end
+  
+  def player_data_key_group(key)
+    return player_data.keys.reduce({}) do |hash, (k, v)|
+      if (group = k.split('.'))[0] == key.singularize
+        hash.merge(group[1].underscore.to_sym => player_data[k])
+      else
+        hash
+      end
+    end.tap { |these| return Struct.new(*these.keys).new(*these.values) }
   end
 end
