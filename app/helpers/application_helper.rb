@@ -24,10 +24,10 @@ module ApplicationHelper
   end
   
   def modal_nav_links(path, id)
-    nav_link(path, "first_#{id}", 'f', "#show_#{id}", 'F', 'irst') +
-    nav_link(path, "previous_#{id}", 'p', "#show_#{id}", 'P', 'revious') +
-    nav_link(path, "next_#{id}", 'n', "#show_#{id}", 'N', 'ext') +
-    nav_link(path, "last_#{id}", 'l', "#show_#{id}", 'L', 'ext')
+    nav_link(path, "first_#{id}", "#show_#{id}", 'f', 'F', 'irst') +
+    nav_link(path, "previous_#{id}", "#show_#{id}", 'p', 'P', 'revious') +
+    nav_link(path, "next_#{id}", "#show_#{id}", 'n', 'N', 'ext') +
+    nav_link(path, "last_#{id}", "#show_#{id}", 'l', 'L', 'ext')
   end
   
   def link_remote_delete(action, options = {class: 'btn btn-danger', confirm: 'Are you sure?'})
