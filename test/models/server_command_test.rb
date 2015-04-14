@@ -118,4 +118,8 @@ class ServerCommandTest < ActiveSupport::TestCase
     
     assert_nil ServerCommand.execute('list'), 'expect command scheme to be unsupported'
   end
+  
+  def test_eval_command_with_options
+    assert ServerCommand.eval_command('options[:element] == 2', 'command_name', {element: 1 + 1}), 'expect options evaluated'
+  end
 end

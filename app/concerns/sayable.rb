@@ -69,26 +69,25 @@ module Sayable
     
       results
     end
-  
-    def say_rules(selector)
-      return unless (lines = Preference.rules_json).present?
+    
+    def say_json_preference(selector, key)
+      return unless (lines = Preference.send(key)).present?
       return if selector.nil?
     
       lines.split("\n").each do |line|
         execute "tellraw #{selector} #{line}"
       end
+    end
+    
+    def say_rules(selector)
+      say_json_preference(selector, :rules_json)
     end
   
     def say_tutorial(selector)
-      return unless (lines = Preference.tutorial_json).present?
-      return if selector.nil?
-    
-      lines.split("\n").each do |line|
-        execute "tellraw #{selector} #{line}"
-      end
+      say_json_preference(selector, :tutorial_json)
     end
     
-    def say_random_tip(selector, nick, keywords = '')
+    def say_random_tip(selector, nick, keywords = '', options =())
       @no_tips ||= 0
       keywords = keywords.split(' ').map(&:strip)
       tip_body = nil

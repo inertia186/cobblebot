@@ -121,10 +121,8 @@ module Commandable
     #
     def merge_selectors(a, b)
       raise "Cannot merge unlike selectors: @#{a[1]} .. @#{b[1]}" if a[1] != b[1]
-    
-      _a = a.split('[')[1]
+      _a, _b = a.split('[')[1], b.split('[')[1]
       _a = _a.split(']')[0] if _a
-      _b = b.split('[')[1]
       _b = _b.split(']')[0] if _b
       _c = [_a, _b].reject(&:nil?)
 

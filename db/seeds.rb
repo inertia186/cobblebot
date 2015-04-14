@@ -34,7 +34,7 @@ ServerCallback::PlayerChat.send method, name: 'Player Check', pattern: "/^@serve
 ServerCallback::PlayerChat.send method, name: 'IRC Reply', pattern: "/^@irc (.*)$/i", command: "irc_reply \"%nick%\", \"%1%\"", system: 't'
 ServerCallback::PlayerChat.send method, name: 'Slap', pattern: "/^@server slap(.*)/i", command: "say_slap \"@a\", \"%nick%\", \"%1%\"", system: 't'
 ServerCallback::PlayerChat.send method, name: 'Add Tip', pattern: "/^@server addtip (.*)/i", command: "add_tip \"%nick%\", \"%1%\"", system: 't'
-ServerCallback::PlayerChat.send method, name: 'Random Tip', pattern: "/^@server tip(.*)/i", command: "say_random_tip \"@a\", \"%nick%\", \"%1%\"", system: 't'
+ServerCallback::PlayerChat.send method, name: 'Random Tip', pattern: "/^@server tip(.*)/i", command: "say_random_tip \"@a\", \"%nick%\", \"%1%\", options", system: 't'
 ServerCallback::PlayerChat.send method, name: 'Tip Info', pattern: "/^@server tips/i", command: "tips", system: 't'
 ServerCallback::PlayerChat.send method, name: 'Rules', pattern: "/^@server rules/i", command: "say_rules \"%nick%\"", system: 't'
 ServerCallback::PlayerChat.send method, name: 'Tutorial', pattern: "/^@server tutorial/i", command: "say_tutorial \"%nick%\"", system: 't'
