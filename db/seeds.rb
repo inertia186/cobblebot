@@ -53,6 +53,7 @@ ServerCallback::PlayerChat.send method, name: 'TROLOLO', pattern: "/trololo/i", 
 ServerCallback::PlayerChat.send method, name: 'Bueller?', pattern: "/^anyone[^ ]*$/i", command: "# This sound is a little different in how it behaves.  Once the command is\r\n# triggered, it waits 5 seconds, then it checks to see if the player has typed \r\n# anything new.  If not, the sound plays.\r\n#\r\n# Thus, it doesn't always play, but it will always go into cooldown if it is\r\n# triggered.\r\n\r\nThread.start do\r\n  sleep 5\r\n  if \"%message%\" == find_latest_chat_by_nick(\"%nick%\")\r\n    play_sound \"@a\", \"cf_bueller\"\r\n  end\r\nend", cooldown: '+15 minutes', system: 'f'
 ServerCallback::PlayerChat.send method, name: 'Oops', pattern: "/oops/i", command: "play_sound \"@a\", \"cf_wups\"", system: 'f'
 ServerCallback::PlayerChat.send method, name: 'Oh My', pattern: "/^oh my$/i", command: "play_sound \"@a\", \"cf_ohmy\"", system: 'f'
+ServerCallback::PlayerChat.send method, name: 'Make It So', pattern: "/make it so/i", command: "play_sound \"@a\", \"cf_makeitso\"", system: 'f'
 ServerCallback::PlayerEmote.send method, name: 'Facepalm', pattern: "/facepalms/i", command: "play_sound \"@a\", \"cf_rimshot\"", system: 'f'
 
 # Death sounds ...
