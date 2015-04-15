@@ -20,15 +20,12 @@ class ActiveSupport::TestCase
   def before_setup
     super
     DatabaseCleaner.start
+    Rails.application.load_seed
   end
 
   def after_teardown
     DatabaseCleaner.clean
     super
-  end
-  
-  def seed
-    method = :create!; eval File.read "#{Rails.root}/db/seeds.rb"
   end
 end
 

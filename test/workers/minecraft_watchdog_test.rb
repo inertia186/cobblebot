@@ -2,7 +2,6 @@ require 'test_helper'
 
 class MinecraftWatchdogTest < ActiveSupport::TestCase
   def setup
-    seed
     Preference.path_to_server = "#{Rails.root}/tmp"
     
     stub_request(:get, ServerProperties.resource_pack).

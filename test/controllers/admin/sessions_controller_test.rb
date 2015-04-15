@@ -2,7 +2,6 @@ require 'test_helper'
 
 class Admin::SessionsControllerTest < ActionController::TestCase
   def setup
-    seed
   end
 
   def test_routings

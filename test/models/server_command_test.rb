@@ -2,8 +2,6 @@ require 'test_helper'
 
 class ServerCommandTest < ActiveSupport::TestCase
   def setup
-    seed
-    
     TestServerCommand.commands_executed = nil
     Preference.path_to_server = "#{Rails.root}/tmp"
   end

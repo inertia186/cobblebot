@@ -2,7 +2,6 @@ require 'test_helper'
 
 class MessageTest < ActiveSupport::TestCase
   def setup
-    seed
   end
   
   def test_recipient

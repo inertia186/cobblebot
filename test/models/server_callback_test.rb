@@ -6,8 +6,6 @@ class ServerCallbackTest < ActiveSupport::TestCase
   SKIP_CALLBACKS_NAMED = []
   
   def setup
-    seed
-    
     stub_request(:get, "https://gist.github.com/inertia186/5002463").
       to_return(status: 200)
     stub_request(:get, "https://ajax.googleapis.com/ajax/services/search/news?q=florida%20man&v=1.0").

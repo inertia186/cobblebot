@@ -2,7 +2,6 @@ require 'test_helper'
 
 class PreferenceTest < ActiveSupport::TestCase
   def setup
-    seed
   end
 
   def test_to_param

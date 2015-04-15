@@ -2,8 +2,6 @@ require 'test_helper'
 
 class ServerPropertiesTest < ActiveSupport::TestCase
   def setup
-    seed
-    
     Preference.path_to_server = "#{Rails.root}/tmp"
   end
 

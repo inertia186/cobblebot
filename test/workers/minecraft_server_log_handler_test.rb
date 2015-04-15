@@ -2,8 +2,6 @@ require 'test_helper'
 
 class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   def setup
-    seed
-    
     Preference.path_to_server = "#{Rails.root}/tmp"
 
     stub_request(:get, "https://gist.github.com/inertia186/5002463").

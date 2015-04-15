@@ -2,7 +2,6 @@ require 'test_helper'
 
 class Admin::LinksControllerTest < ActionController::TestCase
   def setup
-    seed
     session[:admin_signed_in] = true
   end
 
