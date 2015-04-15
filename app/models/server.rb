@@ -22,6 +22,7 @@ class Server
         Rails.logger.warn e.inspect
         sleep retry_sleep
         ServerProperties.reset_vars
+        @file_paths = nil
       end
     end
     
@@ -114,10 +115,15 @@ class Server
     Player.where(nick: nicks).order(:last_login_at)
   end
   
-  def self.banned_players_file_path
+  def self.file_path(file_name)
     raise StandardError.new("Server Path not set.") if ServerProperties.path_to_server.nil?
     
-    @banned_players_file_path ||= "#{ServerProperties.path_to_server}/banned-players.json"
+    @file_paths ||= {}
+    @file_paths[file_name.to_sym] ||= "#{ServerProperties.path_to_server}/#{file_name}"
+  end
+  
+  def self.banned_players_file_path
+    file_path 'banned-players.json'
   end
 
   def self.banned_players
@@ -125,9 +131,7 @@ class Server
   end
 
   def self.banned_ips_file_path
-    raise StandardError.new("Server Path not set.") if ServerProperties.path_to_server.nil?
-    
-    @banned_ips_file_path ||= "#{ServerProperties.path_to_server}/banned-ips.json"
+    file_path 'banned-ips.json'
   end
 
   def self.banned_ips
@@ -135,9 +139,7 @@ class Server
   end
 
   def self.ops_file_path
-    raise StandardError.new("Server Path not set.") if ServerProperties.path_to_server.nil?
-    
-    @ops_file_path ||= "#{ServerProperties.path_to_server}/ops.json"
+    file_path 'ops.json'
   end
 
   def self.ops
@@ -145,9 +147,7 @@ class Server
   end
 
   def self.whitelist_file_path
-    raise StandardError.new("Server Path not set.") if ServerProperties.path_to_server.nil?
-    
-    @whitelist_file_path ||= "#{ServerProperties.path_to_server}/whitelist.json"
+    file_path 'whitelist.json'
   end
 
   def self.whitelist

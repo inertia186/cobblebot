@@ -248,6 +248,89 @@ File.open(fake_inertia186_stats, 'a') do |f|
   f.sync
 end
 
+fake_banned_players = "#{tmp}/banned-players.json"
+File.delete(fake_banned_players) if File.exists?(fake_banned_players)
+File.open(fake_banned_players, 'a') do |f|
+  banned_players = <<-DONE
+  [
+    {
+      "uuid": "3d961040-c795-4238-b273-b5a5a17b62b8",
+      "name": "FreakyFalse",
+      "created": "2014-10-27 14:29:42 -0700",
+      "source": "Rcon",
+      "expires": "forever",
+      "reason": "flyhack"
+    }
+  ]
+  DONE
+  banned_players.each_line do |line|
+    f << line.strip + "\n"
+  end
+  f.sync
+end
+
+fake_banned_ips = "#{tmp}/banned-ips.json"
+File.delete(fake_banned_ips) if File.exists?(fake_banned_ips)
+File.open(fake_banned_ips, 'a') do |f|
+  banned_ips = <<-DONE
+  [
+    {
+      "ip": "",
+      "created": "2014-03-07 10:09:51 -0800",
+      "source": "(Unknown)",
+      "expires": "forever",
+      "reason": "Banned by an operator."
+    },
+    {
+      "ip": "58.171.33.123",
+      "created": "2014-05-26 21:41:31 -0700",
+      "source": "Rcon",
+      "expires": "forever",
+      "reason": "security problem detected"
+    }
+  ]
+  DONE
+  banned_ips.each_line do |line|
+    f << line.strip + "\n"
+  end
+  f.sync
+end
+ 
+fake_ops = "#{tmp}/ops.json"
+File.delete(fake_ops) if File.exists?(fake_ops)
+File.open(fake_ops, 'a') do |f|
+  ops = <<-DONE
+  [
+    {
+      "uuid": "d6edf996-6182-4d58-ac1b-4ca0321fb748",
+      "name": "inertia186",
+      "level": 4
+    }
+  ]
+  DONE
+  ops.each_line do |line|
+    f << line.strip + "\n"
+  end
+  f.sync
+end
+ 
+fake_whitelist = "#{tmp}/whitelist.json"
+File.delete(fake_whitelist) if File.exists?(fake_whitelist)
+File.open(fake_whitelist, 'a') do |f|
+  whitelist = <<-DONE
+  [
+    {
+      "uuid": "d6edf996-6182-4d58-ac1b-4ca0321fb748",
+      "name": "inertia186"
+    }
+  ]
+  DONE
+  whitelist.each_line do |line|
+    f << line.strip + "\n"
+  end
+  f.sync
+end
+ 
 if Server.up?
   raise "Warning, you are running a live minecraft server which tests are trying to fiddle with."
 end
