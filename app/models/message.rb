@@ -27,7 +27,8 @@ class Message < ActiveRecord::Base
   }
   
   scope :messages, -> { where(type: nil) }
-  
+  scope :latest, lambda { |latest = 10| order(:created_at).limit(latest) }
+
   belongs_to :recipient, polymorphic: true
   belongs_to :author, polymorphic: true
   
