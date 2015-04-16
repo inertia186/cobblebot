@@ -194,7 +194,7 @@ class Player < ActiveRecord::Base
   end
 
   def toggle_play_sounds!
-    update_attribute(:play_sounds, !play_sounds)
+    update_attribute(:play_sounds, !play_sounds) # no AR callbacks
   end
   
   def method_missing(m, *args, &block)

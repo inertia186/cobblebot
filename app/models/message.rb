@@ -35,7 +35,7 @@ class Message < ActiveRecord::Base
   after_initialize :look_up_recipient
   
   def read!
-    update_attribute(:read_at, Time.now)
+    update_attribute(:read_at, Time.now) # no AR callbacks
   end
 private
   def look_up_recipient

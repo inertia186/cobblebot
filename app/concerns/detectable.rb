@@ -29,7 +29,7 @@ module Detectable
       handle_spam(nick, ratio)
 
       if !!(player = Player.find_by_nick(nick))
-        player.update_attribute(:spam_ratio, ratio)
+        player.update_attribute(:spam_ratio, ratio) # no AR callbacks
       
         return player
       end

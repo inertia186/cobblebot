@@ -18,7 +18,7 @@ module Teleportable
         return if response == 'The entity UUID provided is in an invalid format'
 
         pos = response.split(' ')[3..-1].join(' ').split(/[\s,]+/)
-        player.update_attribute(:last_location, "x=#{pos[0].to_i},y=#{pos[1].to_i},z=#{pos[2].to_i}")
+        player.update_attributes(last_location: "x=#{pos[0].to_i},y=#{pos[1].to_i},z=#{pos[2].to_i}")
       else
         response = execute "tp #{selector} #{destination}"
         return if response == 'The entity UUID provided is in an invalid format'

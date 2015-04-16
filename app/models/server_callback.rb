@@ -125,7 +125,7 @@ class ServerCallback < ActiveRecord::Base
     case message
     when ServerCommand.eval_pattern(pattern, to_param)
       execute_command(player, message, options)
-      update_attribute(:last_match, line)
+      update_attribute(:last_match, line) # no AR callbacks
       true
     else
       nil
@@ -133,7 +133,7 @@ class ServerCallback < ActiveRecord::Base
   end
   
   def execute_command(nick, message, options = {})
-    update_attribute(:error_flag_at, nil)
+    update_attribute(:error_flag_at, nil) # no AR callbacks
     
     if player_input?(message)
       begin
@@ -182,7 +182,7 @@ class ServerCallback < ActiveRecord::Base
     end
     
     ran!
-    update_attribute(:last_command_output, result.inspect)
+    update_attribute(:last_command_output, result.inspect) # no AR callbacks
   end
   
   def ran!
@@ -215,6 +215,6 @@ class ServerCallback < ActiveRecord::Base
     code = send(key)
     uri = URI.parse('http://pygments.appspot.com/')
     request = Net::HTTP.post_form(uri, {lang: 'ruby', code: code})
-    update_attribute("pretty_#{key.to_s}".to_sym, request.body)
+    update_attribute("pretty_#{key.to_s}".to_sym, request.body) # no AR callbacks
   end
 end

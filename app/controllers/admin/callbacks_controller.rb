@@ -61,7 +61,7 @@ class Admin::CallbacksController < Admin::AdminController
   def toggle_enabled
     @callback = ServerCallback.find(params[:id])
     
-    @callback.update_attribute(:enabled, !@callback.enabled?)
+    @callback.update_attribute(:enabled, !@callback.enabled?) # no AR callbacks
 
     respond_to do |format|
       format.html { redirect_to admin_server_callbacks_url, notice: "#{@callback.name} is now #{@callback.enabled? ? 'Enabled' : 'Disabled'}." }
@@ -73,7 +73,7 @@ class Admin::CallbacksController < Admin::AdminController
     @callback = ServerCallback.find(params[:id])
 
     @callback.execute_command("@a", "Test")
-    @callback.update_attribute(:last_match, 'Manual Run from Web Console')
+    @callback.update_attribute(:last_match, 'Manual Run from Web Console') # no AR callbacks
 
     respond_to do |format|
       format.html { redirect_to admin_server_callbacks_url, notice: "Ran #{@callback.name} on all players." }

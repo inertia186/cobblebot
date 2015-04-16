@@ -44,7 +44,7 @@ class ServerCommand
     player = Player.find_by_nick(nick)
     return unless !!player
     
-    player.update_attribute(:last_chat, message)
+    player.update_attribute(:last_chat, message) # no AR callbacks
     
     player
   end
@@ -53,7 +53,7 @@ class ServerCommand
     player = Player.find_by_nick(nick)
     return unless !!player
     
-    player.update_attribute(:last_ip, ip)
+    player.update_attribute(:last_ip, ip) # no AR callbacks
     
     player
   end
@@ -62,7 +62,7 @@ class ServerCommand
     player = Player.find_by_nick(nick)
     return unless !!player
     
-    player.update_attribute(:last_logout_at, Time.now)
+    player.update_attribute(:last_logout_at, Time.now) # no AR callbacks
     
     player
   end

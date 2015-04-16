@@ -68,7 +68,7 @@ private
   end
 
   def self.update!(key, value)
-    find_or_create_by!(key: key).update_attribute(:value, value)
+    find_or_create_by!(key: key).update_attribute(:value, value) # no AR callbacks
   end
 
   def self.truthy?(key)
