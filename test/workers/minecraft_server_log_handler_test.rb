@@ -488,4 +488,40 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       result = ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> %s/axe/sword')
     end
   end
+
+  def test_help
+    ServerCommand.reset_commands_executed
+    callback = ServerCallback.find_by_name('Help ...')
+    refute_nil callback.help_doc, 'expect help doc for callback'
+    
+    assert_callback_ran callback do
+      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help')
+      assert_equal 2, ServerCommand.commands_executed.keys.join.split(callback.help_doc).size, 'expect help doc in command executed'
+    end
+  end
+
+  def test_help_help
+    ServerCommand.reset_commands_executed
+    callback = ServerCallback.find_by_name('Help ...')
+    refute_nil callback.help_doc, 'expect help doc for callback'
+    
+    assert_callback_ran 'Help ...' do
+      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help help')
+      assert_equal 2, ServerCommand.commands_executed.keys.join.split(callback.help_doc).size, 'expect help doc in command executed'
+    end
+  end
+
+  def test_help_all
+    callbacks = ServerCallback.has_help_docs
+    callbacks.find_each do |callback|
+      ServerCommand.reset_commands_executed
+      refute_nil callback.help_doc, 'expect help doc for callback'
+    
+      assert_callback_ran 'Help ...' do
+        result = ServerCallback::PlayerChat.handle("[15:17:25] [Server thread/INFO]: <inertia186> @server help #{callback.help_doc_key}")
+        # Maybe this should use .include? instead of a funky join.
+        assert_equal 2, ServerCommand.commands_executed.keys.join.downcase.split(callback.help_doc.split("\n")[0].downcase).size, 'expect help doc in command executed'
+      end
+    end
+  end
 end

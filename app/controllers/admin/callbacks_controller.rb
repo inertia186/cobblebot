@@ -143,7 +143,10 @@ private
   end
 
   def server_callback_params
-    attributes = [:name, :pattern, :type, :command, :cooldown, :enabled]
+    attributes = [
+      :name, :pattern, :type, :command, :cooldown, :enabled, :help_doc_key,
+      :help_doc
+    ]
 
     params.require(:server_callback).permit *attributes
   end

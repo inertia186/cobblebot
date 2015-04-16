@@ -148,6 +148,37 @@
             .modal-body
               %p An expression for the minimum number of seconds that must pass before this callback will fire again.  Typically, this is for player chat or emotes.
     .input-group
+      = f.label :help_doc_key
+      %br
+      = f.text_field :help_doc_key
+      %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_help_doc_key'}} ?
+      .modal.fade{id: :explain_help_doc_key, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_help_doc_key_label', 'aria-hidden' => true}
+        .modal-dialog
+          .modal-content
+            .modal-header
+              %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+                %span{'aria-hidden' => true} &times;
+              %h4.modal-title#explain_help_doc_key_label Explanation of Help doc key
+            .modal-body
+              %p
+                The
+                %code @server help
+                callback uses this field to display which other callbacks have help.
+    .input-group
+      = f.label :help_doc
+      %br
+      = f.text_area :help_doc, cols: 70, rows: 15, placeholder: 'Usage @server this'
+      %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_help_doc'}} ?
+      .modal.fade{id: :explain_help_doc, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_help_doc_label', 'aria-hidden' => true}
+        .modal-dialog
+          .modal-content
+            .modal-header
+              %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+                %span{'aria-hidden' => true} &times;
+              %h4.modal-title#explain_help_doc_label Explanation of Help doc
+            .modal-body
+              %p Put something helpful here.
+    .input-group
       = f.label :enabled do
         = f.check_box :enabled
         Enabled

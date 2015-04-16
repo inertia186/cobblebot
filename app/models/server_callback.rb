@@ -14,6 +14,7 @@ class ServerCallback < ActiveRecord::Base
   validates :command, presence: true
   validate :valid_pattern, if: :pattern_changed?
   validate :valid_command, if: :command_changed?
+  validates_uniqueness_of :help_doc_key, allow_nil: true
 
   after_validation :remove_pretty_pattern, if: :pattern_changed?
   after_validation :remove_pretty_command, if: :command_changed?
@@ -58,6 +59,7 @@ class ServerCallback < ActiveRecord::Base
     DONE
     where(clause, query, query, query, query, query)
   }
+  scope :has_help_docs, -> { where.not(help_doc_key: nil) }
   
   def self.for_handling(line)
     raise "Cannot handle undefine callback type for: #{line}"

@@ -170,5 +170,33 @@ module Sayable
     
       result
     end
+    
+    def say_help(selector = "@a", key = "help")
+      callbacks = ServerCallback.enabled.where('lower(help_doc_key) = ?', key.strip.downcase)
+      
+      callback = if callbacks.any?
+        callbacks.first
+      else
+        ServerCallback.where(help_doc_key: 'help').first
+      end
+      
+      callback.help_doc.each_line do |line|
+        say selector, line.strip, color: 'white', as: nil
+      end
+      
+      unless callback.cooldown.split(' ')[0] == '+0'
+        say selector, "Note, #{key} has a cooldown interval of #{callback.cooldown}.", color: 'white', as: nil
+      end
+      
+      case callback.help_doc_key
+      when 'help'
+        topics = []
+        ServerCallback.enabled.where.not(help_doc_key: nil).order(:help_doc_key).each do |callback|
+          topics << callback.help_doc_key 
+        end
+        
+        say selector, topics.join(' | '), color: 'white', as: nil if topics.any?
+      end
+    end
   end
 end

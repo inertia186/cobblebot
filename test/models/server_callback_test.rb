@@ -116,8 +116,14 @@ class ServerCallbackTest < ActiveSupport::TestCase
 
   def test_player_input?
     assert ServerCallback::AnyEntry.new.player_input?, 'expect player input'
+    # :nocov:
     fail 'please update test to reflect new behavior'
+    # :nocov:
   rescue NotImplementedError => e
     # success
+  end
+
+  def test_callbacks_that_need_help_docs
+    refute (callbacks = ServerCallback.where("pattern LIKE '%@server%'").where(help_doc_key: nil)).any?, "The following callbacks need help docs: #{callbacks.map(&:name).join(', ')}"
   end
 end

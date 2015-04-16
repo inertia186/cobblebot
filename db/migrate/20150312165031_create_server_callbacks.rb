@@ -14,6 +14,8 @@ class CreateServerCallbacks < ActiveRecord::Migration
       t.string :cooldown, null: false, default: '+0 seconds'
       t.boolean :enabled, null: false, default: true
       t.boolean :system, null: false, default: false
+      t.string :help_doc_key
+      t.string :help_doc
       t.timestamps null: false
     end
   end
