@@ -79,4 +79,45 @@ class ServerCallbackTest < ActiveSupport::TestCase
   def test_only_disabled
     assert_equal ServerCallback.enabled(false).count,  0, 'expect zero results'
   end
+
+  def test_ready?
+    callback = ServerCallback.find_by_name('Spammy')
+    callback.execute_command("@a", "Test")
+    assert callback.ready?, 'expect ready'
+  end
+
+  def test_not_ready
+    assert ServerCallback.ready(false).none?, 'did not expect ready'
+  end
+
+  def test_error_flagged
+    assert ServerCallback.error_flagged.none?, 'expect error falgged'
+  end
+
+  def test_not_error_flagged
+    assert ServerCallback.error_flagged(false).any?, 'did not expect error flagged'
+  end
+
+  def test_needs_prettification
+    assert ServerCallback.needs_prettification.any?, 'expect needs prettification'
+  end
+
+  def test_not_needs_prettification
+    assert ServerCallback.needs_prettification(false).none?, 'did not expect needs prettification'
+  end
+
+  def test_query
+    assert ServerCallback.query('%').any?, 'expect query'
+  end
+
+  def test_valid_command
+    assert ServerCallback::ServerEntry.create(command: '"%nick%"').errors.any?, 'did not expect valid callback'
+  end
+
+  def test_player_input?
+    assert ServerCallback::AnyEntry.new.player_input?, 'expect player input'
+    fail 'please update test to reflect new behavior'
+  rescue NotImplementedError => e
+    # success
+  end
 end
