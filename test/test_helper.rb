@@ -27,6 +27,57 @@ class ActiveSupport::TestCase
     DatabaseCleaner.clean
     super
   end
+
+  def ServerCommand.kick(nick, message = "Have A Nice Day")
+    super
+    
+    kicked[nick] = message
+  end
+
+  def ServerCommand.execute(command)
+    commands_executed[command] = !!super
+  end
+
+  def ServerCommand.commands_executed
+    @commands_executed ||= {}
+  end
+
+  def ServerCommand.reset_commands_executed
+    @commands_executed = nil
+  end
+
+  def ServerCommand.kicked
+    @kicked ||= {}
+  end
+
+  def assert_kicked(nick, &block)
+    yield block
+  
+    assert ServerCommand.kicked.keys.include?(nick), "expect player kicked: #{nick}"
+  end
+
+  def refute_kicked(nick, &block)
+    yield block
+  
+    refute ServerCommand.kicked.keys.include?(nick), "expect player kicked: #{nick}"
+  end
+  
+  def assert_command_executed(&block)
+    ServerCommand.reset_commands_executed
+    yield block
+    refute_equal 0, ServerCommand.commands_executed.size, 'expect command to execute'
+  end
+
+  def assert_callback_ran(callback, &block)
+    c = if callback.class == String
+      ServerCallback.find_by_name(callback)
+    else
+      callback
+    end
+    ran_at = c.ran_at
+    yield block
+    refute_equal ran_at, c.reload.ran_at, 'expect callback to run'
+  end
 end
 
 class ActiveRecord::Base
@@ -34,16 +85,6 @@ class ActiveRecord::Base
     if record.respond_to? :last_command_output
       record.last_command_output ||= 'FAKE SERVER OUTPUT'
     end
-  end
-end
-
-class TestServerCommand < ServerCommand
-  cattr_accessor :commands_executed
-  
-  def self.execute(command)
-    self.commands_executed ||= []
-    
-    commands_executed << command
   end
 end
 
@@ -332,5 +373,7 @@ File.open(fake_whitelist, 'a') do |f|
 end
  
 if Server.up?
+  # TODO Eventually, this warning should only warn and not actually raise an
+  # exception.  For now, we're just trying to be safe.
   raise "Warning, you are running a live minecraft server which tests are trying to fiddle with."
 end
