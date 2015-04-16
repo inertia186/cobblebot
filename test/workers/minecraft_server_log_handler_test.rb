@@ -496,7 +496,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     
     assert_callback_ran callback do
       result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help')
-      assert_equal 2, ServerCommand.commands_executed.keys.join.split(callback.help_doc).size, 'expect help doc in command executed'
+      assert_equal 2, ServerCommand.commands_executed.keys.join.split(callback.help_doc.strip).size, 'expect help doc in command executed'
     end
   end
 
@@ -507,7 +507,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     
     assert_callback_ran 'Help ...' do
       result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help help')
-      assert_equal 2, ServerCommand.commands_executed.keys.join.split(callback.help_doc).size, 'expect help doc in command executed'
+      assert_equal 2, ServerCommand.commands_executed.keys.join.split(callback.help_doc.strip).size, 'expect help doc in command executed'
     end
   end
 
