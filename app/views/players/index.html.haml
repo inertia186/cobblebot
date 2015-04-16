@@ -23,7 +23,7 @@
               - if player.last_login_at
                 = distance_of_time_in_words_to_now player.last_login_at
                 ago
-            %td= player.explore_all_biome_progress
+            %td= player.biomes_explored
     %tr
       %th{colspan: 4} Logged in Today (#{@players_today.count})
       - @players_today.each do |player|
