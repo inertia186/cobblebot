@@ -23,50 +23,71 @@ module Sayable
     
     def say_playercheck(selector, nick)
       players = Player.any_nick(nick).order(:nick)
-      results = []
+      return say_nick_not_found(selector, nick) unless !!(player = players.first)
+
+      line_1a = "Latest activity for #{player.nick} was "
+      line_1b = distance_of_time_in_words_to_now(player.last_activity_at)
+      line_1c = player.last_activity_at.to_s
+      line_1d = ' ago.'
+      execute(
+      <<-DONE
+        tellraw #{selector} [
+          { "color": "white", "text": "[Server] #{line_1a}" },
+          {
+            "color": "white", "text": "#{line_1b}",
+            "hoverEvent": {
+              "action": "show_text", "value": "#{line_1c}"
+            }
+          },
+          { "color": "white", "text": "#{line_1d}" }
+        ]
+      DONE
+      ) unless selector.nil?
+      
+      results = ["#{line_1a}#{line_1b}#{line_1d} (#{line_1c})"]
+      results += say_last_chat(selector, nick, player: player)
+      results += say_biomes_explored(selector, nick, player: player)
+      
+      # TODO get rate:
+      # say selector, "Sum of all trust: ..."
     
-      if players.any?
-        player = players.first
+      results
+    end
+    
+    def say_last_chat(selector, nick, options = {})
+      player = options[:player]
+      player ||= Player.find_by_nick(nick)
+      result = nil
       
-        line_1a = "Latest activity for #{player.nick} was "
-        line_1b = distance_of_time_in_words_to_now(player.last_activity_at)
-        line_1c = player.last_activity_at.to_s
-        line_1d = ' ago.'
-        execute(
-        <<-DONE
-          tellraw #{selector} [
-            { "color": "white", "text": "[Server] #{line_1a}" },
-            {
-              "color": "white", "text": "#{line_1b}",
-              "hoverEvent": {
-                "action": "show_text", "value": "#{line_1c}"
-              }
-            },
-            { "color": "white", "text": "#{line_1d}" }
-          ]
-        DONE
-        ) unless selector.nil?
-        results << "#{line_1a}#{line_1b}#{line_1d} (#{line_1c})"
-      
-        if !!player.last_chat
-          results << line_2 = "<#{player.nick}> #{player.last_chat}#{player.registered? ? ' ®' : ''}"
-          say(selector, line_2)
-        end
-      
-        results << line_3 = "Biomes explored: #{player.explore_all_biome_progress}"
-        say(selector, line_3)
-        # TODO get rate:
-        # say selector, "Sum of all trust: ..."
-      else
-        results << line_1 = "Player not found: #{nick}"
-        say(selector, line_1)
-        players = Player.search_any_nick(nick)
-        if players.any?
-          results << line_2 = "Did you mean: #{players.first.nick}"
-          say(selector, line_2)
-        end
+      if !!player && !!player.last_chat
+        result = "<#{player.nick}> #{player.last_chat}#{player.registered? ? ' ®' : ''}"
+        say(selector, result)
       end
+      
+      [result]
+    end
     
+    def say_biomes_explored(selector, nick, options = {})
+      player = options[:player]
+      player ||= Player.find_by_nick(nick)
+      result = nil
+
+      if !!player
+        say(selector, result = "Biomes explored: #{player.explore_all_biome_progress}")
+      end
+      
+      [result]
+    end
+    
+    def say_nick_not_found(selector, nick)
+      results = [line_1 = "Player not found: #{nick}"]
+      say(selector, line_1)
+      players = Player.search_any_nick(nick)
+      if players.any?
+        results << line_2 = "Did you mean: #{players.first.nick}"
+        say(selector, line_2)
+      end
+      
       results
     end
     
