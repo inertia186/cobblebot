@@ -21,7 +21,7 @@ class IrcBot < SummerBot
     
     if options['start_irc_bot'] && Preference.irc_enabled?
       Rails.logger.info "Starting IRC Bot"
-      options = {}
+      options = {debug: options[:debug]}
       options[:op_commands] = %w(opself opme quit_irc kick latest chatlog rcon)
       options[:commands] = %w(help info bancheck playercheck list say)
       new(options)
@@ -29,6 +29,8 @@ class IrcBot < SummerBot
     else
       Rails.logger.warn "Ignoring: #{options}"
     end
+    
+    self
   end
 
   # OP Commands
@@ -145,7 +147,8 @@ class IrcBot < SummerBot
     sender = options[:sender]
     channel = options[:channel]
 
-    msg = execute('list').strip
+    msg = IrcBot.execute('list') || ''
+    msg = msg.strip
     msg = msg.gsub(/:/, ': ')
 
     reply sender: sender, channel: channel, reply: msg
@@ -158,6 +161,6 @@ class IrcBot < SummerBot
     words = message.split(' ')
     msg = words[2..-1].join(' ').gsub(/['`"]/, "\'")
 
-    irc_say "@a", sender[:nick], msg
+    IrcBot.irc_say "@a", sender[:nick], msg
   end
 end
