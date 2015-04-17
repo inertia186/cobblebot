@@ -55,7 +55,7 @@ class IrcBot < SummerBot
     player =  words[2]
     reason = words[3..-1].join(' ')
 
-    kick player, reason
+    IrcBot.kick player, reason
   end
 
   def latest(options = {})
@@ -79,7 +79,7 @@ class IrcBot < SummerBot
     words = message.split(' ')
     cmd = words[2..-1].join(' ')
 
-    nick_msg sender: sender, reply: execute(cmd)
+    nick_msg sender: sender, reply: IrcBot.execute(cmd)
   end
 
   # Regular commands.

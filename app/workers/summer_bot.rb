@@ -98,6 +98,7 @@ class SummerBot < Summer::Connection
     at, command = message.split(' ')
 
     return unless at == '@cobblebot' || at == '@cb' || at == '@server'
+    return unless !!command
     command = command.downcase
 
     Thread.start do
