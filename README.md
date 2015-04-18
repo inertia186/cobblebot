@@ -199,7 +199,7 @@ To test the resource pack on the default configuration, type the command in the 
 
 ## Supported environments
 
-* Minecraft 1.8.3
+* Minecraft 1.8.4
 
 ## Get in touch!
 
