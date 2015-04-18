@@ -11,7 +11,7 @@ class Message::Tip < Message
     end
   }
 
-  def self.latest_tips(num = 10)
+  def self.latest_random_tips(num = 10)
     order(:read_at).last(num).map(&:body)
   end
   

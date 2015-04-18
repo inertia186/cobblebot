@@ -109,45 +109,49 @@ module Sayable
     end
     
     def say_random_tip(selector, nick, keywords = '', options =())
-      @no_tips ||= 0
       keywords = keywords.split(' ').map(&:strip)
-      tip_body = nil
     
       tip = Message::Tip.query(keywords).in_cooldown(false).first(10).sample
-    
-      if !!tip
-        tip_body = sub_safe_selectors(escape(tip.body.dup))
-        tip.update_attribute(:read_at, Time.now) # set cooldown, no AR callbacks
-        if tip_body =~ /^server/i
-          emote(selector, tip_body.split(' ')[1..-1].join(' '))
-        elsif tip_body =~ /^herobrine/i
-          say_fake_achievement(selector, 'Herobrine', tip_body)
-        elsif tip_body =~ /^slap/i
-          say_slap(selector, tip_body.split(' ')[1..-1].join(' '))
-        elsif tip_body =~ /^>/i
-          say(selector, tip_body, color: 'green', as: 'Server')
-        else
-          say(selector, tip_body)
-        end
-      
-        # FIXME Doing the simulate_server_message is a security risk until the
-        # pretend flag can be enabled.  For now, just do simlated_player_chat
-        # only.
-        #
-        # result = MinecraftServerLogHandler.simulate_server_message(tip_body)
-        # result = MinecraftServerLogHandler.simulate_player_chat(nick, tip_body) unless !!result
-        MinecraftServerLogHandler.simulate_player_chat(nick, tip_body)
+      return say_nothing(selector) unless !!tip
+  
+      tip_body = sub_safe_selectors(escape(tip.body.dup))
+      tip.update_attribute(:read_at, Time.now) # set cooldown, no AR callbacks
+      if tip_body =~ /^server/i
+        emote(selector, tip_body.split(' ')[1..-1].join(' '))
+      elsif tip_body =~ /^herobrine/i
+        say_fake_achievement(selector, 'Herobrine', tip_body)
+      elsif tip_body =~ /^slap/i
+        say_slap(selector, tip_body.split(' ')[1..-1].join(' '))
+      elsif tip_body =~ /^>/i
+        say(selector, tip_body, color: 'green', as: 'Server')
       else
-        @no_tips += 1
-        if @no_tips < 3
-          say(selector, 'I got nothin.')
-        else
-          say(selector, 'I still got nothin.')
-          @no_tips = 0
-        end
+        say(selector, tip_body)
       end
     
+      # FIXME Doing the simulate_server_message is a security risk until the
+      # pretend flag can be enabled.  For now, just do simlated_player_chat
+      # only.
+      #
+      # result = MinecraftServerLogHandler.simulate_server_message(tip_body)
+      # result = MinecraftServerLogHandler.simulate_player_chat(nick, tip_body) unless !!result
+      MinecraftServerLogHandler.simulate_player_chat(nick, tip_body)
+    
       tip_body
+    end
+    
+    def say_nothing(selector)
+      @attempts ||= 0
+      
+      message = if @attempts += 1 < 3
+        'I got nothin.'
+      else
+        @attempts = 0
+        'I still got nothin.'
+      end
+      
+      say(selector, message)
+      
+      message
     end
     
     def tips
