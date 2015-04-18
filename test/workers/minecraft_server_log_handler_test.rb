@@ -370,6 +370,50 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert Player.find_by_nick('GracieBoo').spam_ratio <= 0.1, 'expect kickable spam ratio'
   end
 
+  def test_spam_with_tool_detect
+    MinecraftServerLogHandler.handle '[12:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848'
+    MinecraftServerLogHandler.handle "[13:31:09] [User Authenticator #115/INFO]: UUID of player SnowMan35 is 5e37e407-2ecf-407e-b717-316cfecc6b42"
+
+    def Server.player_nicks(selector = nil)
+      ['SnowMan35', 'xXPlayerXx'] # need at least two players for spam detection to work
+    end
+
+    def ServerQuery.numplayers
+      "2"
+    end
+
+    spam_event = <<-DONE
+      [13:31:10] [Server thread/INFO]: SnowMan35[/127.0.0.1:53431] logged in with entity id 4567520 at (5075.5, 95.40935860049753, -5624.5)
+      [13:31:10] [Server thread/INFO]: SnowMan35 joined the game
+      [13:31:19] [Server thread/WARN]: SnowMan35 moved too quickly! 0.0,32.40935860049753,0.0 (0.0, 32.40935860049753, 0.0)
+      [13:31:51] [Server thread/INFO]: <SnowMan35> ==========/\\===========
+      [13:31:51] [Server thread/INFO]: <SnowMan35> =========/==\\==========
+      [13:31:51] [Server thread/INFO]: <SnowMan35> ========/====\\=========
+      [13:31:51] [Server thread/INFO]: <SnowMan35> =======/======\\========
+      [13:31:51] [Server thread/INFO]: <SnowMan35> ======/========\\=======
+      [13:31:51] [Server thread/INFO]: <SnowMan35> =====/==========\\======
+      [13:31:51] [Server thread/INFO]: <SnowMan35> ====/============\\=====
+      [13:31:51] [Server thread/INFO]: <SnowMan35> ===/==============\\====
+      [13:31:51] [Server thread/INFO]: <SnowMan35> ==/================\\===
+    DONE
+
+    File.open("#{Preference.path_to_server}/logs/latest.log", 'a') do |f|
+      spam_event.each_line do |line|
+        f << line.strip + "\n"
+      end
+    end
+    
+    assert_callback_ran 'Spammy' do
+      refute_kicked 'SnowMan35' do
+        refute_kicked 'xXPlayerXx' do
+          MinecraftServerLogHandler.handle "[13:31:51] [Server thread/INFO]: <SnowMan35> ==/================\==="
+        end
+      end
+    end
+
+    #assert Player.find_by_nick('SnowMan35').spam_ratio <= 0.1, 'expect kickable spam ratio'
+  end
+
   def test_spam_detect_alt_alt
     MinecraftServerLogHandler.handle '[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848'
     MinecraftServerLogHandler.handle '[08:47:21] [User Authenticator #20/INFO]: UUID of player Genevieve05 is 5000277b-6f04-41d9-ba1a-f477f2b4810e'
