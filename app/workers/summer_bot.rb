@@ -17,7 +17,7 @@ class SummerBot < Summer::Connection
       send("#{k}=", v)
     end
     
-    unless @debug
+    unless !!@debug
       super Preference.irc_server_host, Preference.irc_server_port.to_i
     end
   end

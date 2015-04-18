@@ -24,7 +24,7 @@ class IrcBot < SummerBot
       options = {debug: options[:debug]}
       options[:op_commands] = %w(opself opme quit_irc kick latest chatlog rcon)
       options[:commands] = %w(help info bancheck playercheck list say)
-      new(options)
+      new(options) unless !!options[:debug]
       Rails.logger.info "Stopped IRC Bot"
     else
       Rails.logger.warn "Ignoring: #{options}"
@@ -40,6 +40,8 @@ class IrcBot < SummerBot
   end
   
   def opme(options = {})
+    sender = options[:sender]
+    
     response "MODE #{irc_channel} +o #{sender[:nick]}"
   end
 
@@ -52,6 +54,8 @@ class IrcBot < SummerBot
     message = options[:message]
     
     words = message.split(' ')
+    return unless words.size > 3
+
     player =  words[2]
     reason = words[3..-1].join(' ')
 
@@ -77,6 +81,7 @@ class IrcBot < SummerBot
     sender = options[:sender]
     
     words = message.split(' ')
+    return unless words.size > 3
     cmd = words[2..-1].join(' ')
 
     nick_msg sender: sender, reply: IrcBot.execute(cmd)
@@ -89,6 +94,7 @@ class IrcBot < SummerBot
     sender = options[:sender]
     
     words = message.split(' ')
+    return unless words.size > 1
     topic = words[2]
 
     case topic
@@ -159,6 +165,7 @@ class IrcBot < SummerBot
     sender = options[:sender]
 
     words = message.split(' ')
+    return unless words.size > 3
     msg = words[2..-1].join(' ').gsub(/['`"]/, "\'")
 
     IrcBot.irc_say "@a", sender[:nick], msg
