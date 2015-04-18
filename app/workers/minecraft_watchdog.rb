@@ -34,18 +34,21 @@ private
     queues = {
       minecraft_server_log_monitor: {
         class: MinecraftServerLogMonitor,
+        options: nil,
         max_queues: 5,
         min_queues: 5,
         enabled: true
       },
       irc_bot: {
         class: IrcBot,
+        options: {start_irc_bot: true},
         max_queues: 1,
         min_queues: 1,
         enabled: Preference.irc_enabled?
       },
       minecraft_watchdog: {
         class: MinecraftWatchdog,
+        options: nil,
         max_queues: 5,
         min_queues: 5,
         enabled: true
@@ -58,7 +61,7 @@ private
       q = queues[key]
       if q[:enabled] && Resque.size(key.to_s) == 0
         Rails.logger.info "Adding queue for #{key}.  Current queue: #{Resque.size(key.to_s)}"
-        Resque.enqueue(q[:class])
+        Resque.enqueue(q[:class], q[:options])
       end
     end
     
@@ -77,7 +80,7 @@ private
 
         if Resque.size(queue) < q[:min_queues]
           Rails.logger.info "Enqueuing #{queue}.  Current queue: #{Resque.size(queue)}"
-          Resque.enqueue(q[:class])
+          Resque.enqueue(q[:class], q[:options])
         end
       else
         Rails.logger.info "Skipping unknown queue: #{queue}: #{Resque.size(queue)}"
