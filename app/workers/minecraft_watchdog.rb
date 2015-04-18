@@ -61,7 +61,7 @@ private
       q = queues[key]
       if q[:enabled] && Resque.size(key.to_s) == 0
         Rails.logger.info "Adding queue for #{key}.  Current queue: #{Resque.size(key.to_s)}"
-        Resque.enqueue(q[:class], *q[:options])
+        Resque.enqueue(q[:class], q[:options])
       end
     end
     
@@ -80,7 +80,7 @@ private
 
         if Resque.size(queue) < q[:min_queues]
           Rails.logger.info "Enqueuing #{queue}.  Current queue: #{Resque.size(queue)}"
-          Resque.enqueue(q[:class], *q[:options])
+          Resque.enqueue(q[:class], q[:options])
         end
       else
         Rails.logger.info "Skipping unknown queue: #{queue}: #{Resque.size(queue)}"

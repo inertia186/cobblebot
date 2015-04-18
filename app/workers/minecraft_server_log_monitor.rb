@@ -8,11 +8,12 @@ class MinecraftServerLogMonitor
     Rails.logger.info "About to perform #{self} with #{args.inspect}"
   end
     
-  def self.perform(options = {server_log: "#{ServerProperties.path_to_server}/logs/latest.log", max_ticks: 1200})
+  def self.perform(options = {})
     Rails.logger.info "Started #{self}"
 
-    server_log = options[:server_log]
-    max_ticks = options[:max_ticks]
+    server_log = options[:server_log] || "#{ServerProperties.path_to_server}/logs/latest.log"
+    max_ticks = options[:max_ticks] || 1200
+
     ticks = 0
     latest_log_entry_at = nil
     server_msgs = []
