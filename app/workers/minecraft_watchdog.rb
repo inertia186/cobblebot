@@ -34,7 +34,7 @@ private
     queues = {
       minecraft_server_log_monitor: {
         class: MinecraftServerLogMonitor,
-        options: nil,
+        options: {server_log: "#{ServerProperties.path_to_server}/logs/latest.log", max_ticks: 1200},
         max_queues: 5,
         min_queues: 5,
         enabled: true
