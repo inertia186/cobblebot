@@ -46,6 +46,7 @@ class Server
   
   def self.player_nicks(selector = nil)
     nicks = []
+    return nicks unless up?
     
     if !!selector
       result = ServerCommand.execute("entitydata #{selector} {}")
