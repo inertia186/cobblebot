@@ -48,7 +48,7 @@ private
       },
       minecraft_watchdog: {
         class: MinecraftWatchdog,
-        options: nil,
+        options: {},
         max_queues: 5,
         min_queues: 5,
         enabled: true
