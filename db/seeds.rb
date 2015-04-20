@@ -55,6 +55,7 @@ ServerCallback::PlayerChat.send method, name: 'Bueller?', pattern: "/^anyone[^ ]
 ServerCallback::PlayerChat.send method, name: 'Oops', pattern: "/oops/i", command: "play_sound \"@a\", \"cf_wups\"", system: 'f'
 ServerCallback::PlayerChat.send method, name: 'Oh My', pattern: "/^oh my$/i", command: "play_sound \"@a\", \"cf_ohmy\"", system: 'f'
 ServerCallback::PlayerChat.send method, name: 'Make It So', pattern: "/make it so/i", command: "play_sound \"@a\", \"cf_makeitso\"", system: 'f'
+ServerCallback::PlayerChat.send method, name: 'That Word', pattern: "/that word/i", command: "play_sound \"@a\", \"cf_inconceivable\"", system: 'f'
 ServerCallback::PlayerEmote.send method, name: 'Facepalm', pattern: "/facepalms/i", command: "play_sound \"@a\", \"cf_rimshot\"", system: 'f'
 
 # Death sounds ...
@@ -89,7 +90,7 @@ ServerCallback::ServerEntry.send method, name: 'Another Client', pattern: "/You 
 ServerCallback::ServerEntry.send method, name: 'The Lie', pattern: "/The Lie/", command: "play_sound \"@a\", \"portal_still_alive\"", system: 'f'
 ServerCallback::ServerEntry.send method, name: 'On A Rail', pattern: "/On A Rail/", command: "play_sound \"@a\", \"smw_course_clear\"", system: 'f'
 ServerCallback::ServerEntry.send method, name: 'When Pigs Fly', pattern: "/When Pigs Fly/", command: "play_sound \"@a\", \"cf_rumble\"", system: 'f'
-ServerCallback::ServerEntry.send method, name: 'Sniper Duel', pattern: "/Sniper Duel/", command: "play_sound \"@a\", \"excellent\"", system: 'f'
+ServerCallback::ServerEntry.send method, name: 'Sniper Duel', pattern: "/Sniper Duel/", command: "play_sound \"@a\", \"cf_danielsan\"", system: 'f'
 ServerCallback::ServerEntry.send method, name: 'DIAMONDS', pattern: "/DIAMONDS/", command: "play_sound \"@a\", \"loz_secret\"", system: 'f'
 ServerCallback::ServerEntry.send method, name: 'We Need to Go Deeper', pattern: "/We Need to Go Deeper/", command: "play_sound \"@a\", \"sm64_bowser_message\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::ServerEntry.send method, name: 'Return to Sender', pattern: "/Return to Sender/", command: "play_sound \"@a\", \"excellent\"", system: 'f'
