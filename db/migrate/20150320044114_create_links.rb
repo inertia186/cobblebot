@@ -7,6 +7,7 @@ class CreateLinks < ActiveRecord::Migration
       t.string :actor_type
       t.timestamp :expires_at
       t.timestamp :last_modified_at
+      t.boolean :can_embed
       t.timestamps null: false
     end
   end

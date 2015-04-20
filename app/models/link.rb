@@ -75,6 +75,35 @@ class Link < ActiveRecord::Base
   def expired?
     expires_at.present? && expires_at < Time.now
   end
+  
+  def embedded_url
+    if url =~ /youtube/
+      id = url.split("v=").last.split("&").first
+      "http://www.youtube.com/embed/#{id}?rel=0&border=&autoplay=1"
+    elsif url =~ /youtu.be/
+      id = url.split('/').last
+      "http://www.youtube.com/embed/#{id}?rel=0&border=&autoplay=1"      
+    else
+      url
+    end
+  end
+  
+  def can_embed?
+    return can_embed unless can_embed.nil?
+    
+    agent = Mechanize.new
+    agent.keep_alive = false
+    agent.open_timeout = 5
+    agent.read_timeout = 5
+    agent.get embedded_url
+    
+    can_embed = agent.page.response['x-frame-options'] != 'deny'
+    update_attribute(:can_embed, can_embed) # no AR callbacks
+    
+    can_embed
+  rescue Mechanize::ResponseCodeError => e
+    update_attribute(:can_embed, false) # no AR callbacks
+  end
 private
   def populate_from_get_response(url, link)
     begin
@@ -82,7 +111,7 @@ private
       agent.keep_alive = false
       agent.open_timeout = 5
       agent.read_timeout = 5
-      agent.get url
+      agent.head url
 
       link.title = if agent.page && defined?(agent.page.title) && agent.page.title
         agent.page.title.strip

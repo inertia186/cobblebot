@@ -6,15 +6,18 @@
   %td=created(link.created_at)
   %td
     %span{style: 'float: right'}
-      = link_to 'Show', admin_link_path(link), class: 'btn btn-info btn-xs', data: { remote: true, toggle: :modal, target: '#show_link'}
-      .modal.fade{id: :show_link, tabindex: -1, role: :dialog, 'aria-labelledby' => 'show_link_label', 'aria-hidden' => true}
-        .modal-dialog.modal-lg
-          .modal-content
-            .modal-header
-              %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-                %span{'aria-hidden' => true} &times;
-              %h4.modal-title#show_link_label Loading ...
-            .modal-body{id: 'show_link_body'}
-              %center
-                %img{src: '/images/large_spinner.gif'}
+      - if link.can_embed?
+        = link_to 'Show', admin_link_path(link), class: 'btn btn-info btn-xs', data: { remote: true, toggle: :modal, target: '#show_link'}
+        .modal.fade{id: :show_link, tabindex: -1, role: :dialog, 'aria-labelledby' => 'show_link_label', 'aria-hidden' => true}
+          .modal-dialog.modal-lg
+            .modal-content
+              .modal-header
+                %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+                  %span{'aria-hidden' => true} &times;
+                %h4.modal-title#show_link_label Loading ...
+              .modal-body{id: 'show_link_body'}
+                %center
+                  %img{src: '/images/large_spinner.gif'}
+      - else
+        = link_to 'Show', link.url, class: 'btn btn-info btn-xs', target: link.to_param
       = link_remote_delete(admin_link_path(link), class: 'btn btn-danger btn-xs', confirm: 'Are you sure?')

@@ -4,7 +4,7 @@ namespace :cobblebot do
   PREFERENCE_KEYS = %w(key value system created_at updated_at)
   SERVER_CALLBACK_KEYS = %w(type name pattern command cooldown enabled system created_at updated_at)
   PLAYER_KEYS = %w(uuid nick last_nick last_ip last_chat last_location last_login_at last_logout_at spam_ratio play_sounds biomes_explored registered_at vetted_at created_at updated_at)
-  LINK_KEYS = %w(url title actor_uuid expires_at last_modified_at created_at updated_at)
+  LINK_KEYS = %w(url title actor_uuid expires_at last_modified_at can_embed created_at updated_at)
   MESSAGE_KEYS = %w(type body keywords recipient_term recipient_uuid author_uuid read_at created_at updated_at)
   
   desc 'display the current information of rake'

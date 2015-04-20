@@ -1,6 +1,9 @@
-%iframe{src: link.url, width: '100%', height: 480}
-  %noframes
-    = link_to link.title, link.url, target: link.to_param
+- if link.can_embed?
+  %iframe{src: link.embedded_url, width: '100%', height: 480}
+    %noframes
+      = link_to link.title, link.url, target: link.to_param
+- else
+  = link_to link.title, link.url, target: link.to_param
     
 .modal-footer
   %span{style: 'float: left;'}
