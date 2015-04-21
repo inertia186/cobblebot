@@ -3,6 +3,9 @@ require 'test_helper'
 class Admin::LinksControllerTest < ActionController::TestCase
   def setup
     session[:admin_signed_in] = true
+
+    stub_request(:head, "http://www.mit.edu/").
+      to_return(status: 200)
   end
 
   def test_routings

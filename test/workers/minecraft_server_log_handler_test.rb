@@ -4,6 +4,8 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   def setup
     Preference.path_to_server = "#{Rails.root}/tmp"
 
+    stub_request(:head, "https://gist.github.com/inertia186/5002463").
+      to_return(status: 200)
     stub_request(:get, "https://gist.github.com/inertia186/5002463").
       to_return(status: 200)
   end
