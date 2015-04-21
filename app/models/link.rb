@@ -49,11 +49,11 @@ class Link < ActiveRecord::Base
       agent.keep_alive = false
       agent.open_timeout = 5
       agent.read_timeout = 5
-      agent.head url
+      page = agent.head url
 
-      if agent.page.nil?
+      if page.nil? || page.title.nil?
         agent = populate_from_get_response(self.url, self)
-      elsif !!( timestamp = agent.page.response['last-modified'] ) && Time.parse(timestamp) != last_modified_at
+      elsif !!( timestamp = page.response['last-modified'] ) && Time.parse(timestamp) != last_modified_at
         agent = populate_from_get_response(self.url, self)
       end
     end
@@ -62,9 +62,9 @@ class Link < ActiveRecord::Base
     self.url = url
     self.title = title.gsub(/[^a-zA-Z0-9:?&=#@+*, \.\/\"\[\]\(\)]/, '-').truncate(90) unless title.nil?
 
-    if agent
-      self.expires_at = extract_expires_at(agent.page.response)
-      self.last_modified_at = agent.page.response['last-modified'] || Time.now
+    if page
+      self.expires_at = extract_expires_at(page.response)
+      self.last_modified_at = page.response['last-modified'] || Time.now
     end
     
     Rails.logger.warn "Removed characters from: #{original_title}" if title != original_title # FIXME Remove later.
@@ -95,9 +95,11 @@ class Link < ActiveRecord::Base
     agent.keep_alive = false
     agent.open_timeout = 5
     agent.read_timeout = 5
-    agent.get embedded_url
+    page = agent.head embedded_url
     
-    can_embed = agent.page.response['x-frame-options'] != 'deny'
+    return unless !!page.response
+    
+    can_embed = page.response['x-frame-options'] != 'deny'
     update_attribute(:can_embed, can_embed) # no AR callbacks
     
     can_embed
@@ -111,10 +113,16 @@ private
       agent.keep_alive = false
       agent.open_timeout = 5
       agent.read_timeout = 5
-      agent.head url
+      agent.get url
+      page = agent.page
 
-      link.title = if agent.page && defined?(agent.page.title) && agent.page.title
-        agent.page.title.strip
+      return unless !!page.response
+
+      can_embed = page.response['x-frame-options'] != 'deny'
+      link.can_embed = can_embed
+
+      link.title = if page && defined?(page.title) && page.title
+        page.title.strip
       else
         url
       end
