@@ -19,7 +19,7 @@ class MinecraftWatchdog
       check_resource_pack
       prettify_callbacks
 
-      break if options[:debug]      
+      break if !!options[:debug]      
       Rails.logger.info "#{self} sleeping for #{WATCHDOG_TICK}"
       sleep WATCHDOG_TICK
     rescue Errno::ENOENT => e
