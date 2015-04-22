@@ -50,6 +50,18 @@ class ActiveSupport::TestCase
     @kicked ||= {}
   end
 
+  def response_json
+    JSON.parse(response.body)
+  end
+
+  def api_version(version)
+    @request.headers['Accept'] = "application/vnd.cobblebot.v#{version}"
+  end
+
+  def request_token(value)
+    @request.headers['Authorization'] = %[Token token="#{value}"]
+  end
+
   def assert_kicked(nick, &block)
     yield block
   

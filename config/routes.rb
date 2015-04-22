@@ -1,3 +1,5 @@
+require 'api_constraints'
+
 Rails.application.routes.draw do
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
@@ -72,5 +74,12 @@ Rails.application.routes.draw do
     get 'config/server_properties' => 'config#show_server_properties'
     get 'config/console' => 'config#console'
     mount Resque::Server, at: "/resque"
+  end
+  
+  namespace :api, defaults: {format: 'json'} do
+    scope module: :v1, constraints: ApiConstraints.new(version: 1, default: 1) do
+      resource :session, only: %w(create update destroy)
+      resources :players, only: %w(index show)
+    end
   end
 end

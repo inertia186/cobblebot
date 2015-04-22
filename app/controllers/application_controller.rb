@@ -10,7 +10,9 @@ class ApplicationController < ActionController::Base
 
   helper_method :admin_signed_in?
 
-  before_filter :check_server_status, unless: Proc.new { self.class.parent == Admin }
+  before_filter :check_server_status, unless: Proc.new {
+    [Admin, Api::V1].include? self.class.parent
+  }
 
   def check_server_status
     unless Server.up?
