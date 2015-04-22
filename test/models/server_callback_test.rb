@@ -126,6 +126,12 @@ class ServerCallbackTest < ActiveSupport::TestCase
   end
 
   def test_callbacks_that_need_help_docs
-    refute (callbacks = ServerCallback.where("pattern LIKE '%@server%'").where(help_doc_key: nil)).any?, "The following callbacks need help docs: #{callbacks.map(&:name).join(', ')}"
+    callbacks = ServerCallback.where("pattern LIKE '%@server%'")
+    callbacks = callbacks.where(help_doc_key: nil)
+    
+    # Note, these are hidden @server patterns.
+    callbacks = callbacks.where.not(name: ['Unregister'])
+    
+    refute callbacks.any?, "The following callbacks need help docs: #{callbacks.map(&:name).join(', ')}"
   end
 end

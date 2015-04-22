@@ -42,6 +42,13 @@ class Player < ActiveRecord::Base
   scope :created, lambda { |timestamp| where(Player.arel_table[:created_at].gt(timestamp)) }
   scope :matching_banned_ip, lambda { |matching_banned_ip = true| matching_last_ip(Player.banned.select(:last_ip), matching_banned_ip) }
   scope :play_sounds, lambda { |play_sounds = true| where(play_sounds: play_sounds) }
+  scope :registered, lambda { |registered = true|
+    if registered
+      where.not(registered_at: nil)
+    else
+      where(registered_at: nil)
+    end
+  }
 
   has_many :links, as: :actor
   has_many :messages, -> { where(type: nil) }, as: :recipient
@@ -67,6 +74,12 @@ class Player < ActiveRecord::Base
   
   def registered?
     !!registered_at
+  end
+
+  def register!
+    self.registered_at ||= Time.now
+    
+    save
   end
 
   def vetted?

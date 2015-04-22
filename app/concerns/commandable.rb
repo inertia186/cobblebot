@@ -83,6 +83,48 @@ module Commandable
       message.gsub(/"/, "\"").force_encoding('US-ASCII')
     end
   
+    def register(nick)
+      player = Player.find_by_nick(nick)
+      
+      if player.nil?
+        tell(nick, 'There was a problem and you were not registered.  Relog and try again.')
+        return
+      end
+      
+      if player.new?
+        tell(nick, 'Not registered, too new.  Try again in 24 hours.')
+        return 
+      end
+
+      if player.registered?
+        tell(nick, 'Already registered.')
+        return 
+      end
+
+      if player.register!
+        tell(nick, 'Registered.')
+      else
+        tell(nick, 'Unable to register at this time.  Try again later.')
+      end
+    end
+    
+    def unregister(nick)
+      player = Player.find_by_nick(nick)
+
+      if player.nil?
+        tell(nick, 'There was a problem and you were not unregistered.  Relog and try again.')
+        return
+      end
+      
+      if player.registered?
+        # TODO Currently, there is no support for unregistering.  Once the trust
+        # system is better defined, maybe we can revisit this idea.
+        tell(nick, 'Make up your mind.')
+      else
+        tell(nick, 'wut?')
+      end
+    end
+  
     # The purpose of this method is to allow players to use limited selectors in
     # certain situations.
     #

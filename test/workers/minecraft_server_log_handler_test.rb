@@ -570,4 +570,33 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       end
     end
   end
+  
+  def test_register
+    callback = ServerCallback.find_by_name('Register')
+    player = Player.find_by_nick('inertia186')
+    player.update_attribute(:created_at, 48.hours.ago)
+
+    refute player.registered?, 'did not expect player to be registered'
+    
+    assert_callback_ran callback do
+      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server register')
+    end
+    
+    assert player.reload.registered?, 'expect player to be registered'
+  end
+
+  def test_unregister
+    callback = ServerCallback.find_by_name('Unregister')
+    player = Player.find_by_nick('inertia186')
+    player.update_attribute(:created_at, 48.hours.ago)
+    player.update_attribute(:registered_at, 24.hours.ago)
+
+    assert player.registered?, 'expect player to be registered'
+    
+    assert_callback_ran callback do
+      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server unregister')
+    end
+    
+    assert player.reload.registered?, 'for now, still expect player to be registered (unregister not supported yet)'
+  end
 end

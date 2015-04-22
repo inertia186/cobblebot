@@ -42,6 +42,8 @@ ServerCallback::PlayerChat.send method, name: 'Tutorial', pattern: "/^@server tu
 ServerCallback::ServerEntry.send method, name: 'Cleaned Up Stats', pattern: "/Invalid statistic in .\\/.+\\/stats\\/(.+)\\.json: (.+)/", command: "uuid = \"%1%\"\nmsg = \"%2%\"\nplayer = Player.find_by_uuid uuid\n\ntell player.nick, msg if !!player", system: 't'
 ServerCallback::AnyPlayerEntry.send method, name: 'Spammy', pattern: "/.*/i", command: "detect_spam \"%nick%\", \"%message%\"", system: 't'
 ServerCallback::PlayerChat.send method, name: 'Toggle Sounds', pattern: "/^@server togglesounds$/i", command: "player = Server.players.find_by_nick(\"%nick%\")\n\nif !!player\n  player.toggle_play_sounds!\n  if ServerCallback.ready.where(name: 'Sound Check').any?\n    player.tell('To test, type: @server soundcheck')\n  end\nend\n\nplayer", help_doc_key: 'togglesounds', help_doc: "Usage: @server togglesounds\n\nIf you are unhappy with the CobbleBot sounds, you can turn them off.  If you change your mind, you can turn them back on.", system: 't'
+ServerCallback::PlayerChat.send method, name: 'Register', pattern: "/^@server register/i", command: "register(\"%nick%\")", help_doc_key: 'register', help_doc: "Usage: @server register\n\nAdds your name to the registry of players.   That is all it does.  Really.", system: 't'
+ServerCallback::PlayerChat.send method, name: 'Unregister', pattern: "/^@server unregister/i", command: "unregister(\"%nick%\")", system: 't'
 
 # Player initialted sounds ...
 ServerCallback::PlayerChat.send method, name: 'To The Batcave!', pattern: "/^to the/i", command: "play_sound \"@a\", \"to_the_batcave\"", cooldown: '+15 minutes', system: 'f'
