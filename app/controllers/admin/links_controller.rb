@@ -1,4 +1,5 @@
 class Admin::LinksController < Admin::AdminController
+  before_filter :http_authenticate_feed, only: :index
   before_filter :authenticate_admin!
   before_filter :setup_params, only: :index
   

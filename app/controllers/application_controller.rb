@@ -23,7 +23,15 @@ class ApplicationController < ActionController::Base
   end
 
   def authenticate_admin!
-    redirect_to new_admin_session_url unless admin_signed_in?
+    redirect_to new_admin_session_url unless admin_signed_in? || request.format == :atom
+  end
+  
+  def http_authenticate_feed
+    if request.format == :atom
+      authenticate_or_request_with_http_basic("Feed Administration") do |user, password|
+        password == Preference.web_admin_password
+      end
+    end
   end
 private
   def admin_signed_in?

@@ -6,6 +6,8 @@ class Admin::LinksControllerTest < ActionController::TestCase
 
     stub_request(:head, "http://www.mit.edu/").
       to_return(status: 200)
+    stub_request(:head, "http://github.com/inertia186/cobblebot").
+      to_return(status: 200)
   end
 
   def test_routings
@@ -14,6 +16,19 @@ class Admin::LinksControllerTest < ActionController::TestCase
   
   def test_index
     get :index
+    links = assigns :links
+    refute_equal links.count(:all), 0, 'did not expect zero count'
+    
+    assert_template :index
+    assert_response :success
+  end
+  
+  def test_index_feed
+    basic = ActionController::HttpAuthentication::Basic 
+    credentials = basic.encode_credentials('admin', Preference.web_admin_password)
+    request.headers['Authorization'] = credentials
+    
+    get :index, format: :atom
     links = assigns :links
     refute_equal links.count(:all), 0, 'did not expect zero count'
     

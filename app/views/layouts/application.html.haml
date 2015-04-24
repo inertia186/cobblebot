@@ -8,6 +8,7 @@
     %meta{name: :viewport, content: "width=380, initial-scale=0.75, minimum-scale=0.75"}
     - if !!Server.server_icon
       %link{rel: "shortcut icon", type: "image/x-icon", href: "#{server_icon_path}"}
+    = yield :head 
 %body{role: :document}
 
 .navbar.navbar-inverse.navbar-static-top
