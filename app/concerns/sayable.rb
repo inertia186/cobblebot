@@ -111,7 +111,12 @@ module Sayable
     def say_random_tip(selector, nick, keywords = '', options =())
       keywords = keywords.split(' ').map(&:strip)
     
-      tip = Message::Tip.query(keywords).in_cooldown(false).first(10).sample
+      tip = Message::Tip.query(keywords).in_cooldown(false).first.sample
+      
+      if tip.nil?
+        tip = Message::Tip.query(keywords).in_cooldown(false).first(10).sample
+      end
+      
       return say_nothing(selector) unless !!tip
   
       tip_body = sub_safe_selectors(escape(tip.body.dup))

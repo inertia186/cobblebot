@@ -14,7 +14,7 @@ class ServerCallback < ActiveRecord::Base
   validates :command, presence: true
   validate :valid_pattern, if: :pattern_changed?
   validate :valid_command, if: :command_changed?
-  validates_uniqueness_of :help_doc_key, allow_nil: true
+  validates_uniqueness_of :help_doc_key, allow_nil: true, allow_blank: true
 
   after_validation :remove_pretty_pattern, if: :pattern_changed?
   after_validation :remove_pretty_command, if: :command_changed?

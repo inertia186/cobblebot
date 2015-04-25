@@ -12,6 +12,12 @@ namespace :cobblebot do
     puts "You are running rake task in #{Rails.env} environment."
   end
 
+  desc 'display the current information of rake'
+  task test_encoding: :environment do
+    Message::Tip.all.map(&:body).each { |text| text.force_encoding('US-ASCII') }
+    puts "OK"
+  end
+
   namespace :export do
     desc 'dump out preferences to csv'
     task preferences: :environment do
