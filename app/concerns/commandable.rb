@@ -80,7 +80,7 @@ module Commandable
     end
   
     def escape(message)
-      message.gsub(/"/, "\"").force_encoding('US-ASCII')
+      message.gsub(/"/, "\\\"").force_encoding('US-ASCII')
     end
   
     def register(nick)
