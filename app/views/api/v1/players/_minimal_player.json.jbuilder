@@ -1,1 +1,1 @@
-json.(player, :uuid, :nick, :registered_at)
+json.(player, :uuid, :nick, :registered_at, :origins)

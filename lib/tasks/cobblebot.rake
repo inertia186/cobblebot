@@ -6,15 +6,16 @@ namespace :cobblebot do
   PLAYER_KEYS = %w(uuid nick last_nick last_ip last_chat last_location last_login_at last_logout_at spam_ratio play_sounds biomes_explored registered_at vetted_at created_at updated_at)
   LINK_KEYS = %w(url title actor_uuid expires_at last_modified_at can_embed created_at updated_at)
   MESSAGE_KEYS = %w(type body keywords recipient_term recipient_uuid author_uuid read_at created_at updated_at)
+  IP_KEYS = %w(address player_uuid origin created_at)
   
   desc 'display the current information of rake'
   task :info do
     puts "You are running rake task in #{Rails.env} environment."
   end
 
-  desc 'display the current information of rake'
-  task test_encoding: :environment do
-    Message::Tip.all.map(&:body).each { |text| text.force_encoding('US-ASCII') }
+  desc 'checks messages for illegal characters'
+  task check_message_encoding: :environment do
+    Message.all.map(&:body).each { |text| text.force_encoding('US-ASCII') }
     puts "OK"
   end
 
@@ -132,6 +133,29 @@ namespace :cobblebot do
 
       puts data
     end
+
+    desc 'dump out ips to csv'
+    task ips: :environment do
+      data = CSV.generate do |csv|
+        csv << IP_KEYS
+        
+        Ip.find_each do |ip|
+          row = []
+          IP_KEYS.each do |key|
+            case key
+            when 'player_uuid'
+              row << ip.player.uuid
+            else
+              row << ip.send(key)
+            end
+          end
+          csv << row
+        end
+        
+      end
+
+      puts data
+    end
   end
   
   namespace :import do
@@ -213,6 +237,26 @@ namespace :cobblebot do
         end
 
         Message.create(message_params)
+      end
+    end
+
+    desc 'pump in ips from csv'
+    task ips: :environment do
+      CSV.parse(STDIN, headers: true) do |row|
+        ip_params = {}
+        IP_KEYS.each do |key|
+          case key
+          when 'player_uuid'
+            if (uuid = row[key]).present?
+              player = Player.find_by_uuid uuid
+              ip_params[:player] = player
+            end
+          else
+            ip_params[key] = row[key]
+          end
+        end
+
+        Ip.create(ip_params)
       end
     end
   end

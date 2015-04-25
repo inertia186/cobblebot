@@ -49,11 +49,12 @@ class ServerCommand
     player
   end
 
-  def self.update_player_last_ip(nick, ip)
+  def self.update_player_last_ip(nick, address)
     player = Player.find_by_nick(nick)
-    return unless !!player
+    return if player.nil?
     
-    player.update_attribute(:last_ip, ip) # no AR callbacks
+    player.update_attribute(:last_ip, address) # no AR callbacks
+    player.ips.create(address: address)
     
     player
   end

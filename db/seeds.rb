@@ -17,6 +17,7 @@ Preference.send method, key: Preference::IRC_NICK, value: "cobblebot#{Random.ran
 Preference.send method, key: Preference::IRC_CHANNEL, value: '#my_channel', system: 'f'
 Preference.send method, key: Preference::IRC_CHANNEL_OPS, value: '', system: 'f'
 Preference.send method, key: Preference::IRC_NICKSERV_PASSWORD, value: 'secret', system: 'f'
+Preference.send method, key: Preference::ORIGIN_SALT, value: "#{Random.rand(100000)}", system: 'f'
 
 # System/Utility/Important ...
 ServerCallback::PlayerChat.send method, name: 'Help ...', pattern: "/^@server help(.*)/i", command: "say_help \"@a\", \"%1%\"", help_doc_key: 'help', help_doc: "Usage: @server help [topic]\n\n", system: 't'

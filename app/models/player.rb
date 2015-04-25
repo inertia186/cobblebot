@@ -53,6 +53,7 @@ class Player < ActiveRecord::Base
   has_many :links, as: :actor
   has_many :messages, -> { where(type: nil) }, as: :recipient
   has_many :tips, class_name: 'Message::Tip', as: :author
+  has_many :ips
 
   before_save :update_biomes_explored
 
@@ -224,6 +225,10 @@ class Player < ActiveRecord::Base
     @player_data = nil
     
     super
+  end
+  
+  def origins
+    ips.map(&:origin).uniq
   end
 private  
   def player_data_key_group?(key)

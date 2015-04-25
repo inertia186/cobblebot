@@ -16,6 +16,7 @@ class Preference < ActiveRecord::Base
   IRC_CHANNEL = 'irc_channel'
   IRC_CHANNEL_OPS = 'irc_channel_ops'
   IRC_NICKSERV_PASSWORD = 'irc_nickserv_password'
+  ORIGIN_SALT = 'origin_salt'
 
   # System keys are used internally, typically hidden from the web views.
   LATEST_RESOURCE_PACK_HASH = 'latest_resource_pack_hash'
@@ -26,7 +27,7 @@ class Preference < ActiveRecord::Base
     TUTORIAL_JSON, LATEST_RESOURCE_PACK_HASH, LATEST_RESOURCE_PACK_TIMESTAMP,
     IRC_ENABLED, IRC_INFO, IRC_WEB_CHAT_ENABLED, IRC_WEB_CHAT_URL_LABEL,
     IRC_WEB_CHAT_URL, IRC_SERVER_HOST, IRC_SERVER_PORT, IRC_NICK, IRC_CHANNEL,
-    IRC_CHANNEL_OPS, IRC_NICKSERV_PASSWORD
+    IRC_CHANNEL_OPS, IRC_NICKSERV_PASSWORD, ORIGIN_SALT
   ]
 
   SYSTEM_KEYS = [
