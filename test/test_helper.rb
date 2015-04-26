@@ -88,7 +88,7 @@ class ActiveSupport::TestCase
     end
     ran_at = c.ran_at
     yield block
-    refute_equal ran_at, c.reload.ran_at, 'expect callback to run'
+    refute_equal ran_at, c.reload.ran_at, "expect callback \"#{c.name}\" to run"
   end
 end
 

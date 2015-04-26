@@ -599,4 +599,15 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     
     assert player.reload.registered?, 'for now, still expect player to be registered (unregister not supported yet)'
   end
+
+  def test_origin
+    callback = ServerCallback.find_by_name('Origin')
+    player = Player.find_by_nick('inertia186')
+
+    assert_callback_ran callback do
+      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server origin inertia186')
+    end
+    
+    refute callback.reload.error_flag_at, callback.last_command_output
+  end
 end

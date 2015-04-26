@@ -207,5 +207,14 @@ module Sayable
         say selector, topics.join(' | '), color: 'white', as: nil if topics.any?
       end
     end
+    
+    def say_origin(selector, nick)
+      target = Player.any_nick(nick).first
+      return say_nick_not_found(selector, nick) if target.nil?
+
+      execute <<-DONE
+        tellraw #{selector} [{ "color": "white", "text": "[Server] Origin of #{target.nick}: "}, { "color": "green", "text": "#{target.origins.join(', ')}" }]
+      DONE
+    end
   end
 end

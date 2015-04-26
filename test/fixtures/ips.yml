@@ -1,0 +1,9 @@
+localhostA:
+  address: '127.0.0.1'
+  origin: 'foo'
+  player: inertia186
+
+localhostB:
+  address: '127.0.0.2'
+  origin: 'bar'
+  player: inertia186
