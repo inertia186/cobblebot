@@ -3,6 +3,14 @@ class Ip < ActiveRecord::Base
   
   validates_uniqueness_of :address, scope: :player
   
+  scope :query, lambda { |query|
+    clause = <<-DONE
+      ips.origin LIKE ?
+      OR (player_id IN (?))
+    DONE
+    where(clause, query, Player.search_any_nick(query).select(:id))
+  }
+  
   after_validation do
     return unless new_record?
     salt = Preference.origin_salt.strip

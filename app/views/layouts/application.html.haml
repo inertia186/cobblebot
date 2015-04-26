@@ -34,6 +34,8 @@
                 = link_to 'Callbacks', admin_server_callbacks_path
               %li{class: active_nav('admin_links')}
                 = link_to 'Links', admin_links_path
+              %li{class: active_nav('admin_ips')}
+                = link_to 'IPs', admin_ips_path
               %li{class: active_nav('admin_config_server_properties')}
                 = link_to 'Server Properties', admin_config_server_properties_path
               - if Rails.env == 'development'
