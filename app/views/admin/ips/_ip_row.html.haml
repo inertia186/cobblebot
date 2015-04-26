@@ -1,6 +1,6 @@
 %tr{id: "ip_tr_#{ip.id}", data: { id: ip.id } }
-  %td=ip.address
-  %td=link_to ip.origin, "?origin=#{ip.origin}"
+  %td=link_to ip.address, admin_ips_path(address: ip.address)
+  %td=link_to ip.origin, admin_ips_path(origin: ip.origin)
   - unless @player
-    %td=link_to((ip.player.nick rescue '[REDACTED]'), "?player_id=#{ip.player_id}")
+    %td=link_to((ip.player.nick rescue '[REDACTED]'), admin_ips_path(player_id: ip.player_id))
   %td=created(ip.created_at)

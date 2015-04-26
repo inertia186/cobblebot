@@ -4,16 +4,15 @@ class Admin::IpsController < Admin::AdminController
   before_filter :setup_params, only: :index
   
   def index
+    @address = params[:address]
     @player_id = params[:player_id]
     @player = Player.find @player_id if @player_id.present?
     @origin = params[:origin]
-    
-    if !!@player
-      @ips = @player.ips
-    else
-      @ips = Ip.all
-    end
 
+    @ips = Ip.all
+
+    @ips = @ips.where(address: @address) if !!@address
+    @ips = @ips.where(player_id: @player.id) if !!@player
     @ips = @ips.where(origin: @origin) if !!@origin
 
     timeframe
@@ -34,7 +33,12 @@ private
   end
   
   def sort
-    @ips = @ips.order("#{@sort_field} #{@sort_order}")
+    case @sort_field
+    when 'players_nick'
+      @ips = @ips.joins(:player).order("lower(players.nick) #{@sort_order}")
+    else
+      @ips = @ips.order("#{@sort_field} #{@sort_order}")
+    end
   end
   
   def paginate

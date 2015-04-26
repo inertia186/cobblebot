@@ -39,7 +39,7 @@
             %th=sortable_header_link 'Address', 'address'
             %th=sortable_header_link 'Origin', 'origin'
             - unless @player_id
-              %th=sortable_header_link 'Used By', 'player_id'
+              %th=sortable_header_link 'Used By', 'players_nick'
             %th=sortable_header_link 'Created', 'created_at'
         %tbody
           - @ips.each do |ip|
