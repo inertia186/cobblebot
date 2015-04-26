@@ -178,6 +178,18 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
   end
   
+  def test_prediction
+    callback = ServerCallback.find_by_name('Predict')
+    
+    assert_callback_ran callback do
+      ServerCallback::ServerEntry.handle('[18:45:22] [Server thread/INFO]: com.mojang.authlib.GameProfile@4835d4bb[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:61582) lost connection: Disconnected')
+    end
+    
+    refute callback.reload.error_flag_at, callback.last_command_output
+    
+    assert callback.last_command_output
+  end
+  
   def test_autosync
     assert_callback_ran 'Autosync' do
       ServerCallback::ServerEntry.handle('[19:23:22] [Server thread/WARN]: inertia186 moved wrongly!')
