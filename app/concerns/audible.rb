@@ -12,6 +12,8 @@ module Audible
     end
   private
     def prep_play_sound_selector(selector)
+      return nil if Server.players.none?
+      
       if (disabled = Server.players.play_sounds(false)).any?
         subs = disabled.map { |p| "name=!#{p.nick}" }
         selector = merge_selectors(selector, "@#{selector[1]}[#{subs.join(',')}]")
