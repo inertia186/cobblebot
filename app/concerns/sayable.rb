@@ -147,7 +147,7 @@ module Sayable
     def say_nothing(selector)
       @attempts ||= 0
       
-      message = if @attempts += 1 < 3
+      message = if (@attempts += 1) < 3
         'I got nothin.'
       else
         @attempts = 0

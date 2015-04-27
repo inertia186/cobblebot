@@ -179,6 +179,7 @@ class ServerCallback < ActiveRecord::Base
       result = ServerCommand.eval_command(cmd, to_param, options)
       # TODO clear the error flag
     rescue StandardError => e
+      Rails.logger.error "#{e.inspect}\n#{e.backtrace.join("\n")}"
       result = e.inspect
       error_flag!
     end

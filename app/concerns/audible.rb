@@ -21,6 +21,8 @@ module Audible
     end
   
     def clean_play_sound_result(result)
+      return unless result
+      
       unless result.nil?
         [
           'Played sound ',
