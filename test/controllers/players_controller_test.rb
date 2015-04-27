@@ -11,7 +11,7 @@ class PlayersControllerTest < ActionController::TestCase
     end
     
     def Server.players(selector = nil)
-      [Player.first]
+      Player.limit(1)
     end
     
     def ServerQuery.full_query
