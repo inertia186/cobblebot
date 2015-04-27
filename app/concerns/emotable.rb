@@ -27,7 +27,8 @@ module Emotable
       # Don't do prediction half the time, so it's spooky.
       return if Random.rand(10) % 2 == 0
       
-      emote("summons #{nick}")
+      play_sound(selector, 'cf_deeper')
+      emote(selector, "summons #{nick}")
     end
   end
 end
