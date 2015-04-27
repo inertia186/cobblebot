@@ -160,21 +160,27 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
 
     callback.update_attribute(:ran_at, nil)
     ServerCallback::ServerEntry.handle('[15:12:31] [Server thread/INFO]: /127.0.0.1:50472 lost connection: Failed to verify username!')
+    refute callback.reload.error_flag_at, callback.last_command_output
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
     ServerCallback::ServerEntry.handle('[19:06:04] [Server thread/INFO]: /127.0.0.1:52748 lost connection: Internal Exception: io.netty.handler.codec.DecoderException: The received string length is longer than maximum allowed (22 > 16)')
+    refute callback.reload.error_flag_at, callback.last_command_output
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
     ServerCallback::ServerEntry.handle('[09:59:11] [Server thread/INFO]: com.mojang.authlib.GameProfile@77550cf1[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:56157) lost connection: Authentication servers are down. Please try again later, sorry!')
+    refute callback.reload.error_flag_at, callback.last_command_output
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
     ServerCallback::ServerEntry.handle('[13:28:33] [Server thread/INFO]: com.mojang.authlib.GameProfile@22ad3285[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:53908) lost connection: Timed out')
+    refute callback.reload.error_flag_at, callback.last_command_output
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
     ServerCallback::ServerEntry.handle('[00:22:23] [Server thread/INFO]: com.mojang.authlib.GameProfile@622ca134[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:15274) lost connection: Internal Exception: java.io.IOException: Connection reset by peer')
+    refute callback.reload.error_flag_at, callback.last_command_output
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
     ServerCallback::ServerEntry.handle('[17:01:27] [Server thread/INFO]: com.mojang.authlib.GameProfile@e509a8b[id=ffffffff-ffff-ffff-ffff-ffffffffffff,name=blackhat186,properties={textures=[com.mojang.authlib.properties.Property@6688ce2c]},legacy=false] (/127.0.0.1:57235) lost connection: You are banned from this server!')
+    refute callback.reload.error_flag_at, callback.last_command_output
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
   end
   
@@ -184,8 +190,6 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_callback_ran callback do
       ServerCallback::ServerEntry.handle('[18:45:22] [Server thread/INFO]: com.mojang.authlib.GameProfile@4835d4bb[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:61582) lost connection: Disconnected')
     end
-    
-    refute callback.reload.error_flag_at, callback.last_command_output
     
     assert callback.last_command_output
   end
@@ -619,7 +623,5 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_callback_ran callback do
       ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server origin inertia186')
     end
-    
-    refute callback.reload.error_flag_at, callback.last_command_output
   end
 end

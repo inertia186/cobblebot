@@ -89,6 +89,7 @@ class ActiveSupport::TestCase
     ran_at = c.ran_at
     yield block
     refute_equal ran_at, c.reload.ran_at, "expect callback \"#{c.name}\" to run"
+    refute c.error_flag_at, "callback ran, but got error: #{c.last_command_output}"
   end
 end
 
