@@ -18,6 +18,8 @@ There is also an optional IRC bot that allows players to interact.
   * Player tracking by UUID
   * IRC Bot with in-game messaging
   * Optional Spam Detection + Warnings, Automatic Kick
+  * IP Tracking
+  * Web API for external administrative tasks
 
 ## Installation
 
@@ -181,7 +183,8 @@ CobbleBot is limited to information that can be gathered from the server logs.  
   * Implement more test cases for DSL callback events.
   * Tutorial and Rules templates.
   * Books
-  * IP Tracking
+  * IP Tracking (extras)
+  * Donation Tracking
 
 ## Resource Pack
 
