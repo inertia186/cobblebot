@@ -52,8 +52,13 @@ module Tellable
       return tell(nick, 'Tip not added.  Sheez, do you know how annoying that selector would be?') if tip =~ /@a/
       return tell(nick, 'Tip not added.  Similar tip exists.') if Message::Tip.where("lower(messages.body) LIKE ?", "%#{tip.downcase}%").any?
     
+      # Try to get keywords if the tip contains a link.
+      result = say_link(nil, tip)
+      
       author = Player.any_nick(nick).first
-      _tip = Message::Tip.new(body: tip, author: author)
+      keywords = result[1] if result.class == Array
+      keywords = result.title if result.class == Link
+      _tip = Message::Tip.new(body: tip, author: author, keywords: keywords)
     
       if _tip.save
         tell(nick, 'Tip added, thank you.')

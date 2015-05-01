@@ -8,6 +8,9 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       to_return(status: 200)
     stub_request(:get, "https://gist.github.com/inertia186/5002463").
       to_return(status: 200)
+    stub_request(:get, "https://www.youtube.com/watch?v=GVgMzKMgNxw").
+      to_return(status: 200)
+
   end
 
   def test_check_version
@@ -259,6 +262,26 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     end
     # Make sure the "pretend" option reaches the callback for simulated chat.
     assert_equal '@server tip', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip'
+  end
+  
+  def test_add_tip
+    assert_difference -> { Message::Tip.count }, 1, 'expect new tip' do
+      assert_callback_ran 'Add Tip' do
+        ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server addtip This is a tip.')
+      end
+    end
+  end
+  
+  def test_add_tip_with_link
+    assert_difference -> { Link.count }, 1, 'expect new link' do
+      assert_difference -> { Message::Tip.count }, 1, 'expect new tip' do
+        assert_callback_ran 'Add Tip' do
+          ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server addtip https://www.youtube.com/watch?v=GVgMzKMgNxw')
+        end
+      end
+    end
+
+    assert_equal 'https://www.youtube.com/watch?v=GVgMzKMgNxw', Message::Tip.last.keywords, 'expect url as title copied into tip keywords (because stub_request has no body to get the real title)'
   end
   
   def test_slap
