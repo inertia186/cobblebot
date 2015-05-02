@@ -49,6 +49,8 @@ class Player < ActiveRecord::Base
       where(registered_at: nil)
     end
   }
+  scope :origin, lambda { |origin| joins(:ips).where(Ip.arel_table[:origin].in(origin)) }
+  scope :address, lambda { |address| joins(:ips).where(Ip.arel_table[:address].in(address)) }
 
   has_many :links, as: :actor
   has_many :messages, -> { where(type: nil) }, as: :recipient
@@ -59,6 +61,10 @@ class Player < ActiveRecord::Base
 
   def self.max_explore_all_biome_progress
     all.map(&:explore_all_biome_progress).map(&:to_i).max
+  end
+
+  def players_with_same_ip
+    Player.where(id: Ip.where(id: ips.select(:id)).where.not(player_id: id) )
   end
 
   def to_param
