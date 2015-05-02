@@ -80,16 +80,29 @@ class ActiveSupport::TestCase
     refute_equal 0, ServerCommand.commands_executed.size, 'expect command to execute'
   end
 
-  def assert_callback_ran(callback, &block)
+  def assert_callback_ran(callback, options = {inverted: false}, &block)
     c = if callback.class == String
       ServerCallback.find_by_name(callback)
     else
       callback
     end
+    raise "Unknown callback: #{callback}" if c.nil?
+    
     ran_at = c.ran_at
     yield block
-    refute_equal ran_at, c.reload.ran_at, "expect callback \"#{c.name}\" to run"
-    refute c.error_flag_at, "callback ran, but got error: #{c.last_command_output}"
+    if !!options[:inverted]
+      assert_equal ran_at, c.reload.ran_at, "did not expect callback \"#{c.name}\" to run"
+      assert ran_at == c.reload.ran_at || c.error_flag_at, "callback ran or got error: #{c.last_command_output}"
+    else
+      refute_equal ran_at, c.reload.ran_at, "expect callback \"#{c.name}\" to run"
+      refute c.error_flag_at, "callback ran, but got error: #{c.last_command_output}"
+    end
+  end
+  
+  def refute_callback_ran(callback, &block)
+    !assert_callback_ran(callback, inverted: true, &block)
+  rescue
+    true
   end
 end
 

@@ -19,6 +19,12 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_not_check_version
+    refute_callback_ran 'Check Version' do
+      ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> test')
+    end
+  end
+
   def test_playercheck
     assert_callback_ran 'Player Check' do
       ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> @server playercheck inertia186')
@@ -645,6 +651,12 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
 
     assert_callback_ran callback do
       ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server origin inertia186')
+    end
+  end
+
+  def test_unknown_callback
+    refute_callback_ran "Unknown" do
+      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> test')
     end
   end
 end
