@@ -56,7 +56,7 @@ ServerCallback::PlayerChat.send method, name: 'Navi', pattern: "/!!!/", command:
 ServerCallback::PlayerChat.send method, name: 'The More You Know', pattern: "/tmyk/i", command: "play_sound \"@a\", \"cf_tmyk\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::PlayerChat.send method, name: 'TROLOLO', pattern: "/trololo/i", command: "play_sound \"@a\", \"cf_trololo\"", cooldown: '+2 hours', system: 'f'
 ServerCallback::PlayerChat.send method, name: 'Bueller?', pattern: "/^anyone[^ ]*$/i", command: "# This sound is a little different in how it behaves.  Once the command is\n# triggered, it waits 5 seconds, then it checks to see if the player has typed \n# anything new.  If not, the sound plays.\n#\n# Thus, it doesn't always play, but it will always go into cooldown if it is\n# triggered.\n\nThread.start do\n  sleep 5\n  if \"%message%\" == find_latest_chat_by_nick(\"%nick%\")\n    play_sound \"@a\", \"cf_bueller\"\n  end\nend", cooldown: '+15 minutes', system: 'f'
-ServerCallback::PlayerChat.send method, name: 'Oops', pattern: "/oops/i", command: "play_sound \"@a\", \"cf_wups\"", cooldown: '+15 minutes', system: 'f'
+ServerCallback::PlayerChat.send method, name: 'Oops', pattern: "/(oops|wups)/i", command: "play_sound \"@a\", \"cf_wups\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::PlayerChat.send method, name: 'Oh My', pattern: "/^oh my$/i", command: "play_sound \"@a\", \"cf_ohmy\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::PlayerChat.send method, name: 'Make It So', pattern: "/make it so/i", command: "play_sound \"@a\", \"cf_makeitso\"", system: 'f'
 ServerCallback::PlayerChat.send method, name: 'That Word', pattern: "/that word/i", command: "play_sound \"@a\", \"cf_inconceivable\"", cooldown: '+15 minutes', system: 'f'
