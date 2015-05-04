@@ -124,7 +124,7 @@ module Sayable
       if tip_body =~ /^server/i
         emote(selector, tip_body.split(' ')[1..-1].join(' '))
       elsif tip_body =~ /^herobrine/i
-        say_fake_achievement(selector, 'Herobrine', tip_body)
+        say_fake_achievement(selector, 'Herobrine', tip_body.split(' ')[1..-1].join(' '))
       elsif tip_body =~ /^slap/i
         say_slap(selector, tip_body.split(' ')[1..-1].join(' '))
       elsif tip_body =~ /^>/i
