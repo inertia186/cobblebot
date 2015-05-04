@@ -24,6 +24,8 @@
 %ul.nav.nav-tabs
   %li{class: @filter == 'all' ? 'active' : ''}
     = link_to 'All', admin_players_path(player_id: @player_id), 'aria-controls' => "all"
+  %li{class: @filter == 'only_new' ? 'active' : ''}
+    = link_to 'New', admin_players_path(player_id: @player_id, filter: 'only_new'), 'aria-controls' => "non-system"
   %li{class: @filter == 'only_today' ? 'active' : ''}
     = link_to 'Today', admin_players_path(player_id: @player_id, filter: 'only_today'), 'aria-controls' => "non-system"
   %li{class: @filter == 'only_logged_in' ? 'active' : ''}

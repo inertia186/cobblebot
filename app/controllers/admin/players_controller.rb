@@ -25,6 +25,7 @@ class Admin::PlayersController < Admin::AdminController
 private
   def timeframe
     @players = @players.where('players.last_login_at BETWEEN ? AND ?', Time.now.beginning_of_day, Time.now.end_of_day) if @filter == 'only_today'
+    @players = @players.newly_created if @filter == 'only_new'
     @players = Server.players if @filter == 'only_logged_in'
   end
   

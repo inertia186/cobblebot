@@ -39,7 +39,8 @@ class Player < ActiveRecord::Base
       where.not(last_ip: ip)
     end
   }
-  scope :created, lambda { |timestamp| where(Player.arel_table[:created_at].gt(timestamp)) }
+  scope :created_after, lambda { |timestamp| where(Player.arel_table[:created_at].gt(timestamp)) }
+  scope :newly_created, -> { created_after(24.hours.ago) }
   scope :matching_banned_ip, lambda { |matching_banned_ip = true| matching_last_ip(Player.banned.select(:last_ip), matching_banned_ip) }
   scope :play_sounds, lambda { |play_sounds = true| where(play_sounds: play_sounds) }
   scope :registered, lambda { |registered = true|
@@ -76,7 +77,7 @@ class Player < ActiveRecord::Base
   end
   
   def new?
-    Player.created(24.hours.ago).include? self
+    Player.newly_created.include? self
   end
   
   def registered?
