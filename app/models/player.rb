@@ -198,7 +198,7 @@ class Player < ActiveRecord::Base
   end
   
   def current_location
-    response = tp!(x: '~', y: '~', z: '~')
+    response = Player.tp(nick, '~ ~ ~')
     
     reload.last_location
   end
