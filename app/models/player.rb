@@ -197,7 +197,7 @@ class Player < ActiveRecord::Base
     "%.2f hours" % (stats.time_since_death / 60.0 / 60.0 / 24.0) if player_data
   end
   
-  def last_location
+  def current_location
     response = tp!(x: '~', y: '~', z: '~')
     
     reload.last_location
