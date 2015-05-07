@@ -139,7 +139,17 @@ class Player < ActiveRecord::Base
   end
   
   def pardon!
-    Player.execute("pardon #{nick}")
+    result = Player.execute("pardon #{nick}")
+    
+    if result == "Could not unban player #{nick}" && !!last_nick
+      alt_result = Player.execute("pardon #{last_nick}")
+      if alt_result == "Could not unban player #{last_nick}"
+        return "Could not unban player #{nick} or #{last_nick}"
+      end
+      result = alt_result
+    end
+    
+    result
   end
   
   def kick!(reason = 'Have A Nice Day!')
