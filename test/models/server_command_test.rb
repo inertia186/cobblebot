@@ -81,7 +81,7 @@ class ServerCommandTest < ActiveSupport::TestCase
     commands = ServerCommand.commands_executed
     assert_equal 2, commands.size, 'expect two commands'
     assert commands.keys.first =~ %r("Player not found: inertia"), 'expect no player found'
-    assert commands.keys.last =~ %r("Did you mean: inertia186"), 'expect suggestion'
+    assert commands.keys.last =~ %r("@server playercheck inertia186"), "expect suggestion, got: #{commands.keys.last}"
   end
   
   def test_say_origin
