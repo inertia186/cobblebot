@@ -23,7 +23,9 @@ module Sayable
     
     def say_playercheck(selector, nick)
       players = Player.any_nick(nick).order(:nick)
-      return say_nick_not_found(selector, nick) unless !!(player = players.first)
+      
+      # FIXME The 'command' option should come from the callback record, not hardcoded.
+      return say_nick_not_found(selector, nick, command: '@server playercheck') unless !!(player = players.first)
 
       line_1a = "Latest activity for #{player.nick} was "
       line_1b = distance_of_time_in_words_to_now(player.last_activity_at)
@@ -79,13 +81,29 @@ module Sayable
       [result]
     end
     
-    def say_nick_not_found(selector, nick)
+    def say_nick_not_found(selector, nick, options = {})
       results = [line_1 = "Player not found: #{nick}"]
       say(selector, line_1)
       players = Player.search_any_nick(nick)
       if players.any?
         results << line_2 = "Did you mean: #{players.first.nick}"
-        say(selector, line_2)
+        if !!selector && !!options[:command]
+          execute(
+          <<-DONE
+            tellraw #{selector} [
+              {"color": "white", "text": "[Server] Did you mean: "},
+              {
+                "color": "dark_purple", "underlined": "true", "text": "#{players.first.nick}",
+                "clickEvent": {
+                  "action": "run_command", "value": "#{options[:command]} #{players.first.nick}"
+                }
+              }
+            ]
+          DONE
+          )
+        else
+          say(selector, line_2)
+        end
       end
       
       results
@@ -142,6 +160,12 @@ module Sayable
       MinecraftServerLogHandler.simulate_player_chat(nick, tip_body)
     
       tip_body
+    rescue ArgumentError => e
+      return unless !!tip
+      
+      Rails.logger.warn "Message::Tip.id: #{tip.id} :: #{e.inspect}"
+      tip.update_attribute(:read_at, Time.now)
+      say(selector, e.message)
     end
     
     def say_nothing(selector)
@@ -210,7 +234,9 @@ module Sayable
     
     def say_origin(selector, nick)
       target = Player.any_nick(nick).first
-      return say_nick_not_found(selector, nick) if target.nil?
+      
+      # FIXME The 'command' option should come from the callback record, not hardcoded.
+      return say_nick_not_found(selector, nick, command: '@server origin') if target.nil?
 
       execute <<-DONE
         tellraw #{selector} [{ "color": "white", "text": "[Server] Origin of #{target.nick}: "}, { "color": "green", "text": "#{target.origins.join(', ')}" }]

@@ -46,6 +46,7 @@ ServerCallback::PlayerChat.send method, name: 'Toggle Sounds', pattern: "/^@serv
 ServerCallback::PlayerChat.send method, name: 'Register', pattern: "/^@server register/i", command: "register(\"%nick%\")", help_doc_key: 'register', help_doc: "Usage: @server register\n\nAdds your name to the registry of players.   That is all it does.  Really.", system: 't'
 ServerCallback::PlayerChat.send method, name: 'Unregister', pattern: "/^@server unregister/i", command: "unregister(\"%nick%\")", system: 't'
 ServerCallback::PlayerChat.send method, name: 'Origin', pattern: "/^@server origin (.*)/i", command: "say_origin(\"@a\", \"%1%\")", help_doc_key: 'origin', help_doc: "Usage: @server origin <nick>\n\nHelps detect alts.  Matching origins may indicate an alt but it also may indicate, for example, the players just go to the same school.", system: 't'
+ServerCallback::ServerEntry.send method, name: 'Update Last Nick', pattern: "/^([a-zA-Z0-9_]+) \(formerly known as ([a-zA-Z0-9_]+)\) joined the game$/", command: "player = Player.find_by_nick '%1%'\nplayer.update_attribute(:last_nick, '%2%') unless player.nil?", system: 't'
 
 # Player initialted sounds ...
 ServerCallback::PlayerChat.send method, name: 'To The Batcave!', pattern: "/^to the/i", command: "play_sound \"@a\", \"to_the_batcave\"", cooldown: '+15 minutes', system: 'f'
