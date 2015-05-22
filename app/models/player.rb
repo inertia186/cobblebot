@@ -52,6 +52,7 @@ class Player < ActiveRecord::Base
   }
   scope :origin, lambda { |origin| joins(:ips).where(Ip.arel_table[:origin].in(origin)) }
   scope :address, lambda { |address| joins(:ips).where(Ip.arel_table[:address].in(address)) }
+  scope :may_autolink, lambda { |may_autolink = true| where(may_autolink: may_autolink) }
 
   has_many :links, as: :actor
   has_many :messages, -> { where(type: nil) }, as: :recipient

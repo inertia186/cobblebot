@@ -12,6 +12,9 @@ module Linkable
       url = text.split('http')[1]
       return unless url
 
+      player = Player.find_by_nick(options[:nick]) if !!options[:nick]
+      return if !!player && !player.may_autolink?
+
       url = "http#{url.split(' ')[0]}"
       return unless !!url.split('://')[1]
     
@@ -30,7 +33,7 @@ module Linkable
           link = links.last
         else
           link = Link.find_or_create_by_url(url)
-          link.actor = Player.find_by_nick(options[:nick]) if !!options[:nick]
+          link.actor = player
           link.save
         end
     

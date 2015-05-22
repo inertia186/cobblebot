@@ -10,6 +10,8 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       to_return(status: 200)
     stub_request(:get, "https://www.youtube.com/watch?v=GVgMzKMgNxw").
       to_return(status: 200)
+    stub_request(:get, "https://www.youtube.com/watch?v=OdSkx7QmO7k").
+      to_return(status: 200)
 
   end
 
@@ -38,6 +40,24 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_no_difference -> { Link.count }, 'did not expect new link record' do
       assert_callback_ran 'Autolink' do
         ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> http://github.com/inertia186/cobblebot')
+      end
+    end
+  end
+
+  def test_autolink_disabled
+    player = Player.find_by_nick('inertia186')
+
+    player.update_attribute(:may_autolink, false)    
+    assert_no_difference -> { Link.count }, 'did not expect new link record' do
+      assert_callback_ran 'Autolink' do
+        ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> https://www.youtube.com/watch?v=OdSkx7QmO7k')
+      end
+    end
+
+    player.update_attribute(:may_autolink, true)
+    assert_difference -> { Link.count }, 1, 'expect new link record' do
+      assert_callback_ran 'Autolink' do
+        ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> https://www.youtube.com/watch?v=OdSkx7QmO7k')
       end
     end
   end
