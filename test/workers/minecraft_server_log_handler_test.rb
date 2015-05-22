@@ -48,14 +48,14 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     player = Player.find_by_nick('inertia186')
 
     player.update_attribute(:may_autolink, false)    
-    assert_no_difference -> { Link.count }, 'did not expect new link record' do
+    assert_no_difference -> { player.links.count }, 'did not expect new link record' do
       assert_callback_ran 'Autolink' do
         ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> https://www.youtube.com/watch?v=OdSkx7QmO7k')
       end
     end
 
     player.update_attribute(:may_autolink, true)
-    assert_difference -> { Link.count }, 1, 'expect new link record' do
+    assert_difference -> { player.links.count }, 1, 'expect new link record' do
       assert_callback_ran 'Autolink' do
         ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> https://www.youtube.com/watch?v=OdSkx7QmO7k')
       end
@@ -262,6 +262,10 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
   
   def test_random_tip_slap
+    def Server.player_nicks(selector = nil)
+      ['inertia186'] # in case the tip has a selector
+    end
+    
     Message::Tip.where.not("body LIKE 'slap%'").update_all('read_at = CURRENT_TIMESTAMP')
     assert_callback_ran 'Random Tip' do
       ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip slap')
