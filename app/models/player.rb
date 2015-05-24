@@ -215,11 +215,11 @@ class Player < ActiveRecord::Base
   end
   
   def current_pos
-    [$1.to_i, $2.to_i, $3.to_i] if current_location =~ /^x=([0-9]+),y=([0-9]+),z=([0-9]+)$/
+    [$1.to_i, $2.to_i, $3.to_i] if current_location =~ /^x=([\-0-9]+),y=([\-0-9]+),z=([\-0-9]+)$/
   end
 
   def last_pos
-    [$1.to_i, $2.to_i, $3.to_i] if last_location =~ /^x=([0-9]+),y=([0-9]+),z=([0-9]+)$/
+    [$1.to_i, $2.to_i, $3.to_i] if last_location =~ /^x=([\-0-9]+),y=([\-0-9]+),z=([\-0-9]+)$/
   end
   
   def update_biomes_explored
