@@ -132,6 +132,8 @@ module Sayable
     
       if keywords.any?
         tip = Message::Tip.query(keywords).in_cooldown(false).first
+      else
+        tip = Message::Tip.query(keywords).in_cooldown(false).sample
       end
       
       if tip.nil?
