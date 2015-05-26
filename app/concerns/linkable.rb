@@ -52,7 +52,7 @@ module Linkable
     
       execute(<<-DONE
         tellraw #{selector} { "text": "", "extra": [{
-          "text": "#{title}", "color": "dark_purple", "underlined": "true", "hoverEvent": {
+          "text": "#{escape(title)}", "color": "dark_purple", "underlined": "true", "hoverEvent": {
             "action": "show_text", "value": "Last Modified: #{last_modified_at ? last_modified_at : '???'}"
           }, "clickEvent": {
             "action": "open_url", "value": "#{url}"
