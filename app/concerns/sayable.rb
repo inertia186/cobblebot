@@ -152,6 +152,12 @@ module Sayable
         say_slap(selector, tip_body.split(' ')[1..-1].join(' '))
       elsif tip_body =~ /^>/i
         say(selector, tip_body, color: 'green', as: 'Server')
+      elsif tip_body =~ /explode/i
+        play_sound(selector, 'random.explode')
+        say(selector, tip_body)
+      elsif tip_body =~ /there is no place like/i
+        play_sound(selector, 'loz_recorder')
+        say(selector, tip_body)
       else
         say(selector, tip_body)
       end
