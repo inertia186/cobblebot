@@ -17,6 +17,7 @@ There is also an optional IRC bot that allows players to interact.
   * Message of the Day
   * Player tracking by UUID
   * IRC Bot with in-game messaging
+  * Initial twitch.tv bot support
   * Optional Spam Detection + Warnings, Automatic Kick
   * IP Tracking
   * Web API for external administrative tasks
@@ -185,6 +186,7 @@ CobbleBot is limited to information that can be gathered from the server logs.  
   * Books
   * IP Tracking (extras)
   * Donation Tracking
+  * Improve twitch.tv bot support.
 
 ## Resource Pack
 
@@ -210,4 +212,4 @@ If you're using CobbleBot, I'd love to hear from you.  Drop me a line and tell m
 
 ## Licence
 
-I don't believe in intellectual "property".  If you do, consider CobbleBot as licensed under a Creative Commons CC0 (Public Domain) License.
+I don't believe in intellectual "property".  If you do, consider CobbleBot as licensed under a Creative Commons [![CC0](http://i.creativecommons.org/p/zero/1.0/80x15.png)] (http://creativecommons.org/publicdomain/zero/1.0/) License.

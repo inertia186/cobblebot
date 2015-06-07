@@ -165,7 +165,7 @@ class IrcBot < SummerBot
     sender = options[:sender]
 
     words = message.split(' ')
-    return unless words.size > 3
+    return unless words.size > 2
     msg = words[2..-1].join(' ').gsub(/['`"]/, "\'")
 
     IrcBot.irc_say "@a", sender[:nick], msg

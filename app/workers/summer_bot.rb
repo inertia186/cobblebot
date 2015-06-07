@@ -83,6 +83,19 @@ class SummerBot < Summer::Connection
     File.open(@config[:log_file], 'a').close
   end
 
+  def connect!
+    @connection = TCPSocket.open(server, port)
+    @connection = OpenSSL::SSL::SSLSocket.new(@connection).connect if config[:use_ssl]
+    if !!config[:nickserv_password] && config[:nickserv_password] =~ /^oauth/
+      response("PASS #{config[:nickserv_password]}") if config[:nickserv_password]
+      response("NICK #{config[:nick]}")
+    else
+      response("USER #{config[:nick]} #{config[:nick]} #{config[:nick]} #{config[:nick]}")
+      response("PASS #{config[:server_password]}") if config[:server_password]
+      response("NICK #{config[:nick]}")
+    end
+  end
+  
   def did_start_up
     self.bot_started_at = Time.now
     log "Started IRC Bot at #{@bot_started_at}"
