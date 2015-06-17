@@ -229,7 +229,7 @@ module Sayable
         say selector, line.strip, color: 'white', as: nil
       end
       
-      unless callback.cooldown.split(' ')[0] =~ /^+0/
+      unless callback.cooldown.split(' ')[0] =~ /^\+0/
         say selector, "Note, #{key} has a cooldown interval of #{callback.cooldown}.", color: 'white', as: nil
       end
       
