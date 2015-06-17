@@ -228,15 +228,15 @@ module Sayable
         say selector, line.strip, color: 'white', as: nil
       end
       
-      unless callback.cooldown.split(' ')[0] == '+0'
+      unless callback.cooldown.split(' ')[0] =~ /^+0/
         say selector, "Note, #{key} has a cooldown interval of #{callback.cooldown}.", color: 'white', as: nil
       end
       
       case callback.help_doc_key
       when 'help'
         topics = []
-        ServerCallback.enabled.where.not(help_doc_key: nil).order(:help_doc_key).each do |callback|
-          topics << callback.help_doc_key 
+        ServerCallback.enabled.where.not(help_doc_key: [nil, '']).order(:help_doc_key).each do |callback|
+          topics << callback.help_doc_key
         end
         
         say selector, topics.join(' | '), color: 'white', as: nil if topics.any?
