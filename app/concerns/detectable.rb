@@ -15,12 +15,19 @@ module Detectable
       lines = lines[([-(lines.size - 1), -50].max)..-1]
       return if lines.nil?
     
+      player = Player.find_by_nick(nick)
+      col = if player.nil? || player.new?
+        7
+      else
+        20
+      end
+    
       regexp = player_input_regexp(nick, message)
       all = []
 
       lines.each do |line|
         sample = line.split(' ')[4..-1].join(' ').downcase
-        all << sample[0..[sample.size - 1, 7].min] if regexp.match(line)
+        all << sample[0..[sample.size - 1, col].min] if regexp.match(line)
       end
 
       return "No spam detected for #{nick}." if all.size == 0
@@ -28,7 +35,7 @@ module Detectable
       ratio = all.uniq.size.to_f / all.size.to_f
       handle_spam(nick, ratio)
 
-      if !!(player = Player.find_by_nick(nick))
+      if !!player
         player.update_attribute(:spam_ratio, ratio) # no AR callbacks
       
         return player
@@ -48,7 +55,16 @@ module Detectable
         say(nick, 'Warning, spam detected.', color: 'red', as: 'Server')
         play_sound(nick, 'oot_navi_listen')
       elsif ratio <= 0.1
+        @kicked_for_spam ||= []
+
+        if @kicked_for_spam.include? nick
+          player = Player.find_by_nick(nick)
+          
+          player.ban!('annoying chat', announce: true) and return if !!player && player.new?
+        end
+        
         kick(nick, "Spammy ratio #{ratio}")
+        @kicked_for_spam << nick
       end
     end
   end

@@ -5,6 +5,8 @@ class Player < ActiveRecord::Base
   include Commandable
   include Tellable
   include Teleportable
+  include Audible
+  include Sayable
   
   validates :uuid, presence: true
   validates_uniqueness_of :uuid, case_sensitive: true
@@ -135,8 +137,18 @@ class Player < ActiveRecord::Base
     Server.banned_players.select { |player| player["uuid"] == uuid }.first['reason']
   end
   
-  def ban!(reason = '')
+  def ban!(reason = '', options = {announce: false})
+    Player.play_sound(nick, 'not_authorised') and sleep 5
     Player.execute("ban #{nick} #{reason}")
+
+    if options[:announce]
+      Player.play_sound('@a', 'not_authorised')
+      if reason.present?
+        Player.say('@a', "#{nick} has been banned, reason: #{reason}", as: 'Server', color: 'red')
+      else
+        Player.say('@a', "#{nick} has been banned", as: 'Server', color: 'red')
+      end
+    end
   end
   
   def pardon!
