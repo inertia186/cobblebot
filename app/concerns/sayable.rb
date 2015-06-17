@@ -216,6 +216,7 @@ module Sayable
     end
     
     def say_help(selector = "@a", key = "help")
+      key = 'help' unless key.present?
       callbacks = ServerCallback.enabled.where('lower(help_doc_key) = ?', key.strip.downcase)
       
       callback = if !!callbacks && callbacks.any?
