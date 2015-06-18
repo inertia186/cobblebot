@@ -84,6 +84,53 @@ class ServerCommandTest < ActiveSupport::TestCase
     assert commands.keys.last =~ %r("@server playercheck inertia186"), "expect suggestion, got: #{commands.keys.last}"
   end
   
+  def test_say_playercheck_switcheroo
+    inertia186 = Player.find_by_nick 'inertia186'
+    dinnerbone = Player.find_by_nick 'Dinnerbone'
+    
+    inertia186.nick = 'temp'
+    inertia186.save
+    dinnerbone.nick = 'inertia186'
+    dinnerbone.save
+    inertia186.nick = 'Dinnerbone'
+    inertia186.save
+    inertia186.last_nick = 'inertia186'
+    inertia186.save
+    
+    assert_equal 'Dinnerbone', inertia186.nick
+    assert_equal 'inertia186', inertia186.last_nick
+    assert_equal 'inertia186', dinnerbone.nick
+    assert_equal 'Dinnerbone', dinnerbone.last_nick
+    
+    assert_command_executed do
+      ServerCommand.say_playercheck '@a', 'inertia186'
+    end
+
+    commands = ServerCommand.commands_executed
+    assert_equal 2, commands.size, 'expect two commands'
+    assert commands.keys.first =~ %r(Latest activity for inertia186 was), 'expect correct player name'
+    assert commands.keys.last =~ %r(Biomes explored: 0), 'expect correct player biome info'
+    
+    assert_command_executed do
+      ServerCommand.say_playercheck '@a', 'Dinnerbone'
+    end
+    
+    commands = ServerCommand.commands_executed
+    assert_equal 3, commands.size, 'expect three commands'
+    assert commands.keys.first =~ %r(Latest activity for Dinnerbone was), 'expect correct player name'
+    assert commands.keys.second =~ %r("<Dinnerbone> Normal Tuesday night for Shia Labeouf."), 'expect correct player last chat'
+    assert commands.keys.last =~ %r(Biomes explored: 8), 'expect correct player biome info'
+
+    assert_command_executed do
+      ServerCommand.say_playercheck '@a', 'inertia'
+    end
+    
+    commands = ServerCommand.commands_executed
+    assert_equal 2, commands.size, 'expect two commands'
+    assert commands.keys.first =~ %r("Player not found: inertia"), 'expect no player found'
+    assert commands.keys.last =~ %r("@server playercheck Dinnerbone"), "expect suggestion, got: #{commands.keys.last}"
+  end
+  
   def test_say_origin
     assert_command_executed do
       ServerCommand.say_origin '@a', 'inertia186'

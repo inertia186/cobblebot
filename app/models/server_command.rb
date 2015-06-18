@@ -29,11 +29,7 @@ class ServerCommand
     if player.nil?
       player = Player.create(uuid: uuid, nick: nick, last_login_at: Time.now)
     else
-      if player.nick != nick
-        player.update_attributes(nick: nick, last_nick: player.nick, last_login_at: Time.now)
-      else
-        player.update_attributes(nick: nick, last_login_at: Time.now)
-      end
+      player.update_attributes(nick: nick, last_login_at: Time.now)
     end
     
     player

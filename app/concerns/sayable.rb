@@ -22,7 +22,11 @@ module Sayable
     end
     
     def say_playercheck(selector, nick)
-      players = Player.any_nick(nick).order(:nick)
+      players = Player.nick(nick) # Favor an exact match (ignoring case).
+      if players.none?
+        # Next, favor player who matches with a preference for the most recent activity.
+        players = Player.any_nick(nick).order(:updated_at)
+      end
       
       # FIXME The 'command' option should come from the callback record, not hardcoded.
       return say_nick_not_found(selector, nick, command: '@server playercheck') unless !!(player = players.first)

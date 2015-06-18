@@ -13,6 +13,7 @@ class Player < ActiveRecord::Base
   validates :nick, presence: true
   validates_uniqueness_of :nick, case_sensitive: false
 
+  scope :nick, lambda { |nick| where('LOWER(nick) = ?', nick.downcase) }
   scope :any_nick, lambda { |nick| where('? IN (LOWER(nick), LOWER(last_nick))', nick.downcase) }
   scope :search_any_nick, lambda { |nick|
     search_nick = "%#{nick.downcase.chars.each.map { |c| c }.join('%')}%"
@@ -62,6 +63,7 @@ class Player < ActiveRecord::Base
   has_many :ips
 
   before_save :update_biomes_explored
+  before_save :update_last_nick, if: :nick_changed?
 
   def self.max_explore_all_biome_progress
     all.map(&:explore_all_biome_progress).map(&:to_i).max
@@ -261,6 +263,16 @@ class Player < ActiveRecord::Base
     ips.map(&:origin).uniq
   end
 private  
+  def update_last_nick
+    return unless !!id
+    
+    p = Player.find id
+    
+    unless p.nick.nil? || p.nick == last_nick
+      update_attribute(:last_nick, p.nick) # no AR callbacks
+    end
+  end
+
   def player_data_key_group?(key)
     player_data.keys.map { |key| key.split('.')[0] }.include?(key.singularize)
   end
