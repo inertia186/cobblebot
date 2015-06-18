@@ -173,7 +173,7 @@ class SummerBot < Summer::Connection
     reply = options[:reply]
 
     response "PRIVMSG #{irc_channel} :#{reply}"
-    sleep @throttle
+    sleep @throttle || THROTTLE
     log ">> #{reply}"
   end
   
@@ -182,7 +182,7 @@ class SummerBot < Summer::Connection
     reply = options[:reply]
     msg = "#{sender[:nick]} :#{reply}"
     response "PRIVMSG #{msg}"
-    sleep @throttle
+    sleep @throttle || THROTTLE
     log ">> #{msg}"
   end
 private
