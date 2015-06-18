@@ -4,13 +4,14 @@ require 'summer'
 class SummerBot < Summer::Connection
   THROTTLE = 1
   
-  attr_accessor :bot_started_at, :shall_monitor, :op_commands, :commands, :debug
+  attr_accessor :bot_started_at, :shall_monitor, :op_commands, :commands, :debug, :throttle
 
   @shall_monitor = false
   @bot_started_at = nil
   @op_commands = nil
   @commands = nil
   @debug = nil
+  @throttle = THROTTLE
   
   def initialize(options = {})
     options.each do |k, v|
@@ -172,7 +173,7 @@ class SummerBot < Summer::Connection
     reply = options[:reply]
 
     response "PRIVMSG #{irc_channel} :#{reply}"
-    sleep THROTTLE
+    sleep @throttle
     log ">> #{reply}"
   end
   
@@ -181,7 +182,7 @@ class SummerBot < Summer::Connection
     reply = options[:reply]
     msg = "#{sender[:nick]} :#{reply}"
     response "PRIVMSG #{msg}"
-    sleep THROTTLE
+    sleep @throttle
     log ">> #{msg}"
   end
 private

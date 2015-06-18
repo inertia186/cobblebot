@@ -6,7 +6,7 @@ class IrcBotTest < ActiveSupport::TestCase
     Preference.irc_server_port = 1234
     Preference.irc_enabled = true
     
-    @bot = IrcBot.new(debug: true)
+    @bot = IrcBot.new(debug: true, throttle: 0)
     @bot.load_config
   end
 

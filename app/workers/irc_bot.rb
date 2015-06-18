@@ -21,7 +21,7 @@ class IrcBot < SummerBot
     
     if options['start_irc_bot'] && Preference.irc_enabled?
       Rails.logger.info "Starting IRC Bot"
-      options = {debug: options[:debug]}
+      options = {debug: options[:debug], throttle: options[:throttle]}
       options[:op_commands] = %w(opself opme quit_irc kick latest chatlog rcon)
       options[:commands] = %w(help info bancheck playercheck list say)
       new(options) unless !!options[:debug]
