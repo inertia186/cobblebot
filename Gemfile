@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '4.2.0'
+gem 'rails', '4.2.2'
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3', require: false
 # Use SCSS for stylesheets
@@ -82,6 +82,7 @@ group :test do
   gem 'webmock', require: false
   gem 'codeclimate-test-reporter'
   gem 'database_cleaner', require: false
+  gem 'memory_test_fix'
 end
 
 group :development, :test do
