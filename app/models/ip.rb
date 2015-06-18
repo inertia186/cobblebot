@@ -1,7 +1,7 @@
 class Ip < ActiveRecord::Base
   belongs_to :player
   
-  validates_uniqueness_of :address, scope: :player
+  validates_uniqueness_of :address, scope: :player, on: :address_changed?
   
   scope :query, lambda { |query|
     clause = <<-DONE
