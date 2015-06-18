@@ -6,6 +6,10 @@ class MinecraftServerLogMonitorTest < ActiveSupport::TestCase
   end
   
   def test_perform
-    MinecraftServerLogMonitor.perform(debug: true, "max_ticks" => 1)
+    monitor = Thread.start do
+      MinecraftServerLogMonitor.perform(debug: true, "max_ticks" => 1)
+    end
+    
+    skip 'Took too long to run.' unless monitor.join 5
   end
 end

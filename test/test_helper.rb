@@ -2,7 +2,7 @@ ENV['RAILS_ENV'] ||= 'test'
 require File.expand_path('../../config/environment', __FILE__)
 require 'rcon/rcon'
 require 'rails/test_help'
-require "minitest/hell" unless !!ENV['CODECLIMATE_REPO_TOKEN']
+require "minitest/hell"
 require 'simplecov'
 require 'webmock/minitest'
 require "codeclimate-test-reporter"
@@ -18,9 +18,14 @@ class ActiveSupport::TestCase
   fixtures :all
 
   def before_setup
-    super
-    DatabaseCleaner.start
-    Rails.application.load_seed
+    begin
+      super
+      DatabaseCleaner.start
+      Rails.application.load_seed
+    rescue ActiveRecord::ConnectionTimeoutError => e
+      sleep 1 if Preference.path_to_server.nil?
+      skip "Possible race condition: #{e.inspect}"
+    end
   end
 
   def after_teardown

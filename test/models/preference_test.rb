@@ -15,7 +15,7 @@ class PreferenceTest < ActiveSupport::TestCase
   end
 
   def test_path_to_server
-    assert Preference.path_to_server, "did expect path to be set"
+    assert_equal '/path/to/minecraft/server', Preference.path_to_server, "did expect default path to be set"
   end
 
   def test_missing_method
