@@ -21,6 +21,7 @@ test:
   database: ":memory:"
   pool: 1
   timeout: -1
+  migrate: true
 
 production:
   <<: *default

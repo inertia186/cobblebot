@@ -3,7 +3,7 @@ rvm:
   - "2.0.0"
   - "2.1.5"
   - "2.2.1"
-script: bundle exec rake db:migrate && bundle exec rake TESTOPTS="--verbose" test
+script: bundle exec rake TESTOPTS="--verbose" test
 addons:
   code_climate:
     repo_token: a87f794bdf9e3c4e90027ab6bbf5c798d60018183118cf858d971fd428af5771
