@@ -63,6 +63,10 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
 
   def test_player_authenticated
+    def Server.entity_data(options = {selector: "@e[c=1]", near_player: nil, radius: 0})
+      return ['Frozen Projectile']
+    end
+    
     assert_difference -> { Player.count }, 1, 'expect new player' do
       assert_callback_ran 'Player Authenticated' do
         ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')

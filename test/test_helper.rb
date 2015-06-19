@@ -23,8 +23,12 @@ class ActiveSupport::TestCase
       DatabaseCleaner.start
       Rails.application.load_seed
     rescue ActiveRecord::ConnectionTimeoutError => e
-      sleep 1 if Preference.path_to_server.nil?
-      skip "Possible race condition: #{e.inspect}"
+      begin
+        sleep 1 if Preference.path_to_server.nil?
+        skip "Possible race condition: #{e.inspect}"
+      rescue ActiveRecord::ConnectionTimeoutError => e2
+        skip "Race condition: #{e2.inspect}"
+      end
     end
   end
 
