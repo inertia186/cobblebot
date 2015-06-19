@@ -1,5 +1,7 @@
 module Detectable
   extend Commandable
+
+  PROJECTILES = %w(Arrow Fireball SmallFireball WitherSkull ThrownExpBottle ThrownPotion Snowball)
   
   def self.included(base)
     base.extend ClassMethods
@@ -41,6 +43,32 @@ module Detectable
         return player
       end
     end
+    
+    def detect_frozen_projectiles
+      entities = []
+      
+      PROJECTILES.each do |type|
+        entities += Server.entity_data(selector: "@e[type=#{type}]")
+      end
+      
+      return entities unless entities.any?
+
+      entities2 = []
+      
+      PROJECTILES.each do |type|
+        entities2 += Server.entity_data(selector: "@e[type=#{type}]")
+      end
+      
+      if entities.size == entities2.size
+        # Second scan has the same result so projectiles might be stuck.
+        
+        Thread.start do
+          handle_frozen_projectiles
+        end
+      end
+      
+      entities2
+    end
   private
     def player_input_regexp(nick, message)
       chat_regex = %r(: \<#{nick}\> .*#{message[0..[message.size - 1, 7].min]}.*)i
@@ -66,6 +94,22 @@ module Detectable
         kick(nick, "Spammy ratio #{ratio}")
         @kicked_for_spam << nick
       end
+    end
+    
+    def handle_frozen_projectiles
+      execute 'scoreboard objectives add isJunk dummy'
+      
+      PROJECTILES.each do |type|
+        execute "scoreboard players add @e[type=#{type}] isJunk 1"
+      end
+
+      sleep 5 # Give non-frozen projectiles time to land.
+
+      PROJECTILES.each do |type|
+        execute "kill @e[type=#{type},score_isJunk_min=1]"
+      end
+      
+      execute 'scoreboard objectives remove isJunk' # We don't want the scoreboard to grow and grow.
     end
   end
 end
