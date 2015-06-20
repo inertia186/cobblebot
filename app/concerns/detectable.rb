@@ -2,6 +2,12 @@ module Detectable
   extend Commandable
 
   PROJECTILES = %w(Arrow Fireball SmallFireball WitherSkull ThrownExpBottle ThrownPotion Snowball)
+  TROUBLE_MOBS = [
+    ['Zombie', '{Equipment:[0:{id:"minecraft:egg"}]}'],
+    ['Zombie', '{Equipment:[0:{id:"minecraft:slime_ball"}]}'],
+    ['Zombie', '{Equipment:[0:{id:"minecraft:rotten_flesh"}]}'],
+    ['Zombie', '{Equipment:[0:{id:"minecraft:string"}]}']
+  ]
   
   def self.included(base)
     base.extend ClassMethods
@@ -69,6 +75,22 @@ module Detectable
       
       entities2
     end
+
+    def detect_trouble_mobs
+      mobs = []
+      
+      TROUBLE_MOBS.map { |pair| pair[0] }.uniq do |type|
+        mobs += Server.entity_data(selector: "@e[type=#{type}]")
+      end
+      
+      return mobs unless mobs.any?
+
+      Thread.start do
+        handle_trouble_mobs
+      end
+      
+      mobs
+    end
   private
     def player_input_regexp(nick, message)
       chat_regex = %r(: \<#{nick}\> .*#{message[0..[message.size - 1, 7].min]}.*)i
@@ -96,20 +118,58 @@ module Detectable
       end
     end
     
-    def handle_frozen_projectiles
+    def on_junk(&block)
       execute 'scoreboard objectives add isJunk dummy'
-      
-      PROJECTILES.each do |type|
-        execute "scoreboard players add @e[type=#{type}] isJunk 1"
-      end
 
-      sleep 5 # Give non-frozen projectiles time to land.
-
-      PROJECTILES.each do |type|
-        execute "kill @e[type=#{type},score_isJunk_min=1]"
-      end
+      yield
       
-      execute 'scoreboard objectives remove isJunk' # We don't want the scoreboard to grow and grow.
+      # We don't want the scoreboard to grow and grow.
+      execute 'scoreboard objectives remove isJunk'
+    end
+    
+    # This method looks for all projectiles and markes them as junk.  Then, it
+    # allows them to land.  Any projectiles still loaded after waiting will be
+    # swept.  This will (hopefully) eliminate projectiles that have been loaded
+    # that are just floating in one place.
+    def handle_frozen_projectiles
+      on_junk do
+        PROJECTILES.each do |type|
+          # Mark
+          execute "scoreboard players add @e[type=#{type}] isJunk 1"
+        end
+
+        # Give non-frozen projectiles time to land.
+        sleep 5
+
+        PROJECTILES.each do |type|
+          # Sweep
+          execute "kill @e[type=#{type},score_isJunk_min=1]"
+        end
+      end
+    end
+
+    # This method looks for mobs that cannot despawn due to their held
+    # equipment.  Only certain types of equipment qualify, like eggs and rotten
+    # flesh.  If a mob is marked as junk, it is teleported to the void to keep
+    # them from dropping the same problem equipment for other mobs to pick up.
+    def handle_trouble_mobs
+      on_junk do
+        TROUBLE_MOBS.each do |pair|
+          # Mark
+          execute "scoreboard players add @e[type=#{pair[0]}] isJunk 1 #{pair[1]}"
+        end
+        
+        TROUBLE_MOBS.map { |pair| pair[0] }.uniq do |type| 
+          # This is useful for debugging and troubleshooting.  It allows the
+          # log to record which mobs were removed near which player.
+          execute "execute @e[type=#{type},score_isJunk_min=1] ~ ~ ~ playsound random.pop @a[r=32] ~ ~ ~ 1 1"
+          execute "execute @e[type=#{type},score_isJunk_min=1] ~ ~ ~ particle cloud ~ ~ ~ 0 0 0 0"
+          
+          # Sweep
+          # We use /tp instead of /kill to limit new drops.
+          execute "tp @e[type=#{type},score_isJunk_min=1] ~ ~-1000 ~"
+        end
+      end
     end
   end
 end
