@@ -159,7 +159,7 @@ module Detectable
           execute "scoreboard players add @e[type=#{pair[0]}] isJunk 1 #{pair[1]}"
         end
         
-        TROUBLE_MOBS.map { |pair| pair[0] }.uniq do |type| 
+        TROUBLE_MOBS.map { |pair| pair[0] }.uniq.each do |type| 
           # This is useful for debugging and troubleshooting.  It allows the
           # log to record which mobs were removed near which player.
           execute "execute @e[type=#{type},score_isJunk_min=1] ~ ~ ~ playsound random.pop @a[r=32] ~ ~ ~ 1 1"
