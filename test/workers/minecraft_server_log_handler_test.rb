@@ -66,12 +66,16 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     def Server.entity_data(options = {selector: "@e[c=1]", near_player: nil, radius: 0})
       return ['Frozen Projectile']
     end
+
+    refute Preference.is_junk_objective_timestamp, "did not expect is_junk_objective_timestamp, it was: #{Preference.is_junk_objective_timestamp}"
     
     assert_difference -> { Player.count }, 1, 'expect new player' do
       assert_callback_ran 'Player Authenticated' do
         ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')
       end
     end
+
+    assert Preference.is_junk_objective_timestamp, 'expect is_junk_objective_timestamp'
 
     assert_no_difference -> { Player.count }, 'did not expect new player' do
       ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')
@@ -98,6 +102,20 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_equal player.last_nick, 'yYPlayerYy', 'expect last_nick to update'
   end
 
+  def test_player_authenticated_is_junk_objective_timestamp
+    def Server.entity_data(options = {selector: "@e[c=1]", near_player: nil, radius: 0})
+      return ['Frozen Projectile']
+    end
+
+    refute Preference.is_junk_objective_timestamp, "did not expect is_junk_objective_timestamp, it was: #{Preference.is_junk_objective_timestamp}"
+    ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')
+    assert Preference.is_junk_objective_timestamp, 'expect is_junk_objective_timestamp'
+    travel 2.days do
+      ServerCommand.send(:handle_frozen_projectiles)
+      refute Preference.is_junk_objective_timestamp, "did not expect is_junk_objective_timestamp, it was: #{Preference.is_junk_objective_timestamp}"
+    end
+  end
+  
   def test_message_of_the_day
     assert_callback_ran 'Message of the Day' do
       ServerCallback::ServerEntry.handle('[08:57:14] [Server thread/INFO]: inertia186 joined the game')

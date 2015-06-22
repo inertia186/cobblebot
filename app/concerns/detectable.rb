@@ -68,9 +68,7 @@ module Detectable
       if entities.size == entities2.size
         # Second scan has the same result so projectiles might be stuck.
         
-        Thread.start do
-          handle_frozen_projectiles
-        end
+        handle_frozen_projectiles
       end
       
       entities2
@@ -85,9 +83,7 @@ module Detectable
       
       return mobs unless mobs.any?
 
-      Thread.start do
-        handle_trouble_mobs
-      end
+      handle_trouble_mobs
       
       mobs
     end
@@ -119,12 +115,22 @@ module Detectable
     end
     
     def on_junk(&block)
-      execute 'scoreboard objectives add isJunk dummy'
+      if !!Preference.is_junk_objective_timestamp
+        is_junk_objective_timestamp = Preference.is_junk_objective_timestamp.to_i
+        timestamp = Time.at(is_junk_objective_timestamp)
+      else
+        execute 'scoreboard objectives add isJunk dummy'
+        timestamp = Time.now
+        Preference.is_junk_objective_timestamp = timestamp.to_i
+      end
 
       yield
       
-      # We don't want the scoreboard to grow and grow.
-      execute 'scoreboard objectives remove isJunk'
+      if 24.hours.ago > timestamp
+        # We don't want the scoreboard to grow and grow.
+        execute 'scoreboard objectives remove isJunk'
+        Preference.is_junk_objective_timestamp = nil
+      end
     end
     
     # This method looks for all projectiles and markes them as junk.  Then, it
@@ -138,12 +144,9 @@ module Detectable
           execute "scoreboard players add @e[type=#{type}] isJunk 1"
         end
 
-        # Give non-frozen projectiles time to land.
-        sleep 5
-
         PROJECTILES.each do |type|
-          # Sweep
-          execute "kill @e[type=#{type},score_isJunk_min=1]"
+          # Sweep only projectiles that have been marked more than once.
+          execute "kill @e[type=#{type},score_isJunk_min=2]"
         end
       end
     end
