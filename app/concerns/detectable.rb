@@ -2,11 +2,30 @@ module Detectable
   extend Commandable
 
   PROJECTILES = %w(Arrow Fireball SmallFireball WitherSkull ThrownExpBottle ThrownPotion Snowball)
-  TROUBLE_MOBS = [
-    ['Zombie', '{Equipment:[0:{id:"minecraft:egg"}]}'],
-    ['Zombie', '{Equipment:[0:{id:"minecraft:slime_ball"}]}'],
-    ['Zombie', '{Equipment:[0:{id:"minecraft:rotten_flesh"}]}'],
-    ['Zombie', '{Equipment:[0:{id:"minecraft:string"}]}']
+  TROUBLE_ENTITIES = [
+    ['Item', '{Item:{id:minecraft:egg}}', 5],
+    
+    # These are zombies that have naturally picked up items that prevent them
+    # from naturally despawning.
+    ['Zombie', '{Equipment:[0:{id:"minecraft:egg"}]}', 5],
+    ['Zombie', '{Equipment:[0:{id:"minecraft:slime_ball"}]}', 5],
+    ['Zombie', '{Equipment:[0:{id:"minecraft:rotten_flesh"}]}', 5],
+    ['Zombie', '{Equipment:[0:{id:"minecraft:string"}]}', 5],
+    
+    # These are mobs that are probably building up in a mob grinder.  The more
+    # damaged, the more likely they'll be swept.
+    ['Zombie', '{Health:4s}', 1],
+    ['Zombie', '{Health:3s}', 2],
+    ['Zombie', '{Health:2s}', 3],
+    ['Zombie', '{Health:1s}', 4],
+    ['Skeleton', '{Health:4s}', 1],
+    ['Skeleton', '{Health:3s}', 2],
+    ['Skeleton', '{Health:2s}', 3],
+    ['Skeleton', '{Health:1s}', 4],
+    ['Blaze', '{Health:4s}', 1],
+    ['Blaze', '{Health:3s}', 2],
+    ['Blaze', '{Health:2s}', 3],
+    ['Blaze', '{Health:1s}', 4]
   ]
   
   def self.included(base)
@@ -57,35 +76,25 @@ module Detectable
         entities += Server.entity_data(selector: "@e[type=#{type}]")
       end
       
-      return entities unless entities.any?
+      return "Not evaluating frozen projectiles." unless entities.any?
 
-      entities2 = []
+      handle_frozen_projectiles
       
-      PROJECTILES.each do |type|
-        entities2 += Server.entity_data(selector: "@e[type=#{type}]")
-      end
-      
-      if entities.size == entities2.size
-        # Second scan has the same result so projectiles might be stuck.
-        
-        handle_frozen_projectiles
-      end
-      
-      entities2
+      "Evaluating frozen projectiles: #{entities.size}"
     end
 
-    def detect_trouble_mobs
-      mobs = []
+    def detect_trouble_entities
+      entities = []
       
-      TROUBLE_MOBS.map { |pair| pair[0] }.uniq do |type|
-        mobs += Server.entity_data(selector: "@e[type=#{type}]")
+      TROUBLE_ENTITIES.map { |pair| pair[0] }.uniq do |type|
+        entities += Server.entity_data(selector: "@e[type=#{type}]")
       end
       
-      return mobs unless mobs.any?
+      return entities unless entities.any?
 
-      handle_trouble_mobs
+      handle_trouble_entities
       
-      mobs
+      "Evaluating entities: #{entities.size}"
     end
   private
     def player_input_regexp(nick, message)
@@ -151,26 +160,27 @@ module Detectable
       end
     end
 
-    # This method looks for mobs that cannot despawn due to their held
-    # equipment.  Only certain types of equipment qualify, like eggs and rotten
-    # flesh.  If a mob is marked as junk, it is teleported to the void to keep
-    # them from dropping the same problem equipment for other mobs to pick up.
-    def handle_trouble_mobs
+    # This method looks for mobs that, for example cannot despawn due to their
+    # held equipment.  For some situations, only certain types of equipment
+    # qualify, like eggs and rotten flesh.  If a mob is marked as junk, it is
+    # teleported to the void to keep them from dropping the same problem
+    # equipment for other mobs to pick up.
+    def handle_trouble_entities
       on_junk do
-        TROUBLE_MOBS.each do |pair|
+        TROUBLE_ENTITIES.each do |data|
           # Mark
-          execute "scoreboard players add @e[type=#{pair[0]}] isJunk 1 #{pair[1]}"
+          execute "scoreboard players add @e[type=#{data[0]}] isJunk #{data[2]} #{data[1]}"
         end
         
-        TROUBLE_MOBS.map { |pair| pair[0] }.uniq.each do |type| 
+        TROUBLE_ENTITIES.map { |pair| pair[0] }.uniq.each do |type| 
           # This is useful for debugging and troubleshooting.  It allows the
           # log to record which mobs were removed near which player.
-          execute "execute @e[type=#{type},score_isJunk_min=1] ~ ~ ~ playsound random.pop @a[r=32] ~ ~ ~ 1 1"
-          execute "execute @e[type=#{type},score_isJunk_min=1] ~ ~ ~ particle cloud ~ ~ ~ 0 0 0 0"
+          execute "execute @e[type=#{type},score_isJunk_min=5] ~ ~ ~ playsound random.pop @a[r=32] ~ ~ ~ 1 1"
+          execute "execute @e[type=#{type},score_isJunk_min=5] ~ ~ ~ particle cloud ~ ~ ~ 0 0 0 0"
           
           # Sweep
-          # We use /tp instead of /kill to limit new drops.
-          execute "tp @e[type=#{type},score_isJunk_min=1] ~ ~-1000 ~"
+          # We use /tp instead of /kill to limit new drops from mobs.
+          execute "tp @e[type=#{type},score_isJunk_min=5] ~ ~-1000 ~"
         end
       end
     end
