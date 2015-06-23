@@ -13,6 +13,15 @@ class IrcBotTest < ActiveSupport::TestCase
   def test_perform
     IrcBot.perform
     IrcBot.perform('start_irc_bot' => true, debug: true)
+    
+    begin
+      IrcBot.perform('start_irc_bot' => true, debug: false)
+      # :nocov:
+      fail 'did not expect valid connection'
+      # :nocov:
+    rescue Errno::ECONNREFUSED => e
+      # success
+    end
   end
   
   def test_opself
