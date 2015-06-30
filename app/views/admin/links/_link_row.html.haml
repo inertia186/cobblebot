@@ -2,7 +2,10 @@
   %td
     = link_to link.title, link.url, target: link.to_param
   - unless @player
-    %td=link_to((link.actor.nick rescue '[REDACTED]'), "?player_id=#{link.actor_id}") if link.actor_type == 'Player'
+    - if link.actor_type == 'Player' && !!link.actor
+      %td=link_to(best_actor_name(link.actor_type, link.actor), admin_player_links_path(player_id: link.actor))
+    - else
+      %td N/A
   %td=created(link.created_at)
   %td
     %span{style: 'float: right'}

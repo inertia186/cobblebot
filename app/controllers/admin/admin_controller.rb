@@ -1,6 +1,7 @@
 class Admin::AdminController < ApplicationController
   helper_method :sign_in_admin
   helper_method :setup_params
+  helper_method :best_actor_name
 private
   def setup_params
     @filter = params[:filter].present? ? params[:filter] : 'all'
@@ -22,5 +23,12 @@ private
 
   def sign_in_admin
     session[:admin_signed_in] = true
+  end
+  
+  def best_actor_name(actor_type, actor)
+    return 'N/A' unless actor_type == 'Player'
+    return '[REDACTED]' if actor.nil?
+
+    actor.nick rescue '[REDACTED]'
   end
 end

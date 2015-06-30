@@ -22,7 +22,7 @@
     = hidden_field_tag :sort_field, @sort_field
     = hidden_field_tag :sort_order, @sort_order
     = hidden_field_tag :filter, @filter
-    = hidden_field_tag :player_id, @player_id
+    = hidden_field_tag :player_id, @player_id if @player_id.present?
     = text_field_tag :query, @query, placeholder: 'Query Text'
     = submit_tag 'Search', class: 'btn btn-info btn-xs'
 
@@ -39,7 +39,7 @@
         %thead
           %tr
             %th=sortable_header_link 'Title', 'lower(title)'
-            - unless @player_id
+            - unless @player_id.present?
               %th=sortable_header_link 'Linked By', 'link_linked_by'
             %th=sortable_header_link 'Created', 'created_at'
             %th

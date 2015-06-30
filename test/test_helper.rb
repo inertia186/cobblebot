@@ -37,6 +37,15 @@ class ActiveSupport::TestCase
     super
   end
 
+  def integrated_admin_sign_in
+    params = {
+      admin_password: Preference.web_admin_password
+    }
+    
+    delete admin_destroy_session_url
+    post admin_sessions_url(params)
+  end
+
   def ServerCommand.kick(nick, message = "Have A Nice Day")
     super
     

@@ -5,9 +5,8 @@ class Admin::LinksController < Admin::AdminController
   
   def index
     @player_id = params[:player_id]
-    @player = Player.find @player_id if @player_id.present?
-    
-    if @player
+
+    if @player_id.present? && !!( @player = Player.find @player_id )
       @links = @player.links
     else
       @links = Link.all
@@ -40,8 +39,7 @@ private
   
   def sort
     case @sort_field
-    when
-      sort_nulls = 
+    when 'link_linked_by'
       @links = @links.select("links.*, lower(players.nick) AS link_linked_by").
         joins("LEFT OUTER JOIN players ON ( links.actor_type = 'Player' AND links.actor_id = players.id )").
         order("#{@sort_field} #{@sort_order}")
@@ -51,6 +49,6 @@ private
   end
   
   def paginate
-    @links = @links.paginate(page: params[:page], per_page: 25)
+    @links = @links.paginate(page: params[:page], per_page: params[:per_page] || 25)
   end
 end
