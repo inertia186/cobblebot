@@ -240,7 +240,7 @@ module Sayable
       case callback.help_doc_key
       when 'help'
         topics = []
-        ServerCallback.enabled.where.not(help_doc_key: [nil, '']).order(:help_doc_key).each do |callback|
+        ServerCallback.enabled.has_help_docs.order(:help_doc_key).each do |callback|
           topics << callback.help_doc_key
         end
         

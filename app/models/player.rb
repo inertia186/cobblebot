@@ -26,36 +26,43 @@ class Player < ActiveRecord::Base
   }
   scope :logged_in_today, -> { where('players.last_login_at > ?', Time.now.beginning_of_day).order(:last_login_at) }
   scope :mode, lambda { |mode = :ops, enabled = true|
-    if enabled
-      where(uuid: Server.send(mode).map { |player| player["uuid"] })
-    else
-      where.not(uuid: Server.send(mode).map { |player| player["uuid"] })
-    end
+    relation = where(uuid: Server.send(mode).map { |player| player["uuid"] })
+    enabled ? relation : where.not(id: relation)
   }
   scope :opped, lambda { |opped = true| mode(:ops, opped) }
   scope :whitelisted, lambda { |whitelisted = true| mode(:whitelist, whitelisted) }
   scope :banned, lambda { |banned = true| mode(:banned_players, banned) }
   scope :matching_last_ip, lambda { |ip, matching_last_ip = true|
-    if matching_last_ip
-      where(last_ip: ip)
-    else
-      where.not(last_ip: ip)
-    end
+    relation = where(last_ip: ip)
+    matching_last_ip ? relation : where.not(id: relation)
   }
   scope :created_after, lambda { |timestamp| where(Player.arel_table[:created_at].gt(timestamp)) }
   scope :newly_created, -> { created_after(24.hours.ago) }
   scope :matching_banned_ip, lambda { |matching_banned_ip = true| matching_last_ip(Player.banned.select(:last_ip), matching_banned_ip) }
   scope :play_sounds, lambda { |play_sounds = true| where(play_sounds: play_sounds) }
   scope :registered, lambda { |registered = true|
-    if registered
-      where.not(registered_at: nil)
-    else
-      where(registered_at: nil)
-    end
+    relation = where.not(registered_at: nil)
+    registered ? relation : where.not(id: relation)
   }
   scope :origin, lambda { |origin| joins(:ips).where(Ip.arel_table[:origin].in(origin)) }
   scope :address, lambda { |address| joins(:ips).where(Ip.arel_table[:address].in(address)) }
   scope :may_autolink, lambda { |may_autolink = true| where(may_autolink: may_autolink) }
+  scope :has_links, lambda { |has_links = true|
+    relation = joins(:links).uniq
+    has_links ? relation : where.not(id: relation)
+  }
+  scope :has_messages, lambda { |has_messages = true|
+    relation = joins(:messages).uniq
+    has_messages ? relation : where.not(id: relation)
+  }
+  scope :has_tips, lambda { |has_tips = true|
+    relation = joins(:tips).uniq
+    has_tips ? relation : where.not(id: relation)
+  }
+  scope :has_ips, lambda { |has_ips = true|
+    relation = joins(:ips).uniq
+    has_ips ? relation : where.not(id: relation)
+  }
 
   has_many :links, as: :actor
   has_many :messages, -> { where(type: nil) }, as: :recipient
@@ -69,8 +76,15 @@ class Player < ActiveRecord::Base
     all.map(&:explore_all_biome_progress).map(&:to_i).max
   end
 
-  def players_with_same_ip
-    Player.where(id: Ip.where(id: ips.select(:id)).where.not(player_id: id) )
+  def players_with_same_ip(options = {})
+    a = options[:except_address] || []
+    o = options[:except_origin] || []
+    
+    other_ips = Ip.where(address: ips.where.not(address: a, origin: o).
+      select(:address)).
+      where.not(player_id: id)
+      
+    Player.where(id: other_ips.distinct(:player_id).select(:player_id))
   end
 
   def to_param

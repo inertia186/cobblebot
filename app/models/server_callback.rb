@@ -28,26 +28,17 @@ class ServerCallback < ActiveRecord::Base
   scope :server_entry, -> { type('ServerCallback::ServerEntry') }
   scope :enabled, lambda { |enabled = true| where(enabled: enabled) }
   scope :ready, lambda { |ready = true|
-    if ready
-      enabled.where('server_callbacks.ran_at IS NULL OR datetime(server_callbacks.ran_at, server_callbacks.cooldown) <= ?', Time.now)
-    else
-      enabled.where('server_callbacks.ran_at IS NOT NULL AND datetime(server_callbacks.ran_at, server_callbacks.cooldown) > ?', Time.now)
-    end
+    relation = enabled.where('server_callbacks.ran_at IS NULL OR datetime(server_callbacks.ran_at, server_callbacks.cooldown) <= ?', Time.now)
+    ready ? relation : where.not(id: relation)
   }
   scope :error_flagged, lambda { |error_flagged = true|
-    if error_flagged
-      where('server_callbacks.error_flag_at IS NOT NULL')
-    else
-      where('server_callbacks.error_flag_at IS NULL')
-    end
+    relation = where('server_callbacks.error_flag_at IS NOT NULL')
+    error_flagged ? relation : where.not(id: relation)
   }
   scope :dirty, -> { where("server_callbacks.last_match IS NOT NULL OR server_callbacks.last_command_output IS NOT NULL OR server_callbacks.ran_at IS NOT NULL") }
   scope :needs_prettification, lambda { |needs_prettification = true|
-    if needs_prettification
-      where('server_callbacks.pretty_pattern IS NULL OR server_callbacks.pretty_command IS NULL')
-    else
-      where('server_callbacks.pretty_pattern IS NOT NULL AND server_callbacks.pretty_command IS NOT NULL')
-    end
+    relation = where('server_callbacks.pretty_pattern IS NULL OR server_callbacks.pretty_command IS NULL')
+    needs_prettification ? relation : where.not(id: relation)
   }
   scope :query, lambda { |query|
     clause = <<-DONE
@@ -59,7 +50,10 @@ class ServerCallback < ActiveRecord::Base
     DONE
     where(clause, query, query, query, query, query)
   }
-  scope :has_help_docs, -> { where.not(help_doc_key: nil) }
+  scope :has_help_docs, lambda { |has_help_docs = true|
+    relation = where.not(help_doc_key: [nil, ''])
+    has_help_docs ? relation : where.not(id: relation)
+  }
   
   def self.for_handling(line)
     raise "Cannot handle undefine callback type for: #{line}"
