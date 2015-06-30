@@ -86,6 +86,7 @@ ServerCallback::ServerEntry.send method, name: 'Anvil Death', pattern: "/squashe
 ServerCallback::ServerEntry.send method, name: 'Bat Death?', pattern: "/by Bat/", command: "play_sound \"@a\", \"to_the_batcave\"", system: 'f'
 ServerCallback::ServerEntry.send method, name: 'Fireballed to Death', pattern: "/fireballed/", command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"", system: 'f'
 ServerCallback::ServerEntry.send method, name: 'Just Died', pattern: "/died$/", command: "play_sound \"@a\", \"family_guy_bruce_what\"", system: 'f'
+ServerCallback::ServerEntry.send method, name: 'Killer Bunny', pattern: "/was slain by The Killer Bunny$/", command: "play_sound \"@a\", \"cf_horn\"", system: 'f'
 
 # Server sounds ...
 ServerCallback::ServerEntry.send method, name: 'Flying Kick', pattern: "/was kicked for floating too long/", command: "play_sound \"@a\", \"smas_smb3_thud\"", system: 'f'
