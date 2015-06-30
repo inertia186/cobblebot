@@ -86,7 +86,7 @@ module Detectable
     def detect_trouble_entities
       entities = []
       
-      TROUBLE_ENTITIES.map { |pair| pair[0] }.uniq do |type|
+      TROUBLE_ENTITIES.map { |data| data[0] }.uniq do |type|
         entities += Server.entity_data(selector: "@e[type=#{type}]")
       end
       
@@ -172,7 +172,7 @@ module Detectable
           execute "scoreboard players add @e[type=#{data[0]}] isJunk #{data[2]} #{data[1]}"
         end
         
-        TROUBLE_ENTITIES.map { |pair| pair[0] }.uniq.each do |type| 
+        TROUBLE_ENTITIES.map { |data| data[0] }.uniq.each do |type| 
           # This is useful for debugging and troubleshooting.  It allows the
           # log to record which mobs were removed near which player.
           execute "execute @e[type=#{type},score_isJunk_min=5] ~ ~ ~ playsound random.pop @a[r=32] ~ ~ ~ 1 1"
