@@ -28,17 +28,20 @@ class ServerCallback < ActiveRecord::Base
   scope :server_entry, -> { type('ServerCallback::ServerEntry') }
   scope :enabled, lambda { |enabled = true| where(enabled: enabled) }
   scope :ready, lambda { |ready = true|
-    relation = enabled.where('server_callbacks.ran_at IS NULL OR datetime(server_callbacks.ran_at, server_callbacks.cooldown) <= ?', Time.now)
-    ready ? relation : where.not(id: relation)
+    enabled.where('server_callbacks.ran_at IS NULL OR datetime(server_callbacks.ran_at, server_callbacks.cooldown) <= ?', Time.now).tap do |r|
+      return ready ? r : where.not(id: r)
+    end
   }
   scope :error_flagged, lambda { |error_flagged = true|
-    relation = where('server_callbacks.error_flag_at IS NOT NULL')
-    error_flagged ? relation : where.not(id: relation)
+    where('server_callbacks.error_flag_at IS NOT NULL').tap do |r|
+      return error_flagged ? r : where.not(id: r)
+    end
   }
   scope :dirty, -> { where("server_callbacks.last_match IS NOT NULL OR server_callbacks.last_command_output IS NOT NULL OR server_callbacks.ran_at IS NOT NULL") }
   scope :needs_prettification, lambda { |needs_prettification = true|
-    relation = where('server_callbacks.pretty_pattern IS NULL OR server_callbacks.pretty_command IS NULL')
-    needs_prettification ? relation : where.not(id: relation)
+    where('server_callbacks.pretty_pattern IS NULL OR server_callbacks.pretty_command IS NULL').tap do |r|
+      return needs_prettification ? r : where.not(id: r)
+    end
   }
   scope :query, lambda { |query|
     clause = <<-DONE
@@ -51,8 +54,9 @@ class ServerCallback < ActiveRecord::Base
     where(clause, query, query, query, query, query)
   }
   scope :has_help_docs, lambda { |has_help_docs = true|
-    relation = where.not(help_doc_key: [nil, ''])
-    has_help_docs ? relation : where.not(id: relation)
+    where.not(help_doc_key: [nil, '']).tap do |r|
+      return has_help_docs ? r : where.not(id: r)
+    end
   }
   
   def self.for_handling(line)

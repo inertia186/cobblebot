@@ -108,6 +108,16 @@ class ServerCallbackTest < ActiveSupport::TestCase
     assert ServerCallback.needs_prettification(false).none?, 'did not expect needs prettification'
   end
 
+  def test_has_help_docs
+    assert (callbacks = ServerCallback.has_help_docs).any?, 'expect callbacks with help docs'
+    assert callbacks.map(&:help_doc_key).uniq.size > 0, 'expect callbacks with help docs'
+  end
+
+  def test_not_has_help_docs
+    assert (callbacks = ServerCallback.has_help_docs(false)).any?, 'expect callbacks without help docs'
+    assert (keys = callbacks.map(&:help_doc_key).uniq).size == 1 && keys == [nil], 'expect callbacks without help docs'
+  end
+
   def test_query
     assert ServerCallback.query('%').any?, 'expect query'
   end

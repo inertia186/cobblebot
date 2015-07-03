@@ -11,8 +11,7 @@ class Message < ActiveRecord::Base
   }
   
   scope :read, lambda { |read = true|
-    relation = where.not(read_at: since)
-    read ? relation : where.not(id: relation)
+    where.not(read_at: nil).tap { |r| return read ? r : where.not(id: r) }
   }
   
   scope :read_since, lambda { |since|

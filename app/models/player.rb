@@ -26,42 +26,49 @@ class Player < ActiveRecord::Base
   }
   scope :logged_in_today, -> { where('players.last_login_at > ?', Time.now.beginning_of_day).order(:last_login_at) }
   scope :mode, lambda { |mode = :ops, enabled = true|
-    relation = where(uuid: Server.send(mode).map { |player| player["uuid"] })
-    enabled ? relation : where.not(id: relation)
+    where(uuid: Server.send(mode).map { |player| player["uuid"] }).tap do |r|
+      return enabled ? r : where.not(id: r)
+    end
   }
   scope :opped, lambda { |opped = true| mode(:ops, opped) }
   scope :whitelisted, lambda { |whitelisted = true| mode(:whitelist, whitelisted) }
   scope :banned, lambda { |banned = true| mode(:banned_players, banned) }
   scope :matching_last_ip, lambda { |ip, matching_last_ip = true|
-    relation = where(last_ip: ip)
-    matching_last_ip ? relation : where.not(id: relation)
+    where(last_ip: ip).tap do |r|
+      return matching_last_ip ? r : where.not(id: r)
+    end
   }
   scope :created_after, lambda { |timestamp| where(Player.arel_table[:created_at].gt(timestamp)) }
   scope :newly_created, -> { created_after(24.hours.ago) }
   scope :matching_banned_ip, lambda { |matching_banned_ip = true| matching_last_ip(Player.banned.select(:last_ip), matching_banned_ip) }
   scope :play_sounds, lambda { |play_sounds = true| where(play_sounds: play_sounds) }
   scope :registered, lambda { |registered = true|
-    relation = where.not(registered_at: nil)
-    registered ? relation : where.not(id: relation)
+    where.not(registered_at: nil).tap do |r|
+      return r ? relation : where.not(id: r)
+    end
   }
   scope :origin, lambda { |origin| joins(:ips).where(Ip.arel_table[:origin].in(origin)) }
   scope :address, lambda { |address| joins(:ips).where(Ip.arel_table[:address].in(address)) }
   scope :may_autolink, lambda { |may_autolink = true| where(may_autolink: may_autolink) }
   scope :has_links, lambda { |has_links = true|
-    relation = joins(:links).uniq
-    has_links ? relation : where.not(id: relation)
+    joins(:links).uniq.tap do |r|
+      return has_links ? r : where.not(id: r)
+    end
   }
   scope :has_messages, lambda { |has_messages = true|
-    relation = joins(:messages).uniq
-    has_messages ? relation : where.not(id: relation)
+    joins(:messages).uniq.tap do |r|
+      return has_messages ? r : where.not(id: r)
+    end
   }
   scope :has_tips, lambda { |has_tips = true|
-    relation = joins(:tips).uniq
-    has_tips ? relation : where.not(id: relation)
+    joins(:tips).uniq.tap do |r|
+      return has_tips ? r : where.not(id: r)
+    end
   }
   scope :has_ips, lambda { |has_ips = true|
-    relation = joins(:ips).uniq
-    has_ips ? relation : where.not(id: relation)
+    joins(:ips).uniq.tap do |r|
+      return has_ips ? r : where.not(id: r)
+    end
   }
 
   has_many :links, as: :actor

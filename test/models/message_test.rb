@@ -26,4 +26,11 @@ class MessageTest < ActiveSupport::TestCase
     refute Message::Tip.query("\#{1/0}").any?, 'did not expect results from ruby injection attempt'
     assert Message::Tip.query.any?, 'expect all results'
   end
+  
+  def test_read
+    message = Message.create(recipient_term: '@dinnerbone', body: 'Hello, Mr. Adams.')
+    
+    refute (read = Message.read).any?, "did not expect read, was: #{read.map(&:body)}"
+    assert Message.read(false).any?, 'expect unread'
+  end
 end
