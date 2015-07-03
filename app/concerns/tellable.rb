@@ -66,5 +66,30 @@ module Tellable
         tell(nick, "Tip not added.")
       end
     end
+
+    def tell_mail(nick)
+      player = Player.find_by_nick nick
+      return if player.nil?
+
+      if (mail = player.messages.unread_or_read_since(2.months.ago)).any?
+        mail.each do |message|
+          execute <<-DONE
+            tellraw #{nick} [
+              {
+                "color": "gray", "text": "#{distance_of_time_in_words_to_now(message.created_at)} ago: ",
+                "hoverEvent": {
+                  "action": "show_text", "value": "#{message.created_at.to_s}"
+                }
+              },
+              { "color": "gray", "text": "<#{message.author.nick rescue '???'}> #{message.body}" }
+            ]
+          DONE
+        
+          message.touch(:read_at) # no AR callbacks
+        end
+      else
+        tell(nick, "No mail.")        
+      end
+    end
   end
 end

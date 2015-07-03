@@ -29,7 +29,7 @@ module Sayable
       end
       
       # FIXME The 'command' option should come from the callback record, not hardcoded.
-      return say_nick_not_found(selector, nick, command: '@server playercheck') unless !!(player = players.first)
+      return say_nick_not_found(selector, nick, command: '@server playercheck %nick%') unless !!(player = players.first)
 
       line_1a = "Latest activity for #{player.nick} was "
       line_1b = distance_of_time_in_words_to_now(player.last_activity_at)
@@ -92,6 +92,7 @@ module Sayable
       if players.any?
         results << line_2 = "Did you mean: #{players.first.nick}"
         if !!selector && !!options[:command]
+          cmd = options[:command].gsub("%nick%", players.first.nick)
           execute(
           <<-DONE
             tellraw #{selector} [
@@ -99,7 +100,7 @@ module Sayable
               {
                 "color": "dark_purple", "underlined": "true", "text": "#{players.first.nick}",
                 "clickEvent": {
-                  "action": "run_command", "value": "#{options[:command]} #{players.first.nick}"
+                  "action": "suggest_command", "value": "#{cmd}"
                 }
               }
             ]
@@ -252,7 +253,7 @@ module Sayable
       target = Player.any_nick(nick).first
       
       # FIXME The 'command' option should come from the callback record, not hardcoded.
-      return say_nick_not_found(selector, nick, command: '@server origin') if target.nil?
+      return say_nick_not_found(selector, nick, command: '@server origin %nick%') if target.nil?
 
       execute <<-DONE
         tellraw #{selector} [{ "color": "white", "text": "[Server] Origin of #{target.nick}: "}, { "color": "green", "text": "#{target.origins.join(', ')}" }]

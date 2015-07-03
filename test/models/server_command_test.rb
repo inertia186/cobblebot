@@ -194,4 +194,25 @@ class ServerCommandTest < ActiveSupport::TestCase
   def test_eval_command_with_options
     assert ServerCommand.eval_command('options[:element] == 2', 'command_name', {element: 1 + 1}), 'expect options evaluated'
   end
+  
+  def test_send_mail
+    inertia186 = Player.find_by_nick 'inertia186'
+
+    assert_command_executed do
+      assert_difference -> { inertia186.reload.messages.count }, 1, 'expect new message' do
+        ServerCommand.send_mail('Dinnerbone', 'inertia186', 'test message')
+      end
+    end
+  end
+
+  def test_tell_mail
+    inertia186 = Player.find_by_nick 'inertia186'
+    inertia186.messages.create(body: 'test message', recipient_term: '@inertia186')
+    
+    assert_command_executed do
+      assert_difference -> { inertia186.messages.read.count }, 1, 'expect read message' do
+        ServerCommand.tell_mail('inertia186')
+      end
+    end
+  end
 end

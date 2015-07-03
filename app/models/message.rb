@@ -22,6 +22,14 @@ class Message < ActiveRecord::Base
     where("messages.read_at IS NULL OR messages.read_at < ?", since)
   }
   
+  scope :created_since, lambda { |since|
+    where("messages.created_at > ?", since)
+  }
+
+  scope :unread_or_read_since, lambda { |since|
+    where("messages.read_at IS NULL OR messages.read_at > ?", since)
+  }
+  
   scope :messages, -> { where(type: nil) }
   scope :latest, lambda { |latest = 10| order(:created_at).limit(latest) }
 

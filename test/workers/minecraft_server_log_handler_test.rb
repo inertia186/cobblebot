@@ -700,6 +700,26 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_mail
+    inertia186 = Player.find_by_nick('inertia186')
+
+    callback = ServerCallback.find_by_name('Send Mail')
+    assert_difference -> { inertia186.messages.read(false).count }, 1, 'expected unread' do
+      assert_callback_ran callback do
+        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <Dinnerbone> @inertia186 Hello there!')
+      end
+    end
+
+    ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player inertia186 is d6edf996-6182-4d58-ac1b-4ca0321fb748')
+    
+    callback = ServerCallback.find_by_name('Read Mail')
+    assert_difference -> { inertia186.messages.read.count }, 1, 'expected read' do
+      assert_callback_ran callback do
+        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail')
+      end
+    end
+  end
+  
   def test_unknown_callback
     refute_callback_ran "Unknown" do
       ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> test')
