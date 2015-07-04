@@ -1,0 +1,14 @@
+%tr{id: "message_tr_#{message.id}", data: { id: message.id } }
+  - unless @author_id.present?
+    - if message.author_type == 'Player' && !!message.author
+      %td=link_to(best_actor_name(message.author_type, message.author), admin_player_messages_path(player_id: message.author))
+    - else
+      %td N/A
+  - unless @recipient_id.present?
+    - if message.recipient_type == 'Player' && !!message.recipient
+      %td=link_to(best_actor_name(message.recipient_type, message.recipient), admin_player_messages_path(player_id: message.recipient))
+    - else
+      %td N/A
+  %td=message.body
+  %td=relative_time(message.read_at)
+  %td=relative_time(message.created_at)

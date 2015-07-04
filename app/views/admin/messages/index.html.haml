@@ -1,0 +1,56 @@
+= content_for :head, auto_discovery_link_tag(:atom, "http://admin:#{Preference.web_admin_password}@#{admin_messages_url(format: :atom).split('://')[1]}")
+
+.row
+  %h3
+    Messages
+    - if @author
+      by
+      = link_to @author.nick, admin_player_path(@author)
+    - if @recipient
+      for
+      = link_to @recipient.nick, admin_player_path(@recipient)
+    %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_messages'}} ?
+  .modal.fade#explain_messages{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_messages_label', 'aria-hidden' => true}
+    .modal-dialog
+      .modal-content
+        .modal-header
+          %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+            %span{'aria-hidden' => true} &times;
+          %h4.modal-title#explain_messages_label Explanation of Messages
+        .modal-body
+          %p TODO
+
+%div{style: 'float: right'}
+  = form_tag url_for(action: controller.action_name), method: :get do
+    = hidden_field_tag :sort_field, @sort_field
+    = hidden_field_tag :sort_order, @sort_order
+    = hidden_field_tag :filter, @filter
+    = hidden_field_tag :author_id, @author_id if @author_id.present?
+    = text_field_tag :query, @query, placeholder: 'Query Text'
+    = submit_tag 'Search', class: 'btn btn-info btn-xs'
+
+%ul.nav.nav-tabs
+  %li{class: @filter == 'all' ? 'active' : ''}
+    = link_to 'All', admin_messages_path(author_id: @author_id), 'aria-controls' => "all"
+  %li{class: @filter == 'only_today' ? 'active' : ''}
+    = link_to 'Today', admin_messages_path(author_id: @author_id, filter: 'only_today'), 'aria-controls' => "non-system"
+
+.tab-contents
+  .tab-panel.tab-pane.active
+    .row.table-responsive
+      %table.table
+        %thead
+          %tr
+            - unless @author_id.present?
+              %th=sortable_header_link 'Author', 'message_author_nick'
+            - unless @recipient_id.present?
+              %th=sortable_header_link 'Recipient', 'message_recipient_nick'
+            %th=sortable_header_link 'Body', 'lower(body)'
+            %th=sortable_header_link 'Read', 'read_at'
+            %th=sortable_header_link 'Created', 'created_at'
+            %th
+        %tbody
+          - @messages.each do |message|
+            = render 'message_row', message: message
+
+%p= will_paginate @messages

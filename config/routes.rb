@@ -64,9 +64,11 @@ Rails.application.routes.draw do
       end
     end
     resources :links, except: [:new, :create, :edit, :update]
+    resources :messages, except: [:new, :create, :edit, :update]
     resources :ips, only: [:index]
     resources :players, except: [:new, :create, :edit, :update] do
       resources :links, except: [:new, :create, :edit, :update]
+      resources :messages, except: [:new, :create, :edit, :update]
     end
     
     resources :sessions, only: [:new, :create]

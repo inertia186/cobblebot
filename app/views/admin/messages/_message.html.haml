@@ -1,0 +1,26 @@
+%table.table
+  %tr
+    %th Author Nick
+    %td=message.author.nick
+  %tr
+    %th Recipient Nick
+    %td=message.recipient.nick
+  %tr
+    %th Body
+    %td= message.body
+  %tr
+    %th Read
+    %td= relative_time(message.read_at)
+  %tr
+    %th Created
+    %td= relative_time(message.created_at)
+    
+.modal-footer
+  %span{style: 'float: left;'}
+    = link_remote_delete(admin_message_path(message))
+  %span{style: 'float: right;'}
+    - if defined? modal
+      = modal_nav_links(admin_messages_path, "message")
+      %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close
+    - else
+      = link_to 'Close', admin_messages_path, class: 'btn btn-default'

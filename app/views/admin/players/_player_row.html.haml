@@ -3,9 +3,10 @@
   %td= player.last_nick
   %td= player.spam_ratio
   %td= link_to player.links.count, admin_player_links_path(player_id: player)
+  %td= link_to player.messages.count, admin_player_messages_path(player_id: player)
   %td= last_login(player.last_login_at)
   %td= player.biomes_explored
-  %td= created(player.created_at)
+  %td= relative_time(player.created_at)
   %td
     %span{style: 'float: right'}
       = link_to 'Show', admin_player_path(player), class: 'btn btn-info btn-xs', data: { remote: true, toggle: :modal, target: '#show_player'}
