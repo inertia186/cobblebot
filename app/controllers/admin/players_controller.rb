@@ -40,6 +40,9 @@ private
     when 'links_count'
       @players = @players.select("players.*, ( SELECT COUNT(*) FROM links WHERE players.id = links.actor_id AND links.actor_type = 'Player') AS links_count").
         order("#{@sort_field} #{@sort_order}")
+    when 'messages_count'
+      @players = @players.select("players.*, ( SELECT COUNT(*) FROM messages WHERE players.id = messages.recipient_id AND messages.recipient_type = 'Player') AS messages_count").
+        order("#{@sort_field} #{@sort_order}")
     else
       @players = @players.order("#{@sort_field} #{@sort_order}")
     end
