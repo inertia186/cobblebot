@@ -73,6 +73,7 @@ module Tellable
 
       if (mail = player.messages.unread_or_read_since(2.months.ago)).any?
         mail.each do |message|
+          body = message.body
           execute <<-DONE
             tellraw #{nick} [
               {
@@ -81,9 +82,10 @@ module Tellable
                   "action": "show_text", "value": "#{message.created_at.to_s}"
                 }
               },
-              { "color": "gray", "text": "<#{message.author.nick rescue '???'}> #{message.body}" }
+              { "color": "gray", "text": "<#{message.author.nick rescue '???'}> #{body}" }
             ]
           DONE
+          say_link(nick, body) if body =~ /^http.*/i
         
           message.touch(:read_at) # no AR callbacks
         end

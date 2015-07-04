@@ -12,7 +12,8 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       to_return(status: 200)
     stub_request(:get, "https://www.youtube.com/watch?v=OdSkx7QmO7k").
       to_return(status: 200)
-
+    stub_request(:get, "http://www.mojang.com/").
+      to_return(status: 200)
   end
 
   def test_check_version
@@ -704,16 +705,17 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     inertia186 = Player.find_by_nick('inertia186')
 
     callback = ServerCallback.find_by_name('Send Mail')
-    assert_difference -> { inertia186.messages.read(false).count }, 1, 'expected unread' do
+    assert_difference -> { inertia186.messages.read(false).count }, 2, 'expected unread' do
       assert_callback_ran callback do
         ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <Dinnerbone> @inertia186 Hello there!')
+        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <Dinnerbone> @inertia186 Check this out: http://www.mojang.com/')
       end
     end
 
     ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player inertia186 is d6edf996-6182-4d58-ac1b-4ca0321fb748')
     
     callback = ServerCallback.find_by_name('Read Mail')
-    assert_difference -> { inertia186.messages.read.count }, 1, 'expected read' do
+    assert_difference -> { inertia186.messages.read.count }, 2, 'expected read' do
       assert_callback_ran callback do
         ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail')
       end

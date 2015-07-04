@@ -50,7 +50,7 @@ class PlayerTest < ActiveSupport::TestCase
   end
 
   def test_has_messages
-    refute (relation = Player.has_messages).any?, "did not expect has messages, got: #{relation.map(&:nick)}"
+    assert (relation = Player.has_messages).any?, "expect has messages"
     assert Player.has_messages(false).any?, 'expected non-has messages'
   end
 

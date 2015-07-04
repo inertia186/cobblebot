@@ -83,6 +83,7 @@ Rails.application.routes.draw do
     scope module: :v1, constraints: ApiConstraints.new(version: 1, default: 1) do
       resource :session, only: %w(create update destroy)
       resources :players, only: %w(index show)
+      resources :messages, only: %w(index show)
     end
   end
 end

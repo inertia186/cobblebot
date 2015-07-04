@@ -1,0 +1,15 @@
+nether_horses:
+  body: 'Where have all of the nether horses gone?'
+  author: inertia186
+  author_type: 'Player'
+  recipient: Dinnerbone
+  recipient_type: 'Player'
+  recipient_term: '@dinnerbone'
+
+secure_oceans:
+  body: 'http://i.imgur.com/aRko3NI.jpg'
+  author: inertia186
+  author_type: 'Player'
+  recipient: Dinnerbone
+  recipient_type: 'Player'
+  recipient_term: '@dinnerbone'
