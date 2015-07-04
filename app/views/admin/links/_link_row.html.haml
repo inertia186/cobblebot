@@ -6,7 +6,7 @@
       %td=link_to(best_actor_name(link.actor_type, link.actor), admin_player_links_path(player_id: link.actor))
     - else
       %td N/A
-  %td=created(link.created_at)
+  %td=relative_time(link.created_at)
   %td
     %span{style: 'float: right'}
       - if link.can_embed?

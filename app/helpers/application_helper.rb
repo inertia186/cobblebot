@@ -19,8 +19,8 @@ module ApplicationHelper
     link_to name, url_for(options)
   end
   
-  def created(created_at)
-    "#{distance_of_time_in_words_to_now(created_at)} ago"
+  def relative_time(date)
+    "#{distance_of_time_in_words_to_now(date)} ago" unless date.nil?
   end
   
   def modal_nav_links(path, id)

@@ -3,4 +3,4 @@
   %td=link_to ip.origin, admin_ips_path(origin: ip.origin)
   - unless @player
     %td=link_to((ip.player.nick rescue '[REDACTED]'), admin_ips_path(player_id: ip.player_id))
-  %td=created(ip.created_at)
+  %td=relative_time(ip.created_at)
