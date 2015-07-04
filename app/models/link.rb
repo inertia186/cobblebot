@@ -105,6 +105,8 @@ class Link < ActiveRecord::Base
     can_embed
   rescue Mechanize::ResponseCodeError => e
     update_attribute(:can_embed, false) # no AR callbacks
+  rescue Errno::ENETUNREACH => e
+    # try again later
   end
 private
   def populate_from_get_response(url, link)
