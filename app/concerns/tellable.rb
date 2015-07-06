@@ -88,8 +88,8 @@ module Tellable
             end
             return tell(nick, "Here is the list of players you have muted: #{nicks}")
           elsif args == '@a'
-            Server.players.map(&:nick).each do
-              tell_mail(nick, "mute #{nick}")
+            Server.players.map(&:nick).each do |to_mute_nick|
+              tell_mail(nick, "mute #{to_mute_nick}")
             end
             
             return
