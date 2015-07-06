@@ -96,6 +96,8 @@ module Commandable
         return 
       end
 
+      # TODO Also check how many biomes the player has explored before allowing them to register.
+
       if player.registered?
         tell(nick, 'Already registered.')
         return 

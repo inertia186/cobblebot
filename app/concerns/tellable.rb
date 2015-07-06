@@ -67,22 +67,122 @@ module Tellable
       end
     end
 
-    def tell_mail(nick)
+    def tell_mail(nick, sub_command = nil)
       player = Player.find_by_nick nick
       return if player.nil?
 
-      if (mail = player.messages.unread_or_read_since(2.months.ago)).any?
+      sub_command, args = sub_command.to_s.strip.downcase.split(' ')
+      
+      if sub_command.present?
+        case sub_command
+        when 'clear'
+          count = player.messages.deleted(false).muted(false).update_all(deleted_at: Time.now)
+          tell(nick, "#{pluralize(count, 'message')} cleared.")
+        when 'mute'
+          if args.nil?
+            nicks = player.muted_players.map(&:nick)
+            nicks = if nicks.any?
+              nicks.to_sentence
+            else
+              'none'
+            end
+            return tell(nick, "Here is the list of players you have muted: #{nicks}")
+          elsif args == '@a'
+            Server.players.map(&:nick).each do
+              tell_mail(nick, "mute #{nick}")
+            end
+            
+            return
+          elsif args == '@r' || args == '@p'
+            args = Server.players.sample.nick
+          elsif args == '@e'
+            return tell(nick, "Spy Chicken has been muted.")
+          end
+          
+          to_mutes = Player.nick(args) # Favor an exact match (ignoring case).
+          if to_mutes.none?
+            # Next, favor player who matches with a preference for the most recent activity.
+            to_mutes = Player.any_nick(args).order(:updated_at)
+          end
+    
+          # FIXME The 'command' option should come from the callback record, not hardcoded.
+          return say_nick_not_found(nick, args, command: "@server mail mute %nick%") unless !!(to_mute = to_mutes.first)
+          
+          return tell(nick, "#{to_mute.nick} has already been muted.") if player.muted_players.include?(to_mute)
+          
+          mute = player.mutes.build(muted_player: to_mute)
+          if mute.save
+            tell(nick, "#{to_mute.nick} has been muted.")
+          else
+            tell(nick, "#{to_mute.nick} has not been muted: #{mute.errors.messages.first.last[0]}")
+          end
+        when 'unmute'
+          if args.nil?
+            nicks = player.muted_players.map(&:nick)
+            nicks = if nicks.any?
+              nicks.to_sentence
+            else
+              'none'
+            end
+            return tell(nick, "Here is the list of players you have muted: #{nicks}")
+          elsif args == '@r' || args == '@p'
+            args = Server.players.sample.nick
+          elsif args == '@a'
+            count = player.mutes.where(id: Server.players).destroy_all.size
+            return tell(nick, "Unmuted #{pluralize(count, 'player')}.")
+          elsif args == '@e'
+            return tell(nick, "Spy Chicken has been unmuted.")
+          end
+          
+          to_unmutes = Player.nick(args) # Favor an exact match (ignoring case).
+          if to_unmutes.none?
+            # Next, favor player who matches with a preference for the most recent activity.
+            to_unmutes = Player.any_nick(args).order(:updated_at)
+          end
+    
+          # FIXME The 'command' option should come from the callback record, not hardcoded.
+          return say_nick_not_found(nick, args, command: "@server mail unmute %nick%") unless !!(to_unmute = to_unmutes.first)
+          
+          mute = player.mutes.find_by_muted_player_id to_unmute
+          
+          if mute.nil?
+            tell(nick, "#{to_unmute.nick} has not been unmuted because they were not first muted.")
+          elsif !mute.destroy.persisted?
+            tell(nick, "#{to_unmute.nick} has been unmuted.")
+          else
+            tell(nick, "#{to_unmute.nick} has not been unmuted: #{mute.errors.messages.first.last}")
+          end
+        else
+          say_help(nick, 'mail')
+        end
+        
+        return
+      end
+
+      if (mail = player.messages.deleted(false).muted(false)).any?
         mail.each do |message|
+          author_nick = message.author.nick rescue '???'
           body = message.body
+          color = if message.read_at.nil?
+            'gray'
+          else
+            'dark_gray'
+          end
+          
           execute <<-DONE
             tellraw #{nick} [
               {
-                "color": "gray", "text": "#{distance_of_time_in_words_to_now(message.created_at)} ago: ",
+                "color": "#{color}", "text": "#{distance_of_time_in_words_to_now(message.created_at)} ago: ",
                 "hoverEvent": {
                   "action": "show_text", "value": "#{message.created_at.to_s}"
                 }
               },
-              { "color": "gray", "text": "<#{message.author.nick rescue '???'}> #{body}" }
+              { "color": "#{color}", "text": "<" }, {
+                "color": "dark_purple", "underlined": "true", "text": "#{author_nick}",
+                "clickEvent": {
+                  "action": "suggest_command", "value": "@#{author_nick} "
+                }
+              }, { "color": "#{color}", "text": "> #{body}" }
             ]
           DONE
           say_link(nick, body) if body =~ /^http.*/i
@@ -90,7 +190,7 @@ module Tellable
           message.touch(:read_at) # no AR callbacks
         end
       else
-        tell(nick, "No mail.")        
+        tell(nick, "No mail. ;(")        
       end
     end
   end

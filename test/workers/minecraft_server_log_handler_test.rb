@@ -701,7 +701,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     end
   end
 
-  def test_mail
+  def test_mail_workflow
     inertia186 = Player.find_by_nick('inertia186')
 
     callback = ServerCallback.find_by_name('Send Mail')
@@ -718,6 +718,40 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { inertia186.messages.read.count }, 2, 'expected read' do
       assert_callback_ran callback do
         ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail')
+      end
+    end
+
+    callback = ServerCallback.find_by_name('Read Mail')
+    assert_difference -> { inertia186.messages.read.count }, 0, 'expected fewer messages' do
+      assert_callback_ran callback do
+        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail clear')
+      end
+    end
+
+    assert_difference -> { inertia186.messages.read.muted(false).count }, -2, 'expected fewer messages' do
+      assert_difference -> { inertia186.muted_players.count }, 1, 'expected muted player' do
+        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail mute dinnerbone')
+      end
+    end
+
+    assert_difference -> { inertia186.muted_players.count }, 0, 'did not expect muted player (already muted)' do
+      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail mute dinnerbone')
+    end
+    
+    assert_difference -> { inertia186.messages.read.muted(false).count }, 2, 'expected read' do
+      assert_difference -> { inertia186.muted_players.count }, -1, 'expected unmuted player' do
+        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail unmute dinnerbone')
+      end
+    end
+
+    assert_difference -> { inertia186.muted_players.count }, 0, 'did not expect unmuted player (already unmuted)' do
+      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail unmute dinnerbone')
+    end
+
+    callback = ServerCallback.find_by_name('Read Mail')
+    assert_difference -> { inertia186.messages.read.count }, 0, 'expected fewer messages' do
+      assert_callback_ran callback do
+        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail clear')
       end
     end
   end

@@ -18,7 +18,12 @@
             %span{'aria-hidden' => true} &times;
           %h4.modal-title#explain_messages_label Explanation of Messages
         .modal-body
-          %p TODO
+          %p
+            Basically this is in-chat mail activity sent between players.  You
+            can see when players read each other's messages and also when they
+            deleted and/or muted them.  Deleted/muted messages are just marked
+            as such and stored forever by the server, even though the players
+            can no longer see them.
 
 %div{style: 'float: right'}
   = form_tag url_for(action: controller.action_name), method: :get do
@@ -46,6 +51,8 @@
             - unless @recipient_id.present?
               %th=sortable_header_link 'Recipient', 'message_recipient_nick'
             %th=sortable_header_link 'Body', 'lower(body)'
+            %th=sortable_header_link 'Muted', 'muted_at'
+            %th=sortable_header_link 'Deleted', 'deleted_at'
             %th=sortable_header_link 'Read', 'read_at'
             %th=sortable_header_link 'Created', 'created_at'
             %th

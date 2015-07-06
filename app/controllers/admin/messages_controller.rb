@@ -57,6 +57,9 @@ private
       @messages = @messages.select("messages.*, lower(recipients.nick) AS message_recipient_nick").
         joins("LEFT OUTER JOIN players AS recipients ON ( messages.recipient_type = 'Player' AND messages.recipient_id = recipients.id )").
         order("#{@sort_field} #{@sort_order}")
+    when 'muted_at'
+      @messages = @messages.select("messages.*, ( SELECT mutes.created_at FROM mutes WHERE mutes.player_id = recipient_id AND mutes.muted_player_id = author_id ) AS muted_at").
+        order("#{@sort_field} #{@sort_order}")
     else
       @messages = @messages.order("#{@sort_field} #{@sort_order}")
     end

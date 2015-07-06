@@ -19,7 +19,7 @@ module Audible
         # Slight delay here to make sure resource packs have loaded.
         sleep(5)
       
-        if (messages = player.messages.read(false)).any?
+        if (messages = player.messages.read(false).deleted(false).muted(false)).any?
           execute <<-DONE
             tellraw #{nick} {"color": "green", "text": "You have ", "extra": [
               {"text": "#{pluralize(messages.count, 'unread message')}", "color": "dark_purple", "underlined": "true", "clickEvent": {

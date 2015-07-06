@@ -38,18 +38,37 @@ class Player < ActiveRecord::Base
       return matching_last_ip ? r : where.not(id: r)
     end
   }
+  scope :within_biomes_explored, lambda { |min, max, within = true|
+    where('"players"."biomes_explored" BETWEEN (?) AND (?)', min, max).tap do |r|
+      return within ? r : where.not(id: r)
+    end
+  }
   scope :created_after, lambda { |timestamp| where(Player.arel_table[:created_at].gt(timestamp)) }
   scope :newly_created, -> { created_after(24.hours.ago) }
+  scope :above_exploration_threshold, -> {
+    r = Player.newly_created.select(:biomes_explored)
+    return all if r.none?
+    
+    target = ( r.map(&:biomes_explored).sum.to_f / r.count ) * 3
+    within_biomes_explored(0, target, false)
+  }
   scope :matching_banned_ip, lambda { |matching_banned_ip = true| matching_last_ip(Player.banned.select(:last_ip), matching_banned_ip) }
   scope :play_sounds, lambda { |play_sounds = true| where(play_sounds: play_sounds) }
   scope :registered, lambda { |registered = true|
     where.not(registered_at: nil).tap do |r|
-      return r ? relation : where.not(id: r)
+      return registered ? r : where.not(id: r)
     end
   }
   scope :origin, lambda { |origin| joins(:ips).where(Ip.arel_table[:origin].in(origin)) }
   scope :address, lambda { |address| joins(:ips).where(Ip.arel_table[:address].in(address)) }
   scope :may_autolink, lambda { |may_autolink = true| where(may_autolink: may_autolink) }
+  scope :spammers, lambda { |spammers = true, ratio = 0.1|
+    spam_ratio = Player.arel_table[:spam_ratio]
+
+    where(spam_ratio.lt(ratio)).tap do |r|
+      return spammers ? r : where.not(id: r)
+    end
+  }
   scope :has_links, lambda { |has_links = true|
     joins(:links).uniq.tap do |r|
       return has_links ? r : where.not(id: r)
@@ -58,6 +77,11 @@ class Player < ActiveRecord::Base
   scope :has_messages, lambda { |has_messages = true|
     joins(:messages).uniq.tap do |r|
       return has_messages ? r : where.not(id: r)
+    end
+  }
+  scope :has_sent_messages, lambda { |has_sent_messages = true|
+    joins(:sent_messages).uniq.tap do |r|
+      return has_sent_messages ? r : where.not(id: r)
     end
   }
   scope :has_tips, lambda { |has_tips = true|
@@ -73,8 +97,12 @@ class Player < ActiveRecord::Base
 
   has_many :links, as: :actor
   has_many :messages, -> { where(type: nil) }, as: :recipient
+  has_many :sent_messages, -> { where(type: nil) }, class_name: 'Message', as: :author
   has_many :tips, class_name: 'Message::Tip', as: :author
   has_many :ips
+  has_many :mutes
+  has_many :inverse_mutes, foreign_key: 'muted_player_id', class_name: 'Mute'
+  has_many :muted_players, through: :mutes
 
   before_save :update_biomes_explored
   before_save :update_last_nick, if: :nick_changed?

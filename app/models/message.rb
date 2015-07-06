@@ -29,6 +29,16 @@ class Message < ActiveRecord::Base
   scope :unread_or_read_since, lambda { |since|
     where("messages.read_at IS NULL OR messages.read_at > ?", since)
   }
+
+  scope :deleted, lambda { |deleted = true|
+    where.not(deleted_at: nil).tap { |r| return deleted ? r : where.not(id: r) }
+  }
+  
+  scope :muted, lambda { |muted = true|
+    where('messages.author_id IN ( SELECT mutes.muted_player_id FROM mutes WHERE mutes.player_id = messages.recipient_id )').tap { |r|
+      return muted ? r : where.not(id: r)
+    }
+  }
   
   scope :messages, -> { where(type: nil) }
   scope :latest, lambda { |latest = 10| order(:created_at).limit(latest) }
@@ -40,6 +50,12 @@ class Message < ActiveRecord::Base
   
   def read!
     update_attribute(:read_at, Time.now) # no AR callbacks
+  end
+  
+  def muted_at
+    r = Mute.where(player: recipient, muted_player: author)
+    
+    r.first.created_at if r.count == 1
   end
 private
   def look_up_recipient

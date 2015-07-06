@@ -10,5 +10,7 @@
     - else
       %td N/A
   %td=message.body
+  %td=relative_time(message.muted_at)
+  %td=relative_time(message.deleted_at)
   %td=relative_time(message.read_at)
   %td=relative_time(message.created_at)
