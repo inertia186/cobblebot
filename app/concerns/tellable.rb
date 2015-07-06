@@ -128,7 +128,7 @@ module Tellable
           elsif args == '@r' || args == '@p'
             args = Server.players.sample.nick
           elsif args == '@a'
-            count = player.mutes.where(id: Server.players).destroy_all.size
+            count = player.mutes.where(muted_player_id: Server.players).destroy_all.size
             return tell(nick, "Unmuted #{pluralize(count, 'player')}.")
           elsif args == '@e'
             return tell(nick, "Spy Chicken has been unmuted.")
