@@ -658,7 +658,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       assert_callback_ran 'Help ...' do
         result = ServerCallback::PlayerChat.handle("[15:17:25] [Server thread/INFO]: <inertia186> @server help #{callback.help_doc_key}")
         # Maybe this should use .include? instead of a funky join.
-        assert_equal 2, ServerCommand.commands_executed.keys.join.downcase.split(callback.help_doc.split("\n")[0].downcase).size, 'expect help doc in command executed'
+        assert (help_doc = ServerCommand.commands_executed.keys.join.downcase.split(callback.help_doc.split("\n")[0].downcase)).size > 1, "expect help doc in command executed, got: #{help_doc}"
       end
     end
   end

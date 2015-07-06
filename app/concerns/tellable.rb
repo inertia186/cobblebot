@@ -162,7 +162,7 @@ module Tellable
       if (mail = player.messages.deleted(false).muted(false)).any?
         mail.each do |message|
           author_nick = message.author.nick rescue '???'
-          body = message.body
+          body = escape(message.body)
           color = if message.read_at.nil?
             'gray'
           else
