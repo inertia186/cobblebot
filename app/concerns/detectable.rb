@@ -96,6 +96,37 @@ module Detectable
       
       "Evaluating entities: #{entities.size}"
     end
+    
+    def loaded_items
+      result = {}
+      data = Server.entity_data(selector: '@e[type=Item]')
+      
+      data.map do |i|
+        i.split('Item:{id:"')[1].to_s.split('"')[0]
+      end.reject(&:nil?).uniq.each do |id|
+        nc = data.map do |j|
+          j.split(/Dimension:-1,.*Item:{id:"#{id}/)[1]
+        end.reject(&:nil?).reject(&:empty?).size
+
+        oc = data.map do |j|
+          j.split(/Dimension:0,.*Item:{id:"#{id}/)[1]
+        end.reject(&:nil?).reject(&:empty?).size
+        
+        ec = data.map do |j|
+          j.split(/Dimension:1,.*Item:{id:"#{id}/)[1]
+        end.reject(&:nil?).reject(&:empty?).size
+        
+        c = data.map do |j|
+          j.split("Item:{id:\"#{id}")[1].to_s.split('"')[1]
+        end.reject(&:nil?).reject(&:empty?).size
+
+        result[id.split(':').last.to_sym] = {
+          nether_count: nc, overworld_count: oc, end_count: ec, total_count: c, 
+        }
+      end
+      
+      result
+    end
   private
     def player_input_regexp(nick, message)
       chat_regex = %r(: \<#{nick}\> .*#{message[0..[message.size - 1, 7].min]}.*)i

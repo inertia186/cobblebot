@@ -24,6 +24,8 @@ class Server
         ServerProperties.reset_vars
         @file_paths = nil
       end
+      
+      break
     end
     
     query.class == Hash
@@ -67,10 +69,9 @@ class Server
   # The intention of this method is to return all entity data currently loaded
   # in memory.
   #
-  # Unfortunately, it only returns entity data for the overworld.  Getting
-  # this data through RCON is problematic because often the return value is
-  # greater than 4096 bytes, so multiple read attempts must be made until the
-  # buffer is empty.
+  # Getting this data through RCON is problematic because often the return
+  # value is greater than 4096 bytes, so multiple read attempts must be made
+  # until the buffer is empty.
   #
   def self.entity_data(options = {selector: "@e[c=1]", near_player: nil, radius: 0})
     end_response = 'Unknown command. Try /help for a list of commands'
