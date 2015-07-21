@@ -50,6 +50,8 @@ class Player < ActiveRecord::Base
     return all if r.none?
     
     target = ( r.map(&:biomes_explored).sum.to_f / r.count ) * 3
+    return all if target == 0.0
+    
     within_biomes_explored(0, target, false)
   }
   scope :matching_banned_ip, lambda { |matching_banned_ip = true| matching_last_ip(Player.banned.select(:last_ip), matching_banned_ip) }
@@ -120,6 +122,23 @@ class Player < ActiveRecord::Base
       where.not(player_id: id)
       
     Player.where(id: other_ips.distinct(:player_id).select(:player_id))
+  end
+
+  def self.best_match_by_nick(nick, options = {}, &block)
+    # Favor an exact match (ignoring case).
+    players = nick(nick)
+    # Next, favor player who matches with a preference for the most recent activity.
+    players = any_nick(nick).order(:updated_at) if players.none?
+    
+    player = players.first
+    
+    if !!block && !!player
+      yield(player)
+    elsif !!(no_match = options[:no_match])
+      no_match.call
+    else
+      player
+    end
   end
 
   def to_param
@@ -293,6 +312,10 @@ class Player < ActiveRecord::Base
     update_attribute(:play_sounds, !play_sounds) # no AR callbacks
   end
   
+  def nearby_entity_data(radius = 1000)
+    Server.entity_data(near_player: self, radius: radius)
+  end
+  
   def method_missing(m, *args, &block)
     return super unless !!player_data
     return player_data[m.to_s] if player_data.keys.include?(m.to_s)
@@ -310,6 +333,10 @@ class Player < ActiveRecord::Base
   
   def origins
     ips.map(&:origin).uniq
+  end
+  
+  def above_exploration_threshold?
+    Player.above_exploration_threshold.where(id: self).any?
   end
 private  
   def update_last_nick

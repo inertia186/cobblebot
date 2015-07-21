@@ -22,42 +22,38 @@ module Sayable
     end
     
     def say_playercheck(selector, nick)
-      players = Player.nick(nick) # Favor an exact match (ignoring case).
-      if players.none?
-        # Next, favor player who matches with a preference for the most recent activity.
-        players = Player.any_nick(nick).order(:updated_at)
-      end
+      Player.best_match_by_nick(nick, no_match: -> { 
+        # FIXME The 'command' option should come from the callback record, not hardcoded.
+        say_nick_not_found(selector, nick, command: '@server playercheck %nick%')
+      }) do |player|
+        line_1a = "Latest activity for #{player.nick} was "
+        line_1b = distance_of_time_in_words_to_now(player.last_activity_at)
+        line_1c = player.last_activity_at.to_s
+        line_1d = ' ago.'
+        execute(
+        <<-DONE
+          tellraw #{selector} [
+            { "color": "white", "text": "[Server] #{line_1a}" },
+            {
+              "color": "white", "text": "#{line_1b}",
+              "hoverEvent": {
+                "action": "show_text", "value": "#{line_1c}"
+              }
+            },
+            { "color": "white", "text": "#{line_1d}" }
+          ]
+        DONE
+        ) unless selector.nil?
       
-      # FIXME The 'command' option should come from the callback record, not hardcoded.
-      return say_nick_not_found(selector, nick, command: '@server playercheck %nick%') unless !!(player = players.first)
-
-      line_1a = "Latest activity for #{player.nick} was "
-      line_1b = distance_of_time_in_words_to_now(player.last_activity_at)
-      line_1c = player.last_activity_at.to_s
-      line_1d = ' ago.'
-      execute(
-      <<-DONE
-        tellraw #{selector} [
-          { "color": "white", "text": "[Server] #{line_1a}" },
-          {
-            "color": "white", "text": "#{line_1b}",
-            "hoverEvent": {
-              "action": "show_text", "value": "#{line_1c}"
-            }
-          },
-          { "color": "white", "text": "#{line_1d}" }
-        ]
-      DONE
-      ) unless selector.nil?
+        results = ["#{line_1a}#{line_1b}#{line_1d} (#{line_1c})"]
+        results += say_last_chat(selector, nick, player: player)
+        results += say_biomes_explored(selector, nick, player: player)
       
-      results = ["#{line_1a}#{line_1b}#{line_1d} (#{line_1c})"]
-      results += say_last_chat(selector, nick, player: player)
-      results += say_biomes_explored(selector, nick, player: player)
-      
-      # TODO get rate:
-      # say selector, "Sum of all trust: ..."
+        # TODO get rate:
+        # say selector, "Sum of all trust: ..."
     
-      results
+        results
+      end
     end
     
     def say_last_chat(selector, nick, options = {})
@@ -134,8 +130,10 @@ module Sayable
     def say_random_tip(selector, nick, keywords = '', options =())
       keywords = keywords.split(' ').map(&:strip)
       tip = nil
-    
-      if keywords.any?
+      
+      if keywords =~ /\d/
+        tip = Message::Tip.order(:id).limit(keywords.to_i).limit
+      elsif keywords.any?
         tip = Message::Tip.query(keywords).in_cooldown(false).first
       else
         tip = Message::Tip.query(keywords).in_cooldown(false).sample
@@ -154,7 +152,12 @@ module Sayable
       elsif tip_body =~ /^herobrine/i
         say_fake_achievement(selector, 'Herobrine', tip_body.split(' ')[1..-1].join(' '))
       elsif tip_body =~ /^slap/i
-        say_slap(selector, tip_body.split(' ')[1..-1].join(' '))
+        nick = if !!tip.author
+          tip.author.nick
+        else
+          'Server'
+        end
+        say_slap(selector, nick, tip_body.split(' ')[1..-1].join(' '))
       elsif tip_body =~ /^>/i
         say(selector, tip_body, color: 'green', as: 'Server')
       elsif tip_body =~ /explode/i
@@ -173,7 +176,12 @@ module Sayable
       #
       # result = MinecraftServerLogHandler.simulate_server_message(tip_body)
       # result = MinecraftServerLogHandler.simulate_player_chat(nick, tip_body) unless !!result
-      MinecraftServerLogHandler.simulate_player_chat(nick, tip_body)
+      n = if !!tip.author && !!tip.author.nick
+        tip.author.nick # Try to use the author's nick if present.
+      else
+        nick # Fall back to the person who asked for the tip.
+      end
+      MinecraftServerLogHandler.simulate_player_chat(n, tip_body)
     
       tip_body
     rescue ArgumentError => e
@@ -250,14 +258,14 @@ module Sayable
     end
     
     def say_origin(selector, nick)
-      target = Player.any_nick(nick).first
-      
-      # FIXME The 'command' option should come from the callback record, not hardcoded.
-      return say_nick_not_found(selector, nick, command: '@server origin %nick%') if target.nil?
-
-      execute <<-DONE
-        tellraw #{selector} [{ "color": "white", "text": "[Server] Origin of #{target.nick}: "}, { "color": "green", "text": "#{target.origins.join(', ')}" }]
-      DONE
+      Player.best_match_by_nick(nick, no_match: -> {
+        # FIXME The 'command' option should come from the callback record, not hardcoded.
+        say_nick_not_found(selector, nick, command: '@server origin %nick%')
+      }) do |target|
+        execute <<-DONE
+          tellraw #{selector} [{ "color": "white", "text": "[Server] Origin of #{target.nick}: "}, { "color": "green", "text": "#{target.origins.join(', ')}" }]
+        DONE
+      end
     end
   end
 end

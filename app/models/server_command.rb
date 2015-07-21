@@ -95,25 +95,21 @@ class ServerCommand
     author = Player.find_by_nick author_nick
     return if author.nil?
     
-    players = Player.nick(recipient_nick) # Favor an exact match (ignoring case).
-    if players.none?
-      # Next, favor player who matches with a preference for the most recent activity.
-      players = Player.any_nick(recipient_nick).order(:updated_at)
-    end
+    Player.best_match_by_nick(recipient_nick, no_match: -> {
+      # FIXME The 'command' option should come from the callback record, not hardcoded.
+      say_nick_not_found(author_nick, recipient_nick, command: "@%nick% #{message}")
+    }) do |recipient|
+      similar = recipient.messages.read(false).created_since(24.hours.ago).
+        where(author: author).
+        where("lower(messages.body) LIKE ?", "%#{message.downcase}%")
+
+      if similar.any?
+        return tell(author_nick, "Not sent.  #{pluralize similar.count, 'similar unread message'} from you today.")
+      end
+
+      recipient.messages.create(author: author, body: message, recipient_term: "@#{recipient_nick}")
     
-    # FIXME The 'command' option should come from the callback record, not hardcoded.
-    return say_nick_not_found(author_nick, recipient_nick, command: "@%nick% #{message}") unless !!(recipient = players.first)
-
-    similar = recipient.messages.read(false).created_since(24.hours.ago).
-      where(author: author).
-      where("lower(messages.body) LIKE ?", "%#{message.downcase}%")
-
-    if similar.any?
-      return tell(author_nick, "Not sent.  #{pluralize similar.count, 'similar unread message'} from you today.")
+      tell(author.nick, "Message sent to #{recipient.nick}")
     end
-
-    recipient.messages.create(author: author, body: message, recipient_term: "@#{recipient_nick}")
-    
-    tell(author.nick, "Message sent to #{recipient.nick}")
   end
 end

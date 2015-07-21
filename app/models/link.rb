@@ -45,10 +45,7 @@ class Link < ActiveRecord::Base
     
       return unless agent.page
     elsif expired?
-      agent = Mechanize.new
-      agent.keep_alive = false
-      agent.open_timeout = 5
-      agent.read_timeout = 5
+      agent = CobbleBotAgent.new
       page = agent.head url
 
       if page.nil? || page.title.nil?
@@ -68,6 +65,8 @@ class Link < ActiveRecord::Base
     end
     
     Rails.logger.warn "Removed characters from: #{original_title}" if title != original_title # FIXME Remove later.
+    
+    save unless new_record?
     
     self
   end
@@ -91,10 +90,7 @@ class Link < ActiveRecord::Base
   def can_embed?
     return can_embed unless can_embed.nil?
     
-    agent = Mechanize.new
-    agent.keep_alive = false
-    agent.open_timeout = 5
-    agent.read_timeout = 5
+    agent = CobbleBotAgent.new
     page = agent.head embedded_url
     
     return unless !!page.response
@@ -111,10 +107,7 @@ class Link < ActiveRecord::Base
 private
   def populate_from_get_response(url, link)
     begin
-      agent = Mechanize.new
-      agent.keep_alive = false
-      agent.open_timeout = 5
-      agent.read_timeout = 5
+      agent = CobbleBotAgent.new
       agent.get url
       page = agent.page
 

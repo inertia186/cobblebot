@@ -73,7 +73,7 @@ class Server
   # value is greater than 4096 bytes, so multiple read attempts must be made
   # until the buffer is empty.
   #
-  def self.entity_data(options = {selector: "@e[c=1]", near_player: nil, radius: 0})
+  def self.entity_data(options = {selector: "@e[c=1]", near_player: nil, radius: 0, only: []})
     end_response = 'Unknown command. Try /help for a list of commands'
     error_response = 'The entity UUID provided is in an invalid format'
     rcon = RCON::Minecraft.new(ServerProperties.server_ip, ServerProperties.rcon_port)
@@ -109,6 +109,57 @@ class Server
     rcon.disconnect
     
     entities = response.join.split('The data tag did not change: ').reject(&:empty?)
+    only = options[:only]
+    
+    if !!only && only.any?
+      _entities = []
+
+      only.each do |o|
+        case o
+        when :nether
+          _entities += entities.select { |data| data =~ /Dimension:-1,/ }
+        when :overworld
+          _entities += entities.select { |data| data =~ /Dimension:0,/ }
+        when :end
+          _entities += entities.select { |data| data =~ /Dimension:1,/ }
+        end
+      end
+      
+      entities = _entities
+    end
+
+    entities
+  end
+  
+  def self.loaded_items
+    result = {}
+    data = Server.entity_data(selector: '@e[type=Item]')
+    
+    data.map do |i|
+      i.split('Item:{id:"')[1].to_s.split('"')[0]
+    end.reject(&:nil?).uniq.each do |id|
+      nc = data.map do |j|
+        j.split(/Dimension:-1,.*Item:{id:"#{id}/)[1]
+      end.reject(&:nil?).reject(&:empty?).size
+
+      oc = data.map do |j|
+        j.split(/Dimension:0,.*Item:{id:"#{id}/)[1]
+      end.reject(&:nil?).reject(&:empty?).size
+      
+      ec = data.map do |j|
+        j.split(/Dimension:1,.*Item:{id:"#{id}/)[1]
+      end.reject(&:nil?).reject(&:empty?).size
+      
+      c = data.map do |j|
+        j.split("Item:{id:\"#{id}")[1].to_s.split('"')[1]
+      end.reject(&:nil?).reject(&:empty?).size
+
+      result[id.split(':').last.to_sym] = {
+        nether_count: nc, overworld_count: oc, end_count: ec, total_count: c, 
+      }
+    end
+    
+    result
   end
   
   def self.players(selector = nil)

@@ -98,10 +98,7 @@ private
       
       if 24.hours.ago > timestamp
         begin
-          agent = Mechanize.new
-          agent.keep_alive = false
-          agent.open_timeout = 5
-          agent.read_timeout = 5
+          agent = CobbleBotAgent.new
           agent.get ServerProperties.resource_pack.gsub(/\\/, '')
 
           resource_pack_hash = Digest::MD5.hexdigest(agent.page.body) if agent.page

@@ -28,6 +28,8 @@ class ServerQuery
         sleep retry_sleep
         ServerProperties.reset_vars
       end
+      
+      break
     end
 
     raise StandardError.new("Minecraft Server not started? #{query}") if query.class != Hash

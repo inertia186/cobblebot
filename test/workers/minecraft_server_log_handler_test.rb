@@ -76,6 +76,8 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       end
     end
 
+    ServerCommand.detectable_reset
+
     assert Preference.is_junk_objective_timestamp, 'expect is_junk_objective_timestamp'
 
     assert_no_difference -> { Player.count }, 'did not expect new player' do
@@ -107,6 +109,8 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     def Server.entity_data(options = {selector: "@e[c=1]", near_player: nil, radius: 0})
       return ['Frozen Projectile']
     end
+
+    ServerCommand.detectable_reset
 
     refute Preference.is_junk_objective_timestamp, "did not expect is_junk_objective_timestamp, it was: #{Preference.is_junk_objective_timestamp}"
     ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')

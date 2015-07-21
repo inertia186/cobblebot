@@ -37,6 +37,7 @@ module Commandable
       raise StandardError.new("RCON is disabled.  To enable rcon, please modify server.properties and change enable-rcon=false to enable-rcon=true and restart server.") unless ServerProperties.enable_rcon == 'true'
 
       try_max.times do
+
         if @rcon.nil? || @rcon_connected_at.nil? || @rcon_connected_at > 15.minutes.ago
           @rcon = RCON::Minecraft.new(ServerProperties.server_ip, ServerProperties.rcon_port)
           @rcon_connected_at = Time.now
@@ -51,6 +52,8 @@ module Commandable
           ServerProperties.reset_vars
           reset_vars
         end
+        
+        break
       end
     
       nil
@@ -67,6 +70,8 @@ module Commandable
         else
           raise StandardError.new("Preference.command_scheme not recognized")
         end
+        
+        break
       end
     rescue StandardError => e
       Rails.logger.warn e.inspect

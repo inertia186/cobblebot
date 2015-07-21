@@ -99,22 +99,18 @@ module Tellable
             return tell(nick, "Spy Chicken has been muted.")
           end
           
-          to_mutes = Player.nick(args) # Favor an exact match (ignoring case).
-          if to_mutes.none?
-            # Next, favor player who matches with a preference for the most recent activity.
-            to_mutes = Player.any_nick(args).order(:updated_at)
-          end
-    
-          # FIXME The 'command' option should come from the callback record, not hardcoded.
-          return say_nick_not_found(nick, args, command: "@server mail mute %nick%") unless !!(to_mute = to_mutes.first)
+          Player.best_match_by_nick(args, no_match: -> {
+            # FIXME The 'command' option should come from the callback record, not hardcoded.
+            say_nick_not_found(nick, args, command: "@server mail mute %nick%")
+          }) do |to_mute|
+            return tell(nick, "#{to_mute.nick} has already been muted.") if player.muted_players.include?(to_mute)
           
-          return tell(nick, "#{to_mute.nick} has already been muted.") if player.muted_players.include?(to_mute)
-          
-          mute = player.mutes.build(muted_player: to_mute)
-          if mute.save
-            tell(nick, "#{to_mute.nick} has been muted.")
-          else
-            tell(nick, "#{to_mute.nick} has not been muted: #{mute.errors.messages.first.last[0]}")
+            mute = player.mutes.build(muted_player: to_mute)
+            if mute.save
+              tell(nick, "#{to_mute.nick} has been muted.")
+            else
+              tell(nick, "#{to_mute.nick} has not been muted: #{mute.errors.messages.first.last[0]}")
+            end
           end
         when 'unmute'
           if args.nil?
@@ -134,23 +130,19 @@ module Tellable
             return tell(nick, "Spy Chicken has been unmuted.")
           end
           
-          to_unmutes = Player.nick(args) # Favor an exact match (ignoring case).
-          if to_unmutes.none?
-            # Next, favor player who matches with a preference for the most recent activity.
-            to_unmutes = Player.any_nick(args).order(:updated_at)
-          end
-    
-          # FIXME The 'command' option should come from the callback record, not hardcoded.
-          return say_nick_not_found(nick, args, command: "@server mail unmute %nick%") unless !!(to_unmute = to_unmutes.first)
+          Player.best_match_by_nick(args, no_match: -> {
+            # FIXME The 'command' option should come from the callback record, not hardcoded.
+            say_nick_not_found(nick, args, command: "@server mail unmute %nick%")
+          }) do |to_unmute|
+            mute = player.mutes.find_by_muted_player_id to_unmute
           
-          mute = player.mutes.find_by_muted_player_id to_unmute
-          
-          if mute.nil?
-            tell(nick, "#{to_unmute.nick} has not been unmuted because they were not first muted.")
-          elsif !mute.destroy.persisted?
-            tell(nick, "#{to_unmute.nick} has been unmuted.")
-          else
-            tell(nick, "#{to_unmute.nick} has not been unmuted: #{mute.errors.messages.first.last}")
+            if mute.nil?
+              tell(nick, "#{to_unmute.nick} has not been unmuted because they were not first muted.")
+            elsif !mute.destroy.persisted?
+              tell(nick, "#{to_unmute.nick} has been unmuted.")
+            else
+              tell(nick, "#{to_unmute.nick} has not been unmuted: #{mute.errors.messages.first.last}")
+            end
           end
         else
           say_help(nick, 'mail')
@@ -185,7 +177,7 @@ module Tellable
               }, { "color": "#{color}", "text": "> #{body}" }
             ]
           DONE
-          say_link(nick, body) if body =~ /^http.*/i
+          say_link(nick, body, nick: author_nick) if body =~ /^http.*/i
         
           message.touch(:read_at) # no AR callbacks
         end

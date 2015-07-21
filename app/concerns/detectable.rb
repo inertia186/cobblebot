@@ -69,7 +69,20 @@ module Detectable
       end
     end
     
+    def detectable_reset
+      @last_detect_frozen_projectiles = nil
+      @last_detect_trouble_entities = nil
+    end
+    
     def detect_frozen_projectiles
+      if @last_detect_frozen_projectiles.nil?
+        @last_detect_frozen_projectiles = Time.now
+      elsif 15.minutes.ago > @last_detect_frozen_projectiles
+        detectable_reset and return
+      else
+        return
+      end
+      
       entities = []
       
       PROJECTILES.each do |type|
@@ -84,6 +97,15 @@ module Detectable
     end
 
     def detect_trouble_entities
+      if @last_detect_trouble_entities.nil?
+        @last_detect_trouble_entities = Time.now
+      elsif 15.minutes.ago > @last_detect_trouble_entities
+        detectable_reset and return
+        return
+      else
+        return
+      end
+      
       entities = []
       
       TROUBLE_ENTITIES.map { |data| data[0] }.uniq do |type|
@@ -95,37 +117,6 @@ module Detectable
       handle_trouble_entities
       
       "Evaluating entities: #{entities.size}"
-    end
-    
-    def loaded_items
-      result = {}
-      data = Server.entity_data(selector: '@e[type=Item]')
-      
-      data.map do |i|
-        i.split('Item:{id:"')[1].to_s.split('"')[0]
-      end.reject(&:nil?).uniq.each do |id|
-        nc = data.map do |j|
-          j.split(/Dimension:-1,.*Item:{id:"#{id}/)[1]
-        end.reject(&:nil?).reject(&:empty?).size
-
-        oc = data.map do |j|
-          j.split(/Dimension:0,.*Item:{id:"#{id}/)[1]
-        end.reject(&:nil?).reject(&:empty?).size
-        
-        ec = data.map do |j|
-          j.split(/Dimension:1,.*Item:{id:"#{id}/)[1]
-        end.reject(&:nil?).reject(&:empty?).size
-        
-        c = data.map do |j|
-          j.split("Item:{id:\"#{id}")[1].to_s.split('"')[1]
-        end.reject(&:nil?).reject(&:empty?).size
-
-        result[id.split(':').last.to_sym] = {
-          nether_count: nc, overworld_count: oc, end_count: ec, total_count: c, 
-        }
-      end
-      
-      result
     end
   private
     def player_input_regexp(nick, message)
