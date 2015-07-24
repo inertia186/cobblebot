@@ -6,7 +6,7 @@ class MinecraftWatchdogTest < ActiveSupport::TestCase
     
     stub_request(:get, ServerProperties.resource_pack).
       to_return(status: 200)
-    stub_request(:post, "http://pygments.appspot.com/").
+    stub_request(:post, "http://pygments-1-4.appspot.com/").
       to_return(status: 200)
   end
   
