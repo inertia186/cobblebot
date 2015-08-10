@@ -40,6 +40,9 @@ gem 'mechanize'
 # Can be used by callbacks.
 gem 'mc-slap', gist: '5002463'
 
+# Used to translate in-game chat.
+gem 'google-translate'
+
 # CobbleBot uses redis/resque to kick off the log monitor and other stuff.
 gem 'redis', require: false
 gem 'redis-store', require: false

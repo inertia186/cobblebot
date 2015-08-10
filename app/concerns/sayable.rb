@@ -1,3 +1,7 @@
+require 'google_translate'
+require 'google_translate/version'
+require 'google_translate/result_parser'
+
 module Sayable
   extend Commandable
   
@@ -266,6 +270,21 @@ module Sayable
           tellraw #{selector} [{ "color": "white", "text": "[Server] Origin of #{target.nick}: "}, { "color": "green", "text": "#{target.origins.join(', ')}" }]
         DONE
       end
+    end
+    
+    def say_translation(selector, pair, term)
+      pair = pair.split(':')
+      if pair.size == 1
+        from = 'auto'
+        to = pair[0].to_sym
+      else
+        from = pair[0].to_sym
+        to = pair[1].to_sym
+      end
+      translator = GoogleTranslate.new
+      translation = translator.translate(from, to, term)
+      
+      say('@a', translation[0][0][0], as: 'Google')
     end
   end
 end
