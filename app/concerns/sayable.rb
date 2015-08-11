@@ -284,7 +284,7 @@ module Sayable
       translator = GoogleTranslate.new
       translation = translator.translate(from, to, term)
       
-      say('@a', translation[0][0][0], as: 'Google')
+      say('@a', escape(translation[0][0][0]), as: 'Google')
     end
   end
 end
