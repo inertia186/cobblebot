@@ -2,11 +2,12 @@ require 'csv'
 
 namespace :cobblebot do
   PREFERENCE_KEYS = %w(key value system created_at updated_at)
-  SERVER_CALLBACK_KEYS = %w(type name pattern command cooldown enabled system created_at updated_at)
-  PLAYER_KEYS = %w(uuid nick last_nick last_ip last_chat last_location last_login_at last_logout_at spam_ratio play_sounds biomes_explored registered_at vetted_at created_at updated_at)
+  SERVER_CALLBACK_KEYS = %w(type name pattern command cooldown enabled system help_doc_key help_doc created_at updated_at)
+  PLAYER_KEYS = %w(uuid nick last_nick last_ip last_chat last_location last_login_at last_logout_at spam_ratio play_sounds biomes_explored may_autolink registered_at vetted_at created_at updated_at)
   LINK_KEYS = %w(url title actor_uuid expires_at last_modified_at can_embed created_at updated_at)
-  MESSAGE_KEYS = %w(type body keywords recipient_term recipient_uuid author_uuid read_at created_at updated_at)
-  IP_KEYS = %w(address player_uuid origin created_at)
+  MESSAGE_KEYS = %w(type body keywords recipient_term recipient_uuid author_uuid read_at deleted_at created_at updated_at)
+  IP_KEYS = %w(address player_uuid origin cc created_at)
+  MUTE_KEYS = %w(player_uuid muted_player_uuid created_at)
   
   desc 'display the current information of rake'
   task :info do
@@ -144,9 +145,34 @@ namespace :cobblebot do
           IP_KEYS.each do |key|
             case key
             when 'player_uuid'
-              row << ip.player.uuid
+              row << ip.player.uuid if ip.player
             else
               row << ip.send(key)
+            end
+          end
+          csv << row
+        end
+        
+      end
+
+      puts data
+    end
+
+    desc 'dump out nutes to csv'
+    task mutes: :environment do
+      data = CSV.generate do |csv|
+        csv << MUTE_KEYS
+        
+        Mute.find_each do |mute|
+          row = []
+          MUTE_KEYS.each do |key|
+            case key
+            when 'player_uuid'
+              row << mute.player.uuid if mute.player
+            when 'muted_player_uuid'
+              row << mute.muted_player.uuid if mute.muted_player
+            else
+              row << mute.send(key)
             end
           end
           csv << row
@@ -256,7 +282,34 @@ namespace :cobblebot do
           end
         end
 
+        next if ip_params[:player].nil?
         Ip.create(ip_params)
+      end
+    end
+
+    desc 'pump in mutes from csv'
+    task mutes: :environment do
+      CSV.parse(STDIN, headers: true) do |row|
+        mute_params = {}
+        MUTE_KEYS.each do |key|
+          case key
+          when 'player_uuid'
+            if (uuid = row[key]).present?
+              player = Player.find_by_uuid uuid
+              mute_params[:player] = player
+            end
+          when 'muted_player_uuid'
+            if (uuid = row[key]).present?
+              player = Player.find_by_uuid uuid
+              mute_params[:muted_player] = player
+            end
+          else
+            mute_params[key] = row[key]
+          end
+        end
+
+        next if mute_params[:player].nil? || mute_params[:muted_player].nil?
+        Mute.create(mute_params)
       end
     end
   end

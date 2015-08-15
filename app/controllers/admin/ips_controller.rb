@@ -8,12 +8,14 @@ class Admin::IpsController < Admin::AdminController
     @player_id = params[:player_id]
     @player = Player.find @player_id if @player_id.present?
     @origin = params[:origin]
+    @cc = params[:cc]
 
     @ips = Ip.all
 
     @ips = @ips.where(address: @address) if !!@address
     @ips = @ips.where(player_id: @player.id) if !!@player
     @ips = @ips.where(origin: @origin) if !!@origin
+    @ips = @ips.where(cc: @cc) if !!@cc
 
     timeframe
     query

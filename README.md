@@ -149,7 +149,18 @@ $ rvm install 2.1.5
 
 ## Updating CobbleBot
 
-In the alpha stage of development, migrations are non-cumulative.  This means that every time the migrations change, you must drop the database and start from scratch.  To mitigate this, CobbleBot can export data to CSV for re-import after the database is recreated.  When development progresses to beta, migrations will become cumulative so that export/import is not required during update.
+Normally, migrations are simple.  If you have trouble, use the rake export commands to save your records and drop the database.  The simple way, if you don't get any errors is, make sure the rails server is stopped.  Also stop the resque scheduler and workers.  Once everything has been stopped:
+
+    $ cd cobblebot
+    $ git pull
+    $ rake db:migrate
+    $ rake db:seed
+
+Now you can start rails and resque.
+
+If you see errors during migration, what follows is a more expanded method of migrating the database.
+
+In early stages of development, migrations were non-cumulative.  This meant that early migrations required you to drop the database and start from scratch.  To mitigate this, CobbleBot can export data to CSV for re-import after the database is recreated.  As development progresses toward beta, migrations should become cumulative so that export/import is not required during update.
 
 To update CobbleBot, make sure the rails server is stopped.  Also stop the resque scheduler and workers.  Once everything has been stopped:
 
@@ -158,15 +169,24 @@ To update CobbleBot, make sure the rails server is stopped.  Also stop the resqu
     $ rake cobblebot:export:preferences > preferences.csv
     $ rake cobblebot:export:players > players.csv
     $ rake cobblebot:export:links > links.csv
-    $ rake cobblebot:export:callbacks > callbacks.csv
+    $ rake cobblebot:export:server_callbacks > server_callbacks.csv
     $ rake cobblebot:export:messages > messages.csv
-    $ rake db:drop
+    $ rake cobblebot:export:ips > ips.csv
+    $ rake cobblebot:export:mutes > mutes.csv
+    $ rake db:migrate
+    $ rake db:seed
+    
+If migrations fail, you can now re-import your data as follows:
+    
+    $ rake db:drop # only do this if migrations fail
     $ rake db:migrate
     $ cat preferences.csv | rake cobblebot:import:preferences
     $ cat players.csv | rake cobblebot:import:players
     $ cat links.csv | rake cobblebot:import:links
-    $ cat callbacks.csv | rake cobblebot:import:callbacks
+    $ cat server_callbacks.csv | rake cobblebot:import:server_callbacks
     $ cat messages.csv | rake cobblebot:import:messages
+    $ cat ips.csv | rake cobblebot:import:ips
+    $ cat mutes.csv | rake cobblebot:import:mutes
     $ rake db:seed
     
 Now you can start rails and resque.

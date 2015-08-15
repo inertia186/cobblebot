@@ -7,6 +7,11 @@ class Player < ActiveRecord::Base
   include Teleportable
   include Audible
   include Sayable
+
+  LANG_EN = %w(US CA GB AU IE JM NZ)
+  LANG_FR = %w(BE CA FR LU MC CH)
+  LANG_PT = %w(BR PT)
+  LANG_ES = %w(AR VE BO CL CO CR DO EC SV GT HN MX NI PA PY PE PR ES US UY)
   
   validates :uuid, presence: true
   validates_uniqueness_of :uuid, case_sensitive: true
@@ -69,6 +74,27 @@ class Player < ActiveRecord::Base
 
     where(spam_ratio.lt(ratio)).tap do |r|
       return spammers ? r : where.not(id: r)
+    end
+  }
+  scope :cc, lambda { |cc| where(id: Ip.where(cc: cc).select(:player_id)) }
+  scope :lang_en, lambda { |lang_en = true|
+    cc(LANG_EN).tap do |r|
+      return lang_en ? r : where.not(id: r).where.not(id: cc(['**', '??']))
+    end
+  }
+  scope :lang_fr, lambda { |lang_fr = true|
+    cc(LANG_FR).tap do |r|
+      return lang_fr ? r : where.not(id: r).where.not(id: cc(['**', '??']))
+    end
+  }
+  scope :lang_pt, lambda { |lang_pt = true|
+    cc(LANG_PT).tap do |r|
+      return lang_pt ? r : where.not(id: r).where.not(id: cc(['**', '??']))
+    end
+  }
+  scope :lang_es, lambda { |lang_es = true|
+    cc(LANG_ES).tap do |r|
+      return lang_es ? r : where.not(id: r).where.not(id: cc(['**', '??']))
     end
   }
   scope :has_links, lambda { |has_links = true|
