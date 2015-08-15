@@ -21,6 +21,7 @@ There is also an optional IRC bot that allows players to interact.
   * Optional Spam Detection + Warnings, Automatic Kick
   * IP Tracking
   * Web API for external administrative tasks
+  * Google Translate
 
 ## Installation
 

@@ -25,11 +25,11 @@ module Achievable
 
       execute <<-DONE
         tellraw #{selector} {
-          text: "#{nick} has just earned the achievement ", extra: [{
-            text: "[#{achievement}]", color: "dark_purple",
-            hoverEvent: {
-              action: "show_text", value: "#{hover_text}",
-              obfuscated: #{hover_obfuscated}
+          "text": "#{nick} has just earned the achievement ", "extra": [{
+            "text": "[#{achievement}]", "color": "dark_purple",
+            "hoverEvent": {
+              "action": "show_text", value: "#{hover_text}",
+              "obfuscated": #{hover_obfuscated}
             }
           }]
         }
