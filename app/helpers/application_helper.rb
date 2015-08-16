@@ -33,6 +33,10 @@ module ApplicationHelper
   def link_remote_delete(action, options = {class: 'btn btn-danger', confirm: 'Are you sure?'})
     link_to 'Delete', action, class: options[:class], data: { confirm: options[:confirm], remote: true, method: :delete }
   end
+  
+  def flag_exists(cc)
+    File.exists?("#{Rails.root}/app/assets/images/flag/16/#{cc.downcase}.png")
+  end
 private
   def nav_link(path, id, target, accesskey, prefix, suffix)
     link_to(path, id: id, class: 'btn btn-default', accesskey: accesskey, data: { remote: true, target: target}) do

@@ -3,5 +3,9 @@
   %td=link_to ip.origin, admin_ips_path(origin: ip.origin)
   - unless @player
     %td=link_to((ip.player.nick rescue '[REDACTED]'), admin_ips_path(player_id: ip.player_id))
-  %td=link_to ip.cc, admin_ips_path(cc: ip.cc)
+  - unless @cc
+    %td
+      =link_to admin_ips_path(cc: ip.cc) do
+        = image_tag "flag/16/#{ip.cc.downcase}.png" if flag_exists(ip.cc)
+        = ip.cc
   %td=relative_time(ip.created_at)

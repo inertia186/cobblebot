@@ -4,6 +4,23 @@
     - if @player
       by
       = link_to @player.nick, admin_player_path(@player)
+    - if @origin
+      - if @origin.class == Array
+        from
+        = pluralize(@origin.size, 'origin')
+        = @origin.join(', ')
+      - else
+        from origin
+        = @origin
+    - if @cc
+      in
+      - if @cc.class == Array
+        - @cc.each do |cc|
+          = image_tag "flag/16/#{cc.downcase}.png" if flag_exists(cc)
+          = cc
+      - else
+        = image_tag "flag/16/#{@cc.downcase}.png" if flag_exists(@cc)
+        = @cc
     %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_ips'}} ?
   .modal.fade#explain_ips{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_ips_label', 'aria-hidden' => true}
     .modal-dialog
@@ -40,7 +57,8 @@
             %th=sortable_header_link 'Origin', 'origin'
             - unless @player_id
               %th=sortable_header_link 'Used By', 'players_nick'
-            %th=sortable_header_link 'Country Code', 'cc'
+            - unless @cc
+              %th=sortable_header_link 'Country Code', 'cc'
             %th=sortable_header_link 'Created', 'created_at'
         %tbody
           - @ips.each do |ip|
