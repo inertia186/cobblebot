@@ -1,6 +1,23 @@
 .row
   %h3
     Players
+    - if @origin
+      - if @origin.class == Array
+        from
+        = pluralize(@origin.size, 'origin')
+        = @origin.join(', ')
+      - else
+        from origin
+        = @origin
+    - if @cc
+      in
+      - if @cc.class == Array
+        - @cc.each do |cc|
+          = image_tag "flag/16/#{cc.downcase}.png" if flag_exists(cc)
+          = cc
+      - else
+        = image_tag "flag/16/#{@cc.downcase}.png" if flag_exists(@cc)
+        = @cc
     %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_players'}} ?
   .modal.fade#explain_players{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_players_label', 'aria-hidden' => true}
     .modal-dialog
@@ -44,6 +61,7 @@
             %th=sortable_header_link 'Messages', 'messages_count'
             %th=sortable_header_link 'Logged In', 'last_login_at'
             %th=sortable_header_link 'Biomes Explored', 'biomes_explored'
+            %th=sortable_header_link 'Latest Country', 'latest_country_code'
             %th=sortable_header_link 'Created', 'created_at'
             %th
         %tbody

@@ -364,6 +364,10 @@ class Player < ActiveRecord::Base
   def above_exploration_threshold?
     Player.above_exploration_threshold.where(id: self).any?
   end
+  
+  def latest_country_code
+    ips.last.cc if ips.any?
+  end
 private  
   def update_last_nick
     return unless !!id

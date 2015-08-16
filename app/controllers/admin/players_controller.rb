@@ -6,8 +6,13 @@ class Admin::PlayersController < Admin::AdminController
   
   def index
     @sort_field = params[:sort_field].present? ? params[:sort_field] : 'last_login_at'
+    @origin = params[:origin]
+    @cc = params[:cc]
     
     @players = Player.all
+
+    @players = @players.where(id: Ip.where(origin: @origin).select(:player_id)) if !!@origin
+    @players = @players.where(id: Ip.where(cc: @cc).select(:player_id)) if !!@cc
 
     timeframe
     query
@@ -42,6 +47,9 @@ private
         order("#{@sort_field} #{@sort_order}")
     when 'messages_count'
       @players = @players.select("players.*, ( SELECT COUNT(*) FROM messages WHERE players.id = messages.recipient_id AND messages.recipient_type = 'Player') AS messages_count").
+        order("#{@sort_field} #{@sort_order}")
+    when 'latest_country_code'
+      @players = @players.select("players.*, ( SELECT ips.cc FROM ips WHERE players.id = ips.player_id ORDER BY ips.id LIMIT 1 ) AS latest_country_code").
         order("#{@sort_field} #{@sort_order}")
     else
       @players = @players.order("#{@sort_field} #{@sort_order}")

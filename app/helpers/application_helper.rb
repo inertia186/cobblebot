@@ -27,7 +27,7 @@ module ApplicationHelper
     nav_link(path, "first_#{id}", "#show_#{id}", 'f', 'F', 'irst') +
     nav_link(path, "previous_#{id}", "#show_#{id}", 'p', 'P', 'revious') +
     nav_link(path, "next_#{id}", "#show_#{id}", 'n', 'N', 'ext') +
-    nav_link(path, "last_#{id}", "#show_#{id}", 'l', 'L', 'ext')
+    nav_link(path, "last_#{id}", "#show_#{id}", 'l', 'L', 'ast')
   end
   
   def link_remote_delete(action, options = {class: 'btn btn-danger', confirm: 'Are you sure?'})
