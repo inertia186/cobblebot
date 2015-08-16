@@ -22,6 +22,7 @@ There is also an optional IRC bot that allows players to interact.
   * IP Tracking
   * Web API for external administrative tasks
   * Google Translate
+  * Optional Country Code lookup using db-ip.com
 
 ## Installation
 

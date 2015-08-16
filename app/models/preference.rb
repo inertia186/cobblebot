@@ -17,6 +17,7 @@ class Preference < ActiveRecord::Base
   IRC_CHANNEL_OPS = 'irc_channel_ops'
   IRC_NICKSERV_PASSWORD = 'irc_nickserv_password'
   ORIGIN_SALT = 'origin_salt'
+  DB_IP_API_KEY = 'db_ip_api_key'
 
   # System keys are used internally, typically hidden from the web views.
   LATEST_RESOURCE_PACK_HASH = 'latest_resource_pack_hash'
@@ -28,7 +29,7 @@ class Preference < ActiveRecord::Base
     TUTORIAL_JSON, LATEST_RESOURCE_PACK_HASH, LATEST_RESOURCE_PACK_TIMESTAMP,
     IRC_ENABLED, IRC_INFO, IRC_WEB_CHAT_ENABLED, IRC_WEB_CHAT_URL_LABEL,
     IRC_WEB_CHAT_URL, IRC_SERVER_HOST, IRC_SERVER_PORT, IRC_NICK, IRC_CHANNEL,
-    IRC_CHANNEL_OPS, IRC_NICKSERV_PASSWORD, ORIGIN_SALT,
+    IRC_CHANNEL_OPS, IRC_NICKSERV_PASSWORD, ORIGIN_SALT, DB_IP_API_KEY,
     IS_JUNK_OBJECTIVE_TIMESTAMP
   ]
 
@@ -61,6 +62,18 @@ class Preference < ActiveRecord::Base
   
   def to_param
     key.parameterize
+  end
+  
+  def self.find_or_create_all(system = true)
+    result = []
+    keys = ALL_KEYS
+    keys -= SYSTEM_KEYS unless system
+    
+    keys.each do |key|
+      result << Preference.find_or_create_by(key: key)
+    end
+    
+    result
   end
 private
   def self.prefixed?(method, op)
