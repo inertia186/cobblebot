@@ -135,8 +135,8 @@ module Sayable
       keywords = keywords.split(' ').map(&:strip)
       tip = nil
       
-      if keywords =~ /\d/
-        tip = Message::Tip.order(:id).limit(keywords.to_i).limit
+      if keywords[0] =~ /\d/
+        tip = Message::Tip.order(:id).limit(keywords[0].to_i).last
       elsif keywords.any?
         tip = Message::Tip.query(keywords).in_cooldown(false).first
       else
