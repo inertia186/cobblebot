@@ -32,6 +32,12 @@
     = hidden_field_tag :filter, @filter
     = hidden_field_tag :author_id, @author_id if @author_id.present?
     = text_field_tag :query, @query, placeholder: 'Query Text'
+    = check_box_tag :read, 'true', params[:read] == 'true'
+    = label_tag :read
+    = check_box_tag :deleted, 'true', params[:deleted] == 'true'
+    = label_tag :deleted
+    = check_box_tag :muted, 'true', params[:muted] == 'true'
+    = label_tag :muted
     = submit_tag 'Search', class: 'btn btn-info btn-xs'
 
 %ul.nav.nav-tabs

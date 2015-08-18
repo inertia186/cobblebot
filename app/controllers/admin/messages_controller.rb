@@ -16,6 +16,9 @@ class Admin::MessagesController < Admin::AdminController
     end
 
     @messages = Message.where(type: nil)
+    @messages = @messages.read(params[:read] == 'true')
+    @messages = @messages.deleted(params[:deleted] == 'true')
+    @messages = @messages.muted(params[:muted] == 'true')
     if @author_id.present? && @author_type == 'Player'
       @author = Player.find @author_id
       @messages = @messages.where(author_id: @author_id)
