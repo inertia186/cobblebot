@@ -69,15 +69,12 @@ module Linkable
     end
   
     def say_lmgtfy_link(selector, query)
-      q = URI.encode_www_form([ ["q", query] ])
-      generate_lmgtfy_url = "http://lmgtfy.com/?#{q}"
-      base_url = "http://is.gd/create.php?format=json&url="
-      is_gd_request_url = URI.parse(base_url + generate_lmgtfy_url)
-      url = JSON.parse(Net::HTTP.get_response(is_gd_request_url).body).fetch("shorturl")
-    
       return if selector.nil?
+
+      q = URI.encode_www_form([ ["q", query] ])
+      lmgtfy_url = "http://lmgtfy.com/?#{q}"
     
-      say_link selector, url, title: query, only_title: true
+      say_link selector, lmgtfy_url, title: query, only_title: true
     end
   end
 end
