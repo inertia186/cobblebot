@@ -199,6 +199,9 @@ module Tellable
         return results
       end
       
+      author_nick = topic.author.nick rescue '???'
+      body = escape(topic.body)
+      
       results << execute(
       <<-DONE
         tellraw #{selector} { "text": "Current Topic", "color": "green" }
@@ -211,9 +214,11 @@ module Tellable
       )
       results << execute(
       <<-DONE
-        tellraw #{selector} { "text": "#{topic.body}", "color": "green" }
+        tellraw #{selector} { "text": "#{body}", "color": "green" }
       DONE
       )
+      
+      say_link(selector, body, nick: author_nick) if body =~ /^http.*/i
     end
     
     def set_topic(nick, topic)
