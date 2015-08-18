@@ -34,8 +34,8 @@ class Ip < ActiveRecord::Base
   end
 private
   def self.update_cc(ip_address)
-    if !!Preference.db_ip_api_key
-      url = "http://api.db-ip.com/addrinfo?addr=#{ip_address}&api_key=#{Preference.db_ip_api_key}"
+    if !!(key = Preference.db_ip_api_key)
+      url = "http://api.db-ip.com/addrinfo?addr=#{ip_address}&api_key=#{key}"
       response = Net::HTTP.get_response(URI.parse(url))
       json = JSON.parse(response.body)
       cc = json['country']

@@ -18,6 +18,7 @@ class MinecraftWatchdog
       check_resque
       check_resource_pack
       prettify_callbacks
+      update_ip_cc
 
       break if !!options[:debug]      
       Rails.logger.info "#{self} sleeping for #{WATCHDOG_TICK}"
@@ -116,6 +117,14 @@ private
     ServerCallback.needs_prettification.find_each do |callback|
       callback.prettify(:pattern) unless !!callback.pretty_pattern
       callback.prettify(:command) unless !!callback.pretty_command
+    end
+  end
+  
+  def self.update_ip_cc
+    ips = Ip.where(cc: nil).pluck(:address).uniq
+    
+    ips.each do |ip|
+      break unless !!Ip.send(:update_cc, ip)
     end
   end
 end
