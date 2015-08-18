@@ -113,7 +113,7 @@ class ActiveSupport::TestCase
       assert ran_at == c.reload.ran_at || c.error_flag_at, "callback ran or got error: #{c.last_command_output}"
     else
       refute_equal ran_at, c.reload.ran_at, "expect callback \"#{c.name}\" to run"
-      refute c.error_flag_at, "callback ran, but got error: #{c.last_command_output}"
+      refute c.error_flag_at, "callback \"#{c.name}\" ran, but got error: #{c.last_command_output}"
     end
   end
   

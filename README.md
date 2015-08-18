@@ -15,6 +15,7 @@ There is also an optional IRC bot that allows players to interact.
   * Server Status
   * Server Callbacks to define custom server behavior and interaction.
   * Message of the Day
+  * Server Topics
   * Player tracking by UUID
   * IRC Bot with in-game messaging
   * Initial twitch.tv bot support
