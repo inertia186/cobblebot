@@ -17,6 +17,7 @@
     .navbar-header
       %ul.nav.navbar-nav
         %li{class: active_nav('players')}= link_to 'Players', players_path
+        %li{class: active_nav('topics')}= link_to 'Topics', topics_path
         %li{class: active_nav('status')}= link_to 'Server Status', status_index_path
         - if Preference.irc_enabled? && Preference.irc_web_chat_enabled?
           %li{class: active_nav('irc_web_chat')}= link_to 'IRC', Preference.irc_web_chat_url, target: 'irc'

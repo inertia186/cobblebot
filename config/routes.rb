@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   # Example resource route (maps HTTP verbs to controller actions automatically):
   resources :status, only: :index
   resources :players, only: :index
+  resources :topics, only: :index
   get 'server-icon.png' => 'resources#server_icon', as: :server_icon
 
   # Example resource route with options:
