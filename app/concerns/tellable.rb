@@ -185,5 +185,55 @@ module Tellable
         tell(nick, "No mail. ;(")        
       end
     end
+    
+    def tell_topic(selector)
+      results = []
+      
+      if (topic = Message::Topic.last).nil?
+        results << execute(
+        <<-DONE
+          tellraw #{selector} { "text": "There is no topic.", "color": "green" }
+        DONE
+        )
+
+        return results
+      end
+      
+      results << execute(
+      <<-DONE
+        tellraw #{selector} { "text": "Current Topic", "color": "green" }
+      DONE
+      )
+      results << execute(
+      <<-DONE
+        tellraw #{selector} { "text": "===", "color": "green" }
+      DONE
+      )
+      results << execute(
+      <<-DONE
+        tellraw #{selector} { "text": "#{topic.body}", "color": "green" }
+      DONE
+      )
+    end
+    
+    def set_topic(nick, topic)
+      return tell(nick, 'Topic not set.  Nice try.') if topic =~ /@@/
+      return tell(nick, 'Topic not set.  Entity selector no longer supported.') if topic =~ /@e/
+      return tell(nick, 'Topic not set.  Sheez, do you know how annoying that selector would be?') if topic =~ /@a/
+    
+      # Try to get keywords if the topic contains a link.
+      result = say_link(nil, topic)
+      
+      author = Player.any_nick(nick).first
+      keywords = result[1] if result.class == Array
+      keywords = result.title if result.class == Link
+      _topic = Message::Topic.new(body: topic, author: author, keywords: keywords)
+    
+      if _topic.save
+        tell(nick, 'Topic set, thank you.')
+      else
+        tell(nick, "Topic not set.")
+      end
+    end
   end
 end

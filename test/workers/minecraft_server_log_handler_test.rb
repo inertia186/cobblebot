@@ -765,4 +765,16 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> test')
     end
   end
+
+  def test_topic
+    assert_callback_ran "Topic" do
+      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server topic')
+    end
+  end
+
+  def test_set_topic
+    assert_callback_ran "Set Topic" do
+      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server topic test')
+    end
+  end
 end

@@ -117,6 +117,11 @@ class Player < ActiveRecord::Base
       return has_tips ? r : where.not(id: r)
     end
   }
+  scope :has_topics, lambda { |has_topics = true|
+    joins(:topics).uniq.tap do |r|
+      return has_topics ? r : where.not(id: r)
+    end
+  }
   scope :has_ips, lambda { |has_ips = true|
     joins(:ips).uniq.tap do |r|
       return has_ips ? r : where.not(id: r)
@@ -127,6 +132,7 @@ class Player < ActiveRecord::Base
   has_many :messages, -> { where(type: nil) }, as: :recipient
   has_many :sent_messages, -> { where(type: nil) }, class_name: 'Message', as: :author
   has_many :tips, class_name: 'Message::Tip', as: :author
+  has_many :topics, class_name: 'Message::Topic', as: :author
   has_many :ips
   has_many :mutes
   has_many :inverse_mutes, foreign_key: 'muted_player_id', class_name: 'Mute'
