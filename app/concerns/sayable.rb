@@ -131,6 +131,10 @@ module Sayable
       say_json_preference(selector, :tutorial_json)
     end
     
+    def say_faq(selector)
+      say_json_preference(selector, :faq_json)
+    end
+    
     def say_random_tip(selector, nick, keywords = '', options =())
       keywords = keywords.split(' ').map(&:strip)
       tip = nil
