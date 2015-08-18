@@ -91,6 +91,32 @@ class Server
       raise "Unable to find #{player.nick} position." unless !!pos
       
       "@e[r=#{radius},x=#{pos[0].to_i},y=#{pos[1].to_i},z=#{pos[2].to_i}]"
+    elsif !!options[:only_type]
+      s = '@e['
+      if options[:only_type].class == Array
+        # FIXME This actually does not work.  Only the last type added to the selector will be recognized. See: http://gaming.stackexchange.com/questions/166679/how-do-i-select-two-types-of-entities-in-minecraft-with-the-type-selector
+        options[:only_type].each do |type|
+          s += ',' unless s == '@e['
+          s += "type=#{type}"
+        end
+      else
+        s += "type=#{options[:only_type]}"
+      end
+      
+      s += ']'
+    elsif !!options[:except_type]
+      s = '@e['
+      if options[:except_type].class == Array
+        # FIXME See above fixme for why this doesn't work.
+        options[:except_type].each do |type|
+          s += ',' unless s == '@e['
+          s += "type=!#{type}"
+        end
+      else
+        s += "type=!#{options[:except_type]}"
+      end
+      
+      s += ']'
     end
 
     response << rcon.command("entitydata #{selector} {}")

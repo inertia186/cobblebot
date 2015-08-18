@@ -25,8 +25,27 @@ module Detectable
     ['Blaze', '{Health:4s}', 1],
     ['Blaze', '{Health:3s}', 2],
     ['Blaze', '{Health:2s}', 3],
-    ['Blaze', '{Health:1s}', 4]
+    ['Blaze', '{Health:1s}', 4],
+    ['Creeper', '{Health:4s}', 1],
+    ['Creeper', '{Health:3s}', 2],
+    ['Creeper', '{Health:2s}', 3],
+    ['Creeper', '{Health:1s}', 4],
+    ['Enderman', '{Health:4s}', 1],
+    ['Enderman', '{Health:3s}', 2],
+    ['Enderman', '{Health:2s}', 3],
+    ['Enderman', '{Health:1s}', 4],
+    ['Spider', '{Health:4s}', 1],
+    ['Spider', '{Health:3s}', 2],
+    ['Spider', '{Health:2s}', 3],
+    ['Spider', '{Health:1s}', 4],
+    ['CaveSpider', '{Health:4s}', 1],
+    ['CaveSpider', '{Health:3s}', 2],
+    ['CaveSpider', '{Health:2s}', 3],
+    ['CaveSpider', '{Health:1s}', 4]
   ]
+  PASSIVE_MOB_TYPES = %w(Bat Chicken Cow MushroomCow Pig Rabbit Sheep Squid Villager VillagerGolem Wolf Ocelot EntityHorse SnowMan)
+  HOSTILE_MOB_TYPES = %w(Blaze Creeper ElderGuardian Endermite Ghast Guardian MagmaCube Silverfish Skeleton Slime Spider CaveSpider Witch WitherSkeleton Zombie EnderDragon WitherBoss Shulker Giant Enderman PigZombie)
+  ALL_MOB_TYPES = PASSIVE_MOB_TYPES + HOSTILE_MOB_TYPES
   
   def self.included(base)
     base.extend ClassMethods
