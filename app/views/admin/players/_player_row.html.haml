@@ -3,7 +3,7 @@
   %td= player.last_nick
   %td= player.spam_ratio
   %td= link_to player.links.count, admin_player_links_path(player_id: player)
-  %td= link_to player.messages.count, admin_player_messages_path(player_id: player)
+  %td= link_to player.messages.count, admin_player_messages_path(player_id: player, filter_modes: false)
   %td= last_login(player.last_login_at)
   %td= player.biomes_explored
   %td

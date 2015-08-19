@@ -27,7 +27,7 @@ class Player < ActiveRecord::Base
   scope :query, lambda { |query|
     nick = "%#{query.downcase.chars.each.map { |c| c }.join('%')}%"
     query = "%#{query}%"
-    where('LOWER(nick) LIKE ? OR LOWER(last_nick) LIKE ? OR LOWER(last_chat) LIKE ? OR LAST_IP LIKE ?', nick, nick, query, query)
+    where('LOWER(uuid) LIKE ? OR LOWER(nick) LIKE ? OR LOWER(last_nick) LIKE ? OR LOWER(last_chat) LIKE ? OR LAST_IP LIKE ?', query, nick, nick, query, query)
   }
   scope :logged_in_today, -> { where('players.last_login_at > ?', Time.now.beginning_of_day).order(:last_login_at) }
   scope :mode, lambda { |mode = :ops, enabled = true|

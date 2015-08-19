@@ -12,18 +12,52 @@
     %th{nowrap: :nowrap} Last Chat
     %td= player_last_chat(player)
   %tr
-    %th Spam Ratio
-    %td=player.spam_ratio
+    %th{nowrap: :nowrap} Last Location
+    %td=player.last_location
   %tr
     %th Last Login
     %td=player.last_login_at
   %tr
     %th Last Logout
     %td=player.last_logout_at
+  %tr
+    %th Spam Ratio
+    %td=player.spam_ratio
+  %tr
+    %th Play Sounds
+    %td=player.play_sounds?
+  %tr
+    %th Biomes Explored
+    %td=player.biomes_explored
+  %tr
+    %th Registered
+    %td=player.registered? ? player.registered_at : 'Not Registered'
+  %tr
+    %th May Auto-link
+    %td=player.may_autolink?
+  %tr
+    %th Links
+    %td= link_to player.links.count, admin_player_links_path(player_id: player)
+  %tr
+    %th Messages
+    %td= link_to player.messages.count, admin_player_messages_path(player_id: player, filter_modes: false)
+  %tr
+    %th IPs
+    %td= link_to player.ips.count, admin_ips_path(player_id: player)
+  %tr
+    %th Country Codes
+    %td
+      - if (ccs = player.ips.where.not(cc: [nil, '??', '**']).pluck(:cc).uniq).any?
+        - ccs.each do |cc|
+          =link_to admin_players_path(cc: cc) do
+            = image_tag "flag/16/#{cc.downcase}.png" if flag_exists(cc)
+            = cc
+    
     
 .modal-footer
   %span{style: 'float: left;'}
     = link_remote_delete(admin_player_path(player))
+    = link_remote_toggle_autolink(player)
   %span{style: 'float: right;'}
     - if defined? modal
       = modal_nav_links(admin_players_path, "player")

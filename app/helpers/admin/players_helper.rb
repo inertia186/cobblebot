@@ -11,4 +11,14 @@ module Admin::PlayersHelper
     end
     
   end
+  
+  def link_remote_toggle_autolink(player, options = {class: 'btn btn-warning', confirm: 'Are you sure?'})
+    title = if player.may_autolink?
+      'Disable Auto-link'
+    else
+      'Enable Auto-link'
+    end
+    
+    link_to title, toggle_may_autolink_admin_player_path(player), class: options[:class], data: { confirm: options[:confirm], remote: true, method: :patch }
+  end
 end
