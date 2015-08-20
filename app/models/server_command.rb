@@ -55,7 +55,7 @@ class ServerCommand
     player
   end
 
-  def self.update_player_last_ip(nick, x, y, z)
+  def self.update_player_last_location(nick, x, y, z)
     player = Player.find_by_nick(nick)
     return if player.nil?
     
