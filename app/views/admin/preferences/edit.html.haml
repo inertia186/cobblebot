@@ -14,6 +14,7 @@
       = f.label :value
       %br
       - if [Preference::MOTD, Preference::RULES_JSON, Preference::TUTORIAL_JSON, Preference::FAQ_JSON].include? @preference.key
+        Please note, this preference allows multiple JSON segments where each line is treated separately.
         = f.text_area :value, cols: 80, rows: 15
       - elsif @preference.key == Preference::COMMAND_SCHEME
         = f.select :value, %w(rcon multiplexor)

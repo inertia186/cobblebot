@@ -10,7 +10,24 @@ class Admin::PreferencesController < Admin::AdminController
   end
   
   def update
-    @preference = Preference.find_or_create_by(key: params[:id])
+    key = params[:id]
+    @preference = Preference.find_or_create_by(key: key)
+
+    if key =~ /_json$/
+      val = params[:preference][:value]
+      line_no = 0
+      begin
+        val.each_line do |line|
+          line_no = line_no + 1
+          json = JSON.parse(line)
+        end
+      rescue JSON::ParserError => e
+        @preference.value = val
+        @preference.errors[:value] << "Problem on line #{line_no}: #{e.message.split(': ').last}"
+        
+        render 'edit' and return
+      end
+    end
 
     if @preference.update_attributes(preference_params)
       ServerProperties.reset_vars
