@@ -121,6 +121,10 @@ private
   end
   
   def self.update_ip_cc
+    Player.where.not(last_ip: nil).where.not(id: Ip.all.select(:player_id)).find_each do |player|
+      player.ips.create(address: player.last_ip)
+    end
+    
     ips = Ip.where(cc: nil).pluck(:address).uniq
     
     ips.each do |ip|

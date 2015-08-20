@@ -1,6 +1,7 @@
 class TopicsController < ApplicationController
   def index
     @topic = Message::Topic.last
-    @past_topics = Message::Topic.where.not(id: @topic).limit(100)
+    @topics = Message::Topic.limit(100)
+    @past_topics = @topics.where.not(id: @topic)
   end
 end
