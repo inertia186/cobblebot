@@ -55,6 +55,15 @@ class ServerCommand
     player
   end
 
+  def self.update_player_last_ip(nick, x, y, z)
+    player = Player.find_by_nick(nick)
+    return if player.nil?
+    
+    player.update_attribute(:last_location, "x=#{x.to_i},y=#{y.to_i},z=#{z.to_i}") # no AR callbacks
+    
+    player
+  end
+
   def self.touch_player_last_logged_out(nick)
     player = Player.find_by_nick(nick)
     return unless !!player

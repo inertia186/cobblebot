@@ -37,25 +37,29 @@ class Ip < ActiveRecord::Base
   end
 private
   def self.update_cc(ip_address)
-    if !!(key = Preference.db_ip_api_key)
-      url = "http://api.db-ip.com/addrinfo?addr=#{ip_address}&api_key=#{key}"
-      response = Net::HTTP.get_response(URI.parse(url))
-      json = JSON.parse(response.body)
-      cc = json['country']
+    begin
+      if !!(key = Preference.db_ip_api_key)
+        url = "http://api.db-ip.com/addrinfo?addr=#{ip_address}&api_key=#{key}"
+        response = Net::HTTP.get_response(URI.parse(url))
+        json = JSON.parse(response.body)
+        cc = json['country']
+      end
+    
+      if cc.nil? # Fallback to ip2cc shell command.
+        cc_result = `ip2cc #{ip_address}`
+        return false if cc_result.nil?
+    
+        cc_result = cc_result.split('Country: ')[1]
+        return false if cc_result.nil?
+    
+        cc = cc_result.split(' ')[0]
+      end
+    
+      Ip.where(cc: nil).where(address: ip_address).update_all("cc = '#{cc}'")
+    
+      cc
+    rescue StandardError => e
+      Rails.logger.error "Problem looking up country code for #{ip_address}: #{e.inspect}"
     end
-    
-    if cc.nil? # Fallback to ip2cc shell command.
-      cc_result = `ip2cc #{ip_address}`
-      return false if cc_result.nil?
-    
-      cc_result = cc_result.split('Country: ')[1]
-      return false if cc_result.nil?
-    
-      cc = cc_result.split(' ')[0]
-    end
-    
-    Ip.where(cc: nil).where(address: ip_address).update_all("cc = '#{cc}'")
-    
-    cc
   end
 end

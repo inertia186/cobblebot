@@ -76,7 +76,11 @@ class Player < ActiveRecord::Base
       return spammers ? r : where.not(id: r)
     end
   }
-  scope :cc, lambda { |cc| where(id: Ip.where(cc: cc).select(:player_id)) }
+  scope :cc, lambda { |cc, inclusive = true|
+    where(id: Ip.where(cc: cc).select(:player_id)).tap do |r|
+      return inclusive ? r : where.not(id: r)
+    end
+  }
   scope :lang_en, lambda { |lang_en = true|
     cc(LANG_EN).tap do |r|
       return lang_en ? r : where.not(id: r).where.not(id: cc(['**', '??']))
