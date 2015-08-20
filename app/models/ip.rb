@@ -16,11 +16,17 @@ class Ip < ActiveRecord::Base
   }
   
   after_validation do
-    return unless new_record?
-    salt = Preference.origin_salt.strip
-    hash = Digest::MD5.hexdigest "#{salt} :: #{address.split('.')[0..2].join('.')}\n"
-    self.origin = hash[0..2]
-    self.cc = Ip.update_cc(address)
+    if new_record?
+      salt = Preference.origin_salt.strip
+      hash = Digest::MD5.hexdigest "#{salt} :: #{address.split('.')[0..2].join('.')}\n"
+      self.origin = hash[0..2]
+      result = Ip.update_cc(address)
+      if !!result
+        self.cc = result[:country]
+        self.state = result[:state]
+        self.city = result[:city]
+      end
+    end
   end
   
   def self.cc_count(sort_order = :asc)
@@ -38,11 +44,15 @@ class Ip < ActiveRecord::Base
 private
   def self.update_cc(ip_address)
     begin
+      cc = nil, state = nil, city = nil
+      
       if !!(key = Preference.db_ip_api_key)
         url = "http://api.db-ip.com/addrinfo?addr=#{ip_address}&api_key=#{key}"
         response = Net::HTTP.get_response(URI.parse(url))
         json = JSON.parse(response.body)
         cc = json['country']
+        state = json['stateprov']
+        city = json['city']
       end
     
       if cc.nil? # Fallback to ip2cc shell command.
@@ -55,11 +65,11 @@ private
         cc = cc_result.split(' ')[0]
       end
     
-      Ip.where(cc: nil).where(address: ip_address).update_all("cc = '#{cc}'")
-    
-      cc
+      Ip.where(cc: nil).where(address: ip_address).update_all("cc = '#{cc}', state = '#{state}', city = '#{city}'")
     rescue StandardError => e
       Rails.logger.error "Problem looking up country code for #{ip_address}: #{e.inspect}"
     end
+
+    {country: cc, state: state, city: city}
   end
 end
