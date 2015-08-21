@@ -26,7 +26,7 @@
       - @past_topics.each do |topic|
         %tr
           %td= topic.body
-          %td= @topic.author.nick if !!@topic.author
+          %td= topic.author.nick if !!topic.author
           %td{title: topic.created_at}
             = distance_of_time_in_words_to_now topic.created_at
             ago

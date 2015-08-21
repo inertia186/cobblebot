@@ -778,4 +778,134 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server topic test')
     end
   end
+  
+  def test_detect_pvp_slain
+    inertia186 = Player.find_by_nick('inertia186')
+    dinnerbone = Player.find_by_nick('Dinnerbone')
+    
+    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
+      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
+        assert_callback_ran "Slain" do
+          MinecraftServerLogHandler.handle('[19:09:22] [Server thread/INFO]: inertia186 was slain by Dinnerbone using [Hugs IV]')
+        end
+      end
+    end
+  end
+
+  def test_detect_pvp_slain_not_named
+    inertia186 = Player.find_by_nick('inertia186')
+    dinnerbone = Player.find_by_nick('Dinnerbone')
+    
+    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
+      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
+        assert_callback_ran "Slain" do
+          MinecraftServerLogHandler.handle('[19:09:22] [Server thread/INFO]: inertia186 was slain by Dinnerbone')
+        end
+      end
+    end
+  end
+
+  def test_detect_pvp_shot
+    inertia186 = Player.find_by_nick('inertia186')
+    dinnerbone = Player.find_by_nick('Dinnerbone')
+    
+    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
+      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
+        assert_callback_ran "Shot" do
+          MinecraftServerLogHandler.handle('[09:34:15] [Server thread/INFO]: inertia186 was shot by Dinnerbone using [Spiky Hugger]')
+        end
+      end
+    end
+  end
+
+  def test_detect_pvp_shot_not_named
+    inertia186 = Player.find_by_nick('inertia186')
+    dinnerbone = Player.find_by_nick('Dinnerbone')
+    
+    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
+      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
+        assert_callback_ran "Shot" do
+          MinecraftServerLogHandler.handle('[09:34:15] [Server thread/INFO]: inertia186 was shot by Dinnerbone')
+        end
+      end
+    end
+  end
+
+  def test_detect_pvp_killed
+    inertia186 = Player.find_by_nick('inertia186')
+    dinnerbone = Player.find_by_nick('Dinnerbone')
+    
+    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
+      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
+        assert_callback_ran "Killed" do
+          MinecraftServerLogHandler.handle('[19:01:52] [Server thread/INFO]: inertia186 was killed by Dinnerbone using [Liquid Hugs]')
+        end
+      end
+    end
+  end
+
+  def test_detect_pvp_killed_not_named
+    inertia186 = Player.find_by_nick('inertia186')
+    dinnerbone = Player.find_by_nick('Dinnerbone')
+    
+    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
+      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
+        assert_callback_ran "Killed" do
+          MinecraftServerLogHandler.handle('[19:01:52] [Server thread/INFO]: inertia186 was killed by Dinnerbone')
+        end
+      end
+    end
+  end
+
+  def test_detect_pvp_thorns
+    inertia186 = Player.find_by_nick('inertia186')
+    dinnerbone = Player.find_by_nick('Dinnerbone')
+    
+    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
+      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
+        assert_callback_ran "Thorns" do
+          MinecraftServerLogHandler.handle('[17:57:25] [Server thread/INFO]: inertia186 was killed trying to hurt Dinnerbone')
+        end
+      end
+    end
+  end
+
+  def test_detect_pvp_burnt
+    inertia186 = Player.find_by_nick('inertia186')
+    dinnerbone = Player.find_by_nick('Dinnerbone')
+    
+    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
+      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
+        assert_callback_ran "Burnt" do
+          MinecraftServerLogHandler.handle('[09:55:50] [Server thread/INFO]: inertia186 was burnt to a crisp whilst fighting Dinnerbone')
+        end
+      end
+    end
+  end
+
+  def test_detect_pvp_lava_swim
+    inertia186 = Player.find_by_nick('inertia186')
+    dinnerbone = Player.find_by_nick('Dinnerbone')
+    
+    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
+      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
+        assert_callback_ran "Lava Swim" do
+          MinecraftServerLogHandler.handle('[17:11:23] [Server thread/INFO]: inertia186 tried to swim in lava to escape Dinnerbone')
+        end
+      end
+    end
+  end
+
+  def test_detect_pvp_sploded_to_death
+    inertia186 = Player.find_by_nick('inertia186')
+    dinnerbone = Player.find_by_nick('Dinnerbone')
+    
+    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
+      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
+        assert_callback_ran "Sploded to Death" do
+          MinecraftServerLogHandler.handle('[15:40:09] [Server thread/INFO]: inertia186 was blown up by Dinnerbone')
+        end
+      end
+    end
+  end
 end

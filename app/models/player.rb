@@ -126,6 +126,16 @@ class Player < ActiveRecord::Base
       return has_topics ? r : where.not(id: r)
     end
   }
+  scope :has_pvp_wins, lambda { |has_pvp_wins = true|
+    joins(:pvp_wins).uniq.tap do |r|
+      return has_pvp_wins ? r : where.not(id: r)
+    end
+  }
+  scope :has_pvp_losses, lambda { |has_pvp_losses = true|
+    joins(:pvp_losses).uniq.tap do |r|
+      return has_pvp_losses ? r : where.not(id: r)
+    end
+  }
   scope :has_ips, lambda { |has_ips = true|
     joins(:ips).uniq.tap do |r|
       return has_ips ? r : where.not(id: r)
@@ -137,6 +147,8 @@ class Player < ActiveRecord::Base
   has_many :sent_messages, -> { where(type: nil) }, class_name: 'Message', as: :author
   has_many :tips, class_name: 'Message::Tip', as: :author
   has_many :topics, class_name: 'Message::Topic', as: :author
+  has_many :pvp_wins, class_name: 'Message::Pvp', as: :author
+  has_many :pvp_losses, class_name: 'Message::Pvp', as: :recipient
   has_many :ips
   has_many :mutes
   has_many :inverse_mutes, foreign_key: 'muted_player_id', class_name: 'Mute'

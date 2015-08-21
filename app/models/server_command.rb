@@ -46,7 +46,12 @@ class ServerCommand
   end
 
   def self.update_player_last_ip(nick, address)
-    player = Player.find_by_nick(nick)
+    player = nil
+    5.times do
+      break unless (player = Player.find_by_nick(nick)).nil?
+      sleep 5
+    end
+    
     return if player.nil?
     
     player.update_attribute(:last_ip, address) # no AR callbacks
@@ -56,7 +61,12 @@ class ServerCommand
   end
 
   def self.update_player_last_location(nick, x, y, z)
-    player = Player.find_by_nick(nick)
+    player = nil
+    5.times do
+      break unless (player = Player.find_by_nick(nick)).nil?
+      sleep 5
+    end
+    
     return if player.nil?
     
     player.update_attribute(:last_location, "x=#{x.to_i},y=#{y.to_i},z=#{z.to_i}") # no AR callbacks

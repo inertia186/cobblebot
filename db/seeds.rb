@@ -73,9 +73,17 @@ ServerCallback::PlayerChat.send method, name: 'That Word', pattern: "/that word/
 ServerCallback::PlayerEmote.send method, name: 'Facepalm', pattern: "/facepalms/i", command: "play_sound \"@a\", \"cf_rimshot\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::PlayerChat.send method, name: 'Going Turbo', pattern: "/(went|go|going) turbo/i", command: "play_sound \"@a\", \"turbotastic\"", cooldown: '+15 minutes', system: 'f'
 
+# PVP/PVE
+ServerCallback::ServerEntry.send method, name: 'Slain', pattern: "/was slain by/", command: "play_sound \"@a\", \"smb_mario_die\"\ndetect_pvp \"%message%\"", system: 'f'
+ServerCallback::ServerEntry.send method, name: 'Shot', pattern: "/was shot by/", command: "play_sound \"@a\", \"smb3_player_down\"\ndetect_pvp \"%message%\"", system: 'f'
+ServerCallback::ServerEntry.send method, name: 'Killed', pattern: "/was killed by/", command: "play_sound \"@a\", \"smb3_player_down\"\ndetect_pvp \"%message%\"", system: 'f'
+ServerCallback::ServerEntry.send method, name: 'Thorns', pattern: "/was killed trying to hurt/", command: "play_sound \"@a\", \"loz_shield\"\ndetect_pvp \"%message%\"", system: 'f'
+ServerCallback::ServerEntry.send method, name: 'Burnt', pattern: "/was burnt to a crisp/", command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"\ndetect_pvp \"%message%\"", system: 'f'
+ServerCallback::ServerEntry.send method, name: 'Lava Swim', pattern: "/tried to swim in lava/", command: "play_sound \"@a\", \"loz_die\"\ndetect_pvp \"%message%\"", system: 'f'
+ServerCallback::ServerEntry.send method, name: 'Sploded to Death', pattern: "/was blown up by/", command: "play_sound \"@a\", \"sadtrombone\"\ndetect_pvp \"%message%\"", system: 'f'
+
 # Death sounds ...
-ServerCallback::ServerEntry.send method, name: 'Slain', pattern: "/was slain by/", command: "play_sound \"@a\", \"smb_mario_die\"", cooldown: '+15 minutes', system: 'f'
-ServerCallback::ServerEntry.send method, name: 'Shot', pattern: "/was shot by/", command: "play_sound \"@a\", \"smb3_player_down\"", cooldown: '+15 minutes', system: 'f'
+ServerCallback::ServerEntry.send method, name: 'Killed Using Magic', pattern: "/was killed.*using magic/", command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::ServerEntry.send method, name: 'Fell Out of the World', pattern: "/^[a-zA-A0-9_]+ fell out of the world/", command: "play_sound \"@a\", \"goofy_holler\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::ServerEntry.send method, name: 'Knocked Into the Void', pattern: "/was knocked into the void/", command: "play_sound \"@a\", \"goofy_holler\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::ServerEntry.send method, name: 'Fell', pattern: "/^[a-zA-Z0-9_]+ fell from a high place/", command: "play_sound \"@a\", \"fallen\"", cooldown: '+15 minutes', system: 'f'
@@ -84,13 +92,8 @@ ServerCallback::ServerEntry.send method, name: 'Hit the Ground Too Hard', patter
 ServerCallback::ServerEntry.send method, name: 'Starved to Death', pattern: "/starved to death/", command: "play_sound \"@a\", \"sm64_mario_mamma_mia\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::ServerEntry.send method, name: 'Withered Away', pattern: "/withered away/", command: "play_sound \"@a\", \"mk64_boo_laugh\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::ServerEntry.send method, name: 'Killed by Witch', pattern: "/killed by Witch/", command: "play_sound \"@a\", \"mk64_boo_laugh\"", cooldown: '+15 minutes', system: 'f'
-ServerCallback::ServerEntry.send method, name: 'Killed Using Magic', pattern: "/was killed.*using magic/", command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"", cooldown: '+15 minutes', system: 'f'
-ServerCallback::ServerEntry.send method, name: 'Thorns', pattern: "/was killed trying to hurt/", command: "play_sound \"@a\", \"loz_shield\"", system: 'f'
-ServerCallback::ServerEntry.send method, name: 'Burnt', pattern: "/was burnt to a crisp/", command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"", system: 'f'
 ServerCallback::ServerEntry.send method, name: 'Burned', pattern: "/burned to death/", command: "play_sound \"@a\", \"loz_die\"", cooldown: '+15 minutes', system: 'f'
-ServerCallback::ServerEntry.send method, name: 'Lava Swim', pattern: "/tried to swim in lava/", command: "play_sound \"@a\", \"loz_die\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::ServerEntry.send method, name: 'Cactus Death', pattern: "/pricked/", command: "play_sound \"@a\", \"loz_shield\"", system: 'f'
-ServerCallback::ServerEntry.send method, name: 'Sploded to Death', pattern: "/was blown up by/", command: "play_sound \"@a\", \"sadtrombone\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::ServerEntry.send method, name: 'Anvil Death', pattern: "/squashed/", command: "play_sound \"@a\", \"oot_navi_watch_out\"", system: 'f'
 ServerCallback::ServerEntry.send method, name: 'Bat Death?', pattern: "/by Bat/", command: "play_sound \"@a\", \"to_the_batcave\"", system: 'f'
 ServerCallback::ServerEntry.send method, name: 'Fireballed to Death', pattern: "/fireballed/", command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"", system: 'f'

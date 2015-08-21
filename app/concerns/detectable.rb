@@ -137,6 +137,34 @@ module Detectable
       
       "Evaluating entities: #{entities.size}"
     end
+    
+    def detect_pvp(message)
+      if message =~ /was.*by/
+        loser_nick = message.split(' was').first
+        loser = Player.find_by_nick(loser_nick)
+        winner_nick = message.split('by ').last.split(' ').first
+        winner = Player.find_by_nick(winner_nick)
+      elsif message =~ /was killed trying to hurt/
+        loser_nick = message.split(' ').first
+        loser = Player.find_by_nick(loser_nick)
+        winner_nick = message.split(' ').last
+        winner = Player.find_by_nick(winner_nick)
+      elsif message =~ /was burnt to a crisp/
+        loser_nick = message.split(' ').first
+        loser = Player.find_by_nick(loser_nick)
+        winner_nick = message.split(' ').last
+        winner = Player.find_by_nick(winner_nick)
+      elsif message =~ /tried to swim in lava/
+        loser_nick = message.split(' ').first
+        loser = Player.find_by_nick(loser_nick)
+        winner_nick = message.split(' ').last
+        winner = Player.find_by_nick(winner_nick)
+      end
+
+      return if loser.nil? || winner.nil?
+      
+      winner.pvp_wins.create(body: message, recipient: loser)
+    end
   private
     def player_input_regexp(nick, message)
       chat_regex = %r(: \<#{nick}\> .*#{message[0..[message.size - 1, 7].min]}.*)i
