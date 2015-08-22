@@ -85,9 +85,10 @@ class SummerBot < Summer::Connection
   end
 
   def connect!
+    Preference.active_in_irc = 0 # Reset to zero until JOIN messages come in.
     @connection = TCPSocket.open(server, port)
     @connection = OpenSSL::SSL::SSLSocket.new(@connection).connect if config[:use_ssl]
-    if !!config[:nickserv_password] && config[:nickserv_password] =~ /^oauth/
+    if twitch?
       response("PASS #{config[:nickserv_password]}") if config[:nickserv_password]
       response("NICK #{config[:nick]}")
     else
@@ -104,10 +105,17 @@ class SummerBot < Summer::Connection
     count = Message::IrcReply.destroy_all.size
     log "Removed stale irc replies: #{count}" if count > 0
     
+    if twitch?
+      response("CAP REQ :twitch.tv/commands")
+      response("CAP REQ :twitch.tv/membership")
+    end
+    
     monitor_replies
   end
   
   def channel_message sender, channel, message
+    active_override
+    
     log "#{sender.inspect} :: #{channel.inspect} :: #{message}"
     at, command = message.split(' ')
 
@@ -121,6 +129,8 @@ class SummerBot < Summer::Connection
   end
   
   def private_message sender, bot, message
+    active_override
+    
     log "#{sender.inspect} :: (privately) :: #{message}"
     words = message.split(' ')
     command = words[0].downcase
@@ -128,6 +138,55 @@ class SummerBot < Summer::Connection
     Thread.start do
       send(command, sender: sender, message: "@cobblebot #{message}")
     end if valid_op_command?(sender[:nick], command) || valid_command?(command)
+  end
+
+  def parse message
+    super
+    
+    words = message.split(" ")
+    sender = words[0]
+    raw = words[1]
+    channel = words[2]
+          
+    # Note, for some reason, Summer will not send callbacks, so we will.
+          
+    if raw == "JOIN"
+      join_event parse_sender(sender), channel
+    elsif raw == "PART"
+      part_event parse_sender(sender), channel, words[3..-1].clean
+    elsif raw == "QUIT"
+      quit_event parse_sender(sender), words[2..-1].clean
+    elsif raw == "KICK"
+      kick_event parse_sender(sender), channel, words[3], words[4..-1].clean
+    end
+  end
+  
+  def join_event sender, channel
+    return if sender[:nick] == config[:nick]
+    
+    active = Preference.active_in_irc.to_i
+    Preference.active_in_irc = active + 1
+  end
+  
+  def part_event sender, channel, message
+    return if sender[:nick] == config[:nick]
+    
+    active = Preference.active_in_irc.to_i
+    Preference.active_in_irc = active - 1 unless active == 0
+  end
+  
+  def quit_event sender, message
+    return if sender[:nick] == config[:nick]
+    
+    active = Preference.active_in_irc.to_i
+    Preference.active_in_irc = active - 1 unless active == 0
+  end
+
+  def kick_event kicker, channel, victim, message
+    return if sender[:nick] == config[:nick]
+    
+    active = Preference.active_in_irc.to_i
+    Preference.active_in_irc = active - 1 unless active == 0
   end
   
   # Monitors
@@ -209,5 +268,16 @@ private
   
   def should_quit_irc?
     !Preference.irc_enabled? || @bot_started_at.nil? || @bot_started_at < 24.hours.ago
+  end
+  
+  def twitch?
+    !!config[:nickserv_password] && config[:nickserv_password] =~ /^oauth/
+  end
+  
+  def active_override
+    if Preference.active_in_irc.to_i < 1
+      # Apparently, there is at least one nick sending messages but the active_in_irc preference says there's zero.  Set it to one now because some IRC servers don't report JOIN/PART properly.
+      Preference.active_in_irc = 1
+    end
   end
 end

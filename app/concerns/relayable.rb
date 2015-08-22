@@ -41,13 +41,17 @@ module Relayable
 
       player = Player.find_by_nick(nick)
     
-      Message::IrcReply.create(body: "<#{nick}> #{message}", author: player)
+      if Preference.active_in_irc.to_i > 0
+        Message::IrcReply.create(body: "<#{nick}> #{message}", author: player)
+      end
     end
 
     def irc_event(message)
       return unless Preference.irc_enabled?
     
-      Message::IrcReply.create(body: message)
+      if Preference.active_in_irc.to_i > 0
+        Message::IrcReply.create(body: message)
+      end
     end
   end
 end
