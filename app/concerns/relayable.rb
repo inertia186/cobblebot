@@ -6,6 +6,36 @@ module Relayable
   end
   
   module ClassMethods
+    def irc_event(selector, message)
+      return if selector.nil?
+    
+      Rails.logger.info "From IRC: #{message}"
+    
+      if Preference.irc_web_chat_enabled?
+        execute <<-DONE
+          tellraw #{selector} [
+            { "color": "white", "text": "[" },
+            {
+              "color": "gold", "text": "irc", "hoverEvent": {
+                "action": "show_text", "value": "#{Preference.irc_web_chat_url_label}"
+              }, "clickEvent": {
+                "action": "open_url", "value": "#{Preference.irc_web_chat_url}"
+              }
+            },
+            { "color": "white", "text":"] #{message}" }
+          ]
+        DONE
+      else
+        execute <<-DONE
+          tellraw @a [
+            { "color": "white", "text": "[" },
+            { "color": "gold", "text": "irc" },
+            { "color": "white", "text": "] #{message}" }
+          ]
+        DONE
+      end
+    end
+    
     def irc_say(selector, irc_nick, message)
       return if selector.nil?
     
