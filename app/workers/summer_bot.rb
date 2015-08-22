@@ -167,7 +167,7 @@ class SummerBot < Summer::Connection
     active = Preference.active_in_irc.to_i
     Preference.active_in_irc = active + 1
     
-    IrcBot.irc_event('@a', "#{sender[:nick]} joined the channel")
+    IrcBot.irc_say_event('@a', "#{sender[:nick]} joined the channel")
   end
   
   def part_event sender, channel, message
@@ -176,7 +176,7 @@ class SummerBot < Summer::Connection
     active = Preference.active_in_irc.to_i
     Preference.active_in_irc = active - 1 unless active == 0
 
-    IrcBot.irc_event('@a', "#{sender[:nick]} left the channel")
+    IrcBot.irc_say_event('@a', "#{sender[:nick]} left the channel")
   end
   
   def quit_event sender, message
@@ -185,7 +185,7 @@ class SummerBot < Summer::Connection
     active = Preference.active_in_irc.to_i
     Preference.active_in_irc = active - 1 unless active == 0
 
-    IrcBot.irc_event('@a', "#{sender[:nick]} quit: #{message}")
+    IrcBot.irc_say_event('@a', "#{sender[:nick]} quit: #{message}")
   end
 
   def kick_event kicker, channel, victim, message
@@ -194,7 +194,7 @@ class SummerBot < Summer::Connection
     active = Preference.active_in_irc.to_i
     Preference.active_in_irc = active - 1 unless active == 0
 
-    IrcBot.irc_event('@a', "#{sender[:nick]} was kicked from IRC")
+    IrcBot.irc_say_event('@a', "#{sender[:nick]} was kicked from IRC")
   end
   
   # Monitors

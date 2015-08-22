@@ -6,7 +6,7 @@ module Relayable
   end
   
   module ClassMethods
-    def irc_event(selector, message)
+    def irc_say_event(selector, message)
       return if selector.nil?
     
       Rails.logger.info "From IRC: #{message}"
