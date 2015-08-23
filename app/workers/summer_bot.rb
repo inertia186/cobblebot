@@ -1,6 +1,7 @@
 require 'logger'
 require 'summer'
 
+# General purpose IRC client.  But it also works for Twitch chat (with tweaks).  For specific tweaks, see: http://help.twitch.tv/customer/portal/articles/1302780-twitch-irc
 class SummerBot < Summer::Connection
   THROTTLE = 1
   
@@ -91,6 +92,8 @@ class SummerBot < Summer::Connection
     if twitch?
       response("PASS #{config[:nickserv_password]}") if config[:nickserv_password]
       response("NICK #{config[:nick]}")
+      response("CAP REQ :twitch.tv/commands")
+      response("CAP REQ :twitch.tv/membership")
     else
       response("USER #{config[:nick]} #{config[:nick]} #{config[:nick]} #{config[:nick]}")
       response("PASS #{config[:server_password]}") if config[:server_password]
@@ -105,16 +108,11 @@ class SummerBot < Summer::Connection
     count = Message::IrcReply.destroy_all.size
     log "Removed stale irc replies: #{count}" if count > 0
     
-    if twitch?
-      response("CAP REQ :twitch.tv/commands")
-      response("CAP REQ :twitch.tv/membership")
-    end
-    
     monitor_replies
   end
   
   def channel_message sender, channel, message
-    active_override
+    response 'NAMES' unless Preference.active_in_chat.to_i > 0
     
     log "#{sender.inspect} :: #{channel.inspect} :: #{message}"
     at, command = message.split(' ')
@@ -129,7 +127,7 @@ class SummerBot < Summer::Connection
   end
   
   def private_message sender, bot, message
-    active_override
+    response 'NAMES' unless Preference.active_in_chat.to_i > 0
     
     log "#{sender.inspect} :: (privately) :: #{message}"
     words = message.split(' ')
@@ -149,8 +147,12 @@ class SummerBot < Summer::Connection
     channel = words[2]
           
     # Note, for some reason, Summer will not send callbacks, so we will.
-          
-    if raw == "JOIN"
+    
+    if raw == 'CAP'
+      response "NAMES" if message =~ /ACK :twitch.tv\/membership/
+    elsif raw == 'NOTICE'
+      response 'QUIT' if message =~ /Error logging in/
+    elsif raw == "JOIN"
       join_event parse_sender(sender), channel
     elsif raw == "PART"
       part_event parse_sender(sender), channel, words[3..-1].clean
@@ -158,7 +160,24 @@ class SummerBot < Summer::Connection
       quit_event parse_sender(sender), words[2..-1].clean
     elsif raw == "KICK"
       kick_event parse_sender(sender), channel, words[3], words[4..-1].clean
+    elsif raw == '353'
+      handle_353 message
+    elsif raw == '366'
+      handle_366 message
     end
+  end
+  
+  def handle_353 message
+    @names_list ||= []
+    names = message.split("#{irc_channel} :")[1]
+    @names_list += names.split(' ')
+    
+    @names_list -= [config[:nick]]
+  end
+  
+  def handle_366 message
+    Preference.active_in_chat = @names_list.size
+    @names_list = []
   end
   
   def join_event sender, channel
@@ -263,6 +282,8 @@ private
 
   def channel_say_irc_replies(options = {})
     Message::IrcReply.all.find_each do |reply|
+      response 'NAMES'
+      
       options[:reply] = reply.body
       channel_say(options)
     
@@ -280,12 +301,5 @@ private
   
   def twitch?
     !!config[:nickserv_password] && config[:nickserv_password] =~ /^oauth/
-  end
-  
-  def active_override
-    if Preference.active_in_irc.to_i < 1
-      # Apparently, there is at least one nick sending messages but the active_in_irc preference says there's zero.  Set it to one now because some IRC servers don't report JOIN/PART properly.
-      Preference.active_in_irc = 1
-    end
   end
 end
