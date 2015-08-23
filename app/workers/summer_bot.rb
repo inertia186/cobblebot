@@ -176,7 +176,7 @@ class SummerBot < Summer::Connection
   end
   
   def handle_366 message
-    Preference.active_in_chat = @names_list.size
+    Preference.active_in_irc = @names_list.size
     @names_list = []
   end
   
