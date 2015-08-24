@@ -92,12 +92,23 @@ class SummerBot < Summer::Connection
     if twitch?
       response("PASS #{config[:nickserv_password]}") if config[:nickserv_password]
       response("NICK #{config[:nick]}")
-      response("CAP REQ :twitch.tv/commands")
-      response("CAP REQ :twitch.tv/membership")
     else
       response("USER #{config[:nick]} #{config[:nick]} #{config[:nick]} #{config[:nick]}")
       response("PASS #{config[:server_password]}") if config[:server_password]
       response("NICK #{config[:nick]}")
+    end
+  end
+  
+  def finalize_startup
+    if twitch?
+      # Twitch requires all CAP REQ calls happen before JOIN.
+      response("CAP REQ :twitch.tv/membership")
+      response("CAP REQ :twitch.tv/commands")
+    else
+      config[:channels] ||= []
+      (config[:channels] << config[:channel]).compact.each do |channel|
+        join(channel)
+      end
     end
   end
   
@@ -112,7 +123,7 @@ class SummerBot < Summer::Connection
   end
   
   def channel_message sender, channel, message
-    response 'NAMES' unless Preference.active_in_chat.to_i > 0
+    response 'NAMES' unless Preference.active_in_irc.to_i > 0
     
     log "#{sender.inspect} :: #{channel.inspect} :: #{message}"
     at, command = message.split(' ')
@@ -127,7 +138,7 @@ class SummerBot < Summer::Connection
   end
   
   def private_message sender, bot, message
-    response 'NAMES' unless Preference.active_in_chat.to_i > 0
+    response 'NAMES' unless Preference.active_in_irc.to_i > 0
     
     log "#{sender.inspect} :: (privately) :: #{message}"
     words = message.split(' ')
@@ -149,7 +160,13 @@ class SummerBot < Summer::Connection
     # Note, for some reason, Summer will not send callbacks, so we will.
     
     if raw == 'CAP'
-      response "NAMES" if message =~ /ACK :twitch.tv\/membership/
+      if message =~ /ACK :twitch.tv\/membership/
+        # Now that twitch has acknowledged this request, we can join the channel and request NAMES.
+        response("JOIN #{irc_channel}")
+        response "NAMES"
+      elsif message =~ /NAK :twitch.tv\/membership/
+        response("JOIN #{irc_channel}")
+      end
     elsif raw == 'NOTICE'
       response 'QUIT' if message =~ /Error logging in/
     elsif raw == "JOIN"
@@ -164,6 +181,8 @@ class SummerBot < Summer::Connection
       handle_353 message
     elsif raw == '366'
       handle_366 message
+    elsif raw == '421'
+      handle_421 message
     end
   end
   
@@ -178,6 +197,13 @@ class SummerBot < Summer::Connection
   def handle_366 message
     Preference.active_in_irc = @names_list.size
     @names_list = []
+  end
+
+  def handle_421 message
+    if message =~ /NAMES :Unknown command/
+      # Sometimes Twitch will disable the NAMES command for events like e3.  See: https://discuss.dev.twitch.tv/t/join-part-changes-temporary-and-future/2519
+      Preference.active_in_irc = 1
+    end
   end
   
   def join_event sender, channel
@@ -264,12 +290,16 @@ class SummerBot < Summer::Connection
   end
   
   def nick_msg(options = {})
-    sender = options[:sender]
-    reply = options[:reply]
-    msg = "#{sender[:nick]} :#{reply}"
-    response "PRIVMSG #{msg}"
-    sleep @throttle || THROTTLE
-    log ">> #{msg}"
+    if twitch?
+      channel_say(options)
+    else
+      sender = options[:sender]
+      reply = options[:reply]
+      msg = "#{sender[:nick]} :#{reply}"
+      response "PRIVMSG #{msg}"
+      sleep @throttle || THROTTLE
+      log ">> #{msg}"
+    end
   end
 private
   def valid_op_command?(nick, command)

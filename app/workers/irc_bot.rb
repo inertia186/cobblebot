@@ -126,7 +126,14 @@ class IrcBot < SummerBot
     channel = options[:channel]
 
     target = message.split(' ').last
-    lines=[] # TODO get ban info for target
+    player = Player.banned.query(target).first
+    
+    if !!player
+      lines = ["##{player.nick} was banned on #{player.banned_at}, reason: #{player.banned_reason}"]
+    else
+      lines = ["Not banned: #{target}"]
+    end
+    
     lines.each do |line|
       reply sender: sender, channel: channel, reply: line
     end
