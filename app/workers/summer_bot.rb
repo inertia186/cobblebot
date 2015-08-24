@@ -98,7 +98,23 @@ class SummerBot < Summer::Connection
       response("NICK #{config[:nick]}")
     end
   end
-  
+
+  def startup!
+    @started = true
+    did_start_up
+
+    if config['nickserv_password']
+      privmsg("identify #{config['nickserv_password']}", "nickserv")
+      # Wait 10 seconds for nickserv to get back to us.
+      Thread.new do
+        sleep(10)
+        finalize_startup
+      end
+    else
+      finalize_startup
+    end
+  end
+    
   def finalize_startup
     if twitch?
       # Twitch requires all CAP REQ calls happen before JOIN.
