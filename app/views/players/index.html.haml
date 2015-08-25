@@ -13,6 +13,8 @@
         %th Player
         %th Logged in
         %th Biomes Explored
+        %th PVP Wins
+        %th PVP Losses
     %tbody
       - @players.each do |player|
         %tr
@@ -24,6 +26,8 @@
                 = distance_of_time_in_words_to_now player.last_login_at
                 ago
             %td= player.biomes_explored
+            %td= player.pvp_wins.count
+            %td= player.pvp_losses.count
     %tr
       %th{colspan: 4} Logged in Today (#{@players_today.count})
       - @players_today.each do |player|
@@ -35,3 +39,5 @@
               = distance_of_time_in_words_to_now player.last_login_at
               ago
             %td= player.explore_all_biome_progress
+            %td= player.pvp_wins.count
+            %td= player.pvp_losses.count

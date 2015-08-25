@@ -42,6 +42,12 @@
     %th Messages
     %td= link_to player.messages.count, admin_player_messages_path(player_id: player, filter_modes: false)
   %tr
+    %th PVP Wins
+    %td=player.pvp_wins.count
+  %tr
+    %th PVP Losses
+    %td=player.pvp_losses.count
+  %tr
     %th IPs
     %td= link_to player.ips.count, admin_ips_path(player_id: player)
   %tr

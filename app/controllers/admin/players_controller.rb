@@ -63,6 +63,12 @@ private
     when 'latest_country_code'
       @players = @players.select("players.*, ( SELECT ips.cc FROM ips WHERE players.id = ips.player_id ORDER BY ips.id DESC LIMIT 1 ) AS latest_country_code").
         order("#{@sort_field} #{@sort_order}")
+    when 'pvp_wins_count'
+      @players = @players.select("players.*, ( SELECT COUNT(*) FROM messages WHERE messages.type = 'Message::Pvp' AND messages.recipient_type = 'Player' AND messages.author_id = players.id ) AS pvp_wins_count").
+        order("#{@sort_field} #{@sort_order}")
+    when 'pvp_losses_count'
+      @players = @players.select("players.*, ( SELECT COUNT(*) FROM messages WHERE messages.type = 'Message::Pvp' AND messages.recipient_type = 'Player' AND messages.recipient_id = players.id ) AS pvp_losses_count").
+        order("#{@sort_field} #{@sort_order}")
     else
       @players = @players.order("#{@sort_field} #{@sort_order}")
     end
