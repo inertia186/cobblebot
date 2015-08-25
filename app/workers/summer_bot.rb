@@ -166,6 +166,8 @@ class SummerBot < Summer::Connection
   end
 
   def parse message
+    log message
+
     super
     
     words = message.split(" ")
