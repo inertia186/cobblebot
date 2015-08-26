@@ -23,6 +23,8 @@ module Sayable
           tellraw #{selector} { "color": "#{options[:color]}", "text": "#{message}" }
         DONE
       end
+      
+      # FIXME Probably need to return a text-only version for logging purposes.
     end
     
     def say_playercheck(selector, nick)
@@ -86,7 +88,8 @@ module Sayable
     end
     
     def say_nick_not_found(selector, nick, options = {})
-      results = [line_1 = "Player not found: #{nick}"]
+      message = options[:message] || 'Player not found'
+      results = [line_1 = "#{message}: #{nick}"]
       say(selector, line_1)
       players = Player.search_any_nick(nick)
       if players.any?
@@ -274,6 +277,65 @@ module Sayable
           tellraw #{selector} [{ "color": "white", "text": "[Server] Origin of #{target.nick}: "}, { "color": "green", "text": "#{target.origins.join(', ')}" }]
         DONE
       end
+    end
+    
+    def say_last_pvp(selector, nick)
+      nick = nick.strip
+      victim = nil
+      no_match = false
+      
+      if nick == '@p' || nick == '@r'
+        nick = Server.player_nicks.sample
+      elsif nick =~ /@/
+        nick = ''
+      end
+      
+      unless nick.empty?
+        Player.has_pvp_losses.best_match_by_nick(nick, no_match: -> {
+          # FIXME The 'command' option should come from the callback record, not hardcoded.
+          say_nick_not_found(selector, nick, command: '@server lastpvp %nick%', message: 'No PVP found for')
+          no_match = true
+        }) do |target|
+          if target.pvp_losses.none?
+            say('@a', "No pvp log for: #{target.nick}") and return
+          else
+            victim = target
+          end
+        end
+      end
+      
+      return if no_match
+      
+      pvp = if victim
+        victim.pvp_losses
+      else
+        Message::Pvp.all
+      end.order(:created_at).last
+      
+      say('@a', "No pvp log.") and return if pvp.nil?
+      
+      body = pvp.body
+      
+      pvp_log = if (relation = pvp.recipient.pvp_losses.supplementary(pvp)).any?
+        "#{body} (x#{relation.count + 1})"
+      else
+        body
+      end
+      
+      execute(
+      <<-DONE
+        tellraw #{selector} [
+          { "color": "white", "text": "[Server] " },
+          {
+            "color": "white", "text": "#{distance_of_time_in_words_to_now(pvp.created_at)} ago ",
+            "hoverEvent": {
+              "action": "show_text", "value": "#{pvp.created_at.to_s}"
+            }
+          },
+          { "color": "white", "text": "#{pvp_log}" }
+        ]
+      DONE
+      ) unless selector.nil?
     end
     
     def say_translation(selector, pair, term)

@@ -57,6 +57,16 @@ ServerCallback::PlayerChat.send method, name: 'Set Topic', pattern: "/^@server t
 ServerCallback::ServerEntry.send method, name: 'Behind', pattern: "/.*Running ([0-9]+)ms behind, skipping ([0-9]+) tick.*/", command: "ms = \"%1%\".to_i\nticks = \"%2%\".to_i\ntell 'inertia186', \"ms: \#{ms}, ticks: \#{ticks}\"\nif ms > 20000\n  detect_trouble_entities\n  detect_frozen_projectiles\nend", system: 't'
 ServerCallback::PlayerChat.send method, name: 'Translate', pattern: "/^@server (tr|translate) ([a-z:\-]+) (.+)/i", command: "say_translation(\"@a\", \"%2%\", \"%3%\")", help_doc_key: 'translate', help_doc: "Uses Google to translate from one language to another.  Use en:fr to translate from English to French.  Or just use en to auto-detect to English.\nUsage: @server translate <language> <phrase>\nExample: @server translate ru Do you own a glock?\nExample: @server translate en:fr How do you say Quarter Pounder with Cheese?", system: 't'
 
+# PVP/PVE
+ServerCallback::ServerEntry.send method, name: 'Slain', pattern: "/was slain by/", command: "play_sound \"@a\", \"smb_mario_die\"\ndetect_pvp \"%message%\"", system: 't'
+ServerCallback::ServerEntry.send method, name: 'Shot', pattern: "/was shot by/", command: "play_sound \"@a\", \"smb3_player_down\"\ndetect_pvp \"%message%\"", system: 't'
+ServerCallback::ServerEntry.send method, name: 'Killed', pattern: "/was killed by/", command: "play_sound \"@a\", \"smb3_player_down\"\ndetect_pvp \"%message%\"", system: 't'
+ServerCallback::ServerEntry.send method, name: 'Thorns', pattern: "/was killed trying to hurt/", command: "play_sound \"@a\", \"loz_shield\"\ndetect_pvp \"%message%\"", system: 't'
+ServerCallback::ServerEntry.send method, name: 'Burnt', pattern: "/was burnt to a crisp/", command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"\ndetect_pvp \"%message%\"", system: 't'
+ServerCallback::ServerEntry.send method, name: 'Lava Swim', pattern: "/tried to swim in lava/", command: "play_sound \"@a\", \"loz_die\"\ndetect_pvp \"%message%\"", system: 't'
+ServerCallback::ServerEntry.send method, name: 'Sploded to Death', pattern: "/was blown up by/", command: "play_sound \"@a\", \"sadtrombone\"\ndetect_pvp \"%message%\"", system: 't'
+ServerCallback::PlayerChat.send method, name: 'Last PVP', pattern: "/^@server lastpvp(.*)/i", command: "say_last_pvp(\"@a\", \"%1%\")", help_doc_key: 'lastpvp', help_doc: "Usage: @server lastpvp [victim]\n\nGet the last PVP message.  The results may include a multiplier which indicates total PVP.  If the victim is slain last, then multiplier only counts slayings.  If the victim is shot last, then the multiplier only counts shots.", system: 't'
+
 # Player initialted sounds ...
 ServerCallback::PlayerChat.send method, name: 'To The Batcave!', pattern: "/^to the/i", command: "play_sound \"@a\", \"to_the_batcave\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::PlayerChat.send method, name: 'boo', pattern: "/halloween/i", command: "play_sound \"@a\", \"mk64_boo_laugh\"", cooldown: '+15 minutes', system: 'f'
@@ -72,15 +82,6 @@ ServerCallback::PlayerChat.send method, name: 'Make It So', pattern: "/make it s
 ServerCallback::PlayerChat.send method, name: 'That Word', pattern: "/that word/i", command: "play_sound \"@a\", \"cf_inconceivable\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::PlayerEmote.send method, name: 'Facepalm', pattern: "/facepalms/i", command: "play_sound \"@a\", \"cf_rimshot\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::PlayerChat.send method, name: 'Going Turbo', pattern: "/(went|go|going) turbo/i", command: "play_sound \"@a\", \"turbotastic\"", cooldown: '+15 minutes', system: 'f'
-
-# PVP/PVE
-ServerCallback::ServerEntry.send method, name: 'Slain', pattern: "/was slain by/", command: "play_sound \"@a\", \"smb_mario_die\"\ndetect_pvp \"%message%\"", system: 'f'
-ServerCallback::ServerEntry.send method, name: 'Shot', pattern: "/was shot by/", command: "play_sound \"@a\", \"smb3_player_down\"\ndetect_pvp \"%message%\"", system: 'f'
-ServerCallback::ServerEntry.send method, name: 'Killed', pattern: "/was killed by/", command: "play_sound \"@a\", \"smb3_player_down\"\ndetect_pvp \"%message%\"", system: 'f'
-ServerCallback::ServerEntry.send method, name: 'Thorns', pattern: "/was killed trying to hurt/", command: "play_sound \"@a\", \"loz_shield\"\ndetect_pvp \"%message%\"", system: 'f'
-ServerCallback::ServerEntry.send method, name: 'Burnt', pattern: "/was burnt to a crisp/", command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"\ndetect_pvp \"%message%\"", system: 'f'
-ServerCallback::ServerEntry.send method, name: 'Lava Swim', pattern: "/tried to swim in lava/", command: "play_sound \"@a\", \"loz_die\"\ndetect_pvp \"%message%\"", system: 'f'
-ServerCallback::ServerEntry.send method, name: 'Sploded to Death', pattern: "/was blown up by/", command: "play_sound \"@a\", \"sadtrombone\"\ndetect_pvp \"%message%\"", system: 'f'
 
 # Death sounds ...
 ServerCallback::ServerEntry.send method, name: 'Killed Using Magic', pattern: "/was killed.*using magic/", command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"", cooldown: '+15 minutes', system: 'f'
