@@ -4,7 +4,7 @@ atom_feed do |feed|
   
   @pvps.each do |pvp|
     feed.entry pvp, url: pvps_path do |entry|
-      entry.title pvp.body
+      entry.title "#{pvp.recipient.nick} vs. #{pvp.author.nick}"
       entry.content pvp.body
       if !!pvp.author
         entry.author do |author|
