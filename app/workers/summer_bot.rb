@@ -26,7 +26,7 @@ class SummerBot < Summer::Connection
 
   def log info
     @log ||= Logger.new(config[:log_file], 'daily')
-    @log.info info
+    @log.info info.strip
   end
 
   def log_error error
@@ -86,16 +86,20 @@ class SummerBot < Summer::Connection
   end
 
   def connect!
-    Preference.active_in_irc = 0 # Reset to zero until JOIN messages come in.
-    @connection = TCPSocket.open(server, port)
-    @connection = OpenSSL::SSL::SSLSocket.new(@connection).connect if config[:use_ssl]
-    if twitch?
-      response("PASS #{config[:nickserv_password]}") if config[:nickserv_password]
-      response("NICK #{config[:nick]}")
-    else
-      response("USER #{config[:nick]} #{config[:nick]} #{config[:nick]} #{config[:nick]}")
-      response("PASS #{config[:server_password]}") if config[:server_password]
-      response("NICK #{config[:nick]}")
+    begin
+      Preference.active_in_irc = 0 # Reset to zero until JOIN messages come in.
+      @connection = TCPSocket.open(server, port)
+      @connection = OpenSSL::SSL::SSLSocket.new(@connection).connect if config[:use_ssl]
+      if twitch?
+        response("PASS #{config[:nickserv_password]}") if config[:nickserv_password]
+        response("NICK #{config[:nick]}")
+      else
+        response("USER #{config[:nick]} #{config[:nick]} #{config[:nick]} #{config[:nick]}")
+        response("PASS #{config[:server_password]}") if config[:server_password]
+        response("NICK #{config[:nick]}")
+      end
+    rescue StandardError => e
+      log e.inspect
     end
   end
 
@@ -166,7 +170,7 @@ class SummerBot < Summer::Connection
   end
 
   def parse message
-    log message
+    log ">> #{message}"
 
     super
     
