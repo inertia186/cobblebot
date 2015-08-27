@@ -1,0 +1,26 @@
+= content_for :head, auto_discovery_link_tag(:atom, "http://#{pvps_url(format: :atom).split('://')[1]}")
+
+.row
+  %h3
+    PVPs (#{@pvps.count})
+
+.row
+  %table.table
+    %thead
+      %tr
+        %th PVP
+        %th Loser
+        %th Winner
+        %th Created
+    %tbody
+    %tr
+      - @pvps.each do |pvp|
+        %tr
+          %td= pvp.body
+          %td= pvp.recipient.nick
+          %td= pvp.author.nick
+          %td{title: pvp.created_at}
+            = distance_of_time_in_words_to_now pvp.created_at
+            ago
+
+%p= will_paginate @pvps

@@ -1,5 +1,5 @@
 atom_feed do |feed|
-  feed.body "#{ServerProperties.level_name.titleize} Topics"
+  feed.body "#{ServerProperties.level_name.titleize} PVPs"
   feed.updated @topics.maximum(:created_at)
   
   @topics.each do |topic|
