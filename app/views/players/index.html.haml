@@ -19,7 +19,8 @@
       - @players.each do |player|
         %tr
           %td{align: :right}
-            %a.tip{data: { title: player.last_chat }}= image_tag "https://minotar.net/avatar/#{player.nick}/16.png", width: 16, height: 16, alt: player.nick
+            %a.tip{data: { title: player.last_chat }}
+              = image_tag "https://minotar.net/avatar/#{player.nick}/16.png", width: 16, height: 16, alt: player.nick
           %td= player.nick
           -if !!player
             %td{title: player.last_login_at}
@@ -34,7 +35,8 @@
       - @players_today.each do |player|
         %tr
           %td{align: :right}
-            %a.tip{title: player.last_chat}= image_tag "https://minotar.net/avatar/#{player.nick}/16.png", width: 16, height: 16, alt: player.nick
+            %a.tip{data: { title: player.last_chat }}
+              = image_tag "https://minotar.net/avatar/#{player.nick}/16.png", width: 16, height: 16, alt: player.nick
           %td= player.nick
           -if !!player
             %td{title: player.last_login_at}
