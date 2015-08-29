@@ -85,3 +85,43 @@
 .vg { color: #19177C } /* Name.Variable.Global */
 .vi { color: #19177C } /* Name.Variable.Instance */
 .il { color: #666666 } /* Literal.Number.Integer.Long */
+
+a.tip {
+  position: relative;
+  text-decoration: none;
+}
+
+a.tip:hover:before {
+  display: block;
+  position: absolute;
+  padding: .5em;
+  content: attr(data-title);
+  min-width: 120px;
+  text-align: center;
+  width: auto;
+  height: auto;
+  white-space: nowrap;
+  top: -32px;
+  background: rgba(0,0,0,.8);
+  -moz-border-radius:10px;
+  -webkit-border-radius:10px;
+  border-radius:10px;
+
+  color: #fff;
+  font-size: .86em;
+}
+
+a.tip:hover:after {
+  position: absolute;
+  display: block;
+  content: “”;
+
+  border-color: rgba(0,0,0,.8) transparent transparent transparent;
+  border-style: solid;
+  border-width: 10px;
+  height:0;
+  width:0;
+  position:absolute;
+  top: -8px;
+  left:1em;
+}
