@@ -98,6 +98,8 @@ class SummerBot < Summer::Connection
         response("PASS #{config[:server_password]}") if config[:server_password]
         response("NICK #{config[:nick]}")
       end
+    rescue Errno::EIO => e
+      log e.inspect
     rescue StandardError => e
       log e.inspect
     end
