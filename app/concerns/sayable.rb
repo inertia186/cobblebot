@@ -145,13 +145,13 @@ module Sayable
       if keywords.size == 1 && keywords[0] =~ /\d/
         tip = Message::Tip.order(:id).limit(keywords[0].to_i).last
       elsif keywords.any?
-        tip = Message::Tip.query(keywords).in_cooldown(false).first
+        tip = Message::Tip.query(keywords).in_cooldown(false).first(10).sample
       else
         tip = Message::Tip.query(keywords).in_cooldown(false).sample
       end
       
       if tip.nil?
-        tip = Message::Tip.query(keywords).in_cooldown(false).first(10).sample
+        tip = Message::Tip.query(keywords).in_cooldown(false).first
       end
       
       return say_nothing(selector) unless !!tip
