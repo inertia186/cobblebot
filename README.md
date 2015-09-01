@@ -24,6 +24,7 @@ There is also an optional IRC bot that allows players to interact.
   * Web API for external administrative tasks
   * Google Translate
   * Optional Country Code lookup using db-ip.com
+  * Donation Tracking
 
 ## Installation
 
@@ -208,7 +209,6 @@ CobbleBot is limited to information that can be gathered from the server logs.  
   * Tutorial and Rules templates.
   * Books
   * IP Tracking (extras)
-  * Donation Tracking
   * Improve twitch.tv bot support.
 
 ## Resource Pack

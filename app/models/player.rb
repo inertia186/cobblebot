@@ -141,6 +141,11 @@ class Player < ActiveRecord::Base
       return has_ips ? r : where.not(id: r)
     end
   }
+  scope :has_donations, lambda { |has_donations = true|
+    joins(:donations).uniq.tap do |r|
+      return has_donations ? r : where.not(id: r)
+    end
+  }
 
   has_many :links, as: :actor
   has_many :messages, -> { where(type: nil) }, as: :recipient
@@ -153,6 +158,7 @@ class Player < ActiveRecord::Base
   has_many :mutes
   has_many :inverse_mutes, foreign_key: 'muted_player_id', class_name: 'Mute'
   has_many :muted_players, through: :mutes
+  has_many :donations, class_name: 'Message::Donation', as: :author
 
   before_save :update_biomes_explored
   before_save :update_last_nick, if: :nick_changed?

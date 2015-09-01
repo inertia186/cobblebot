@@ -1,0 +1,30 @@
+= form_for [:admin, @donation], role: :form do |f|
+  = f.hidden_field :author_type, value: 'Player'
+  
+  - if @donation.errors.any?
+    .alert.alert-danger
+      %h4 #{pluralize((@donation.errors.keys - [:base]).size, "error")} prohibited this template from being saved:
+      %ul>
+      - @donation.errors.keys.each do |key|
+        - if key == :base
+          %pre.alert-warning>~ @donation.errors.messages[key].uniq.join(" ")
+        - else
+          %li>
+            = key.to_s.titleize
+            %span>:&nbsp;
+            = @donation.errors.messages[key].join(" and/or ")
+
+  .row
+    .input-group
+      = f.label :author, 'Donor (leave blank if anonymous)'
+      %br
+      = f.select :author_id, Player.order('LOWER(nick)').map {|p| ["#{p.nick}#{p.last_nick.present? ? " (aka #{p.last_nick})" : ''}", p.id]}, {prompt: ''}, {class: 'chzn', multiple: false}
+    .input-group
+      = f.label :body, 'Donation Details'
+      %br
+      = f.text_field :body, size: 100, placeholder: 'Dinnerbone: $100 US'
+  .row
+    .input-group
+      = f.submit 'Save Donation', class: 'btn btn-primary'
+    .input-group
+      = link_to 'Back', admin_server_callbacks_path, class: 'btn btn-info btn-xs'

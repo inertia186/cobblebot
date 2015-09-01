@@ -125,3 +125,11 @@ a.tip:hover:after {
   top: -8px;
   left:1em;
 }
+
+select.chzn, select.chzn-multi {
+  width: 400px;
+}
+
+select.chzn.full, select.chzn-multi.full {
+  width: 100%;
+}

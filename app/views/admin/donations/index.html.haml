@@ -1,0 +1,52 @@
+.row
+  %h3
+    Donations
+    - if @author
+      by
+      = link_to @author.nick, admin_player_path(@author)
+    %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_donations'}} ?
+  .modal.fade#explain_donations{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_messages_label', 'aria-hidden' => true}
+    .modal-dialog
+      .modal-content
+        .modal-header
+          %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+            %span{'aria-hidden' => true} &times;
+          %h4.modal-title#explain_donations_label Explanation of Donations
+        .modal-body
+          %p
+            Admin can keep track of donations so that they can be displayed
+            in-game when a player types: @server donations
+
+%div{style: 'float: right'}
+  = form_tag url_for(action: controller.action_name), method: :get do
+    = hidden_field_tag :sort_field, @sort_field
+    = hidden_field_tag :sort_order, @sort_order
+    = hidden_field_tag :filter, @filter
+    = hidden_field_tag :author_id, @author_id if @author_id.present?
+    = text_field_tag :query, @query, placeholder: 'Query Text'
+    = submit_tag 'Search', class: 'btn btn-info btn-xs'
+
+%ul.nav.nav-tabs
+  %li{class: @filter == 'all' ? 'active' : ''}
+    = link_to 'All', admin_message_donations_path(author_id: @author_id), 'aria-controls' => "all"
+  %li{class: @filter == 'only_today' ? 'active' : ''}
+    = link_to 'Today', admin_message_donations_path(author_id: @author_id, filter: 'only_today'), 'aria-controls' => "non-system"
+
+.tab-contents
+  .tab-panel.tab-pane.active
+    .row.table-responsive
+      %table.table
+        %thead
+          %tr
+            - unless @author_id.present?
+              %th=sortable_header_link 'Donor', 'donation_author_nick'
+            %th=sortable_header_link 'Body', 'lower(body)'
+            %th=sortable_header_link 'Created', 'created_at'
+            %th
+        %tbody
+          - @donations.each do |donation|
+            = render 'donation_row', donation: donation
+
+= link_to 'New', new_admin_message_donation_path, class: 'btn btn-success'
+
+%p= will_paginate @donations

@@ -240,5 +240,36 @@ module Tellable
         tell(nick, "Topic not set.")
       end
     end
+    
+    def tell_donations(selector)
+      say_json_preference(selector, :donations_json)
+      
+      results = []
+      
+      unless (donations = Message::Donation.order(:created_at)).any?
+        results << execute(
+        <<-DONE
+          tellraw #{selector} { "text": "No donations have been received.", "color": "green" }
+        DONE
+        )
+
+        return results
+      end
+
+      donations.each do |donation|
+        author_nick = donation.author.nick rescue '???'
+        body = escape(donation.body)
+      
+        results << execute(
+        <<-DONE
+          tellraw #{selector} { "text": "#{body}", "color": "green" }
+        DONE
+        )
+      
+        say_link(selector, body, nick: author_nick) if body =~ /^http.*/i
+      end
+      
+      results
+    end
   end
 end

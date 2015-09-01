@@ -1,0 +1,12 @@
+%tr{id: "donation_tr_#{donation.id}", data: { id: donation.id } }
+  - unless @author_id.present?
+    - if donation.author_type == 'Player' && !!donation.author
+      %td=link_to(best_actor_name(donation.author_type, donation.author), admin_message_donations_path(author_id: donation.author))
+    - else
+      %td Anonymous
+  %td=donation.body
+  %td=relative_time(donation.created_at)
+  %td
+    %span{style: 'float: right'}
+      = link_to 'Edit', edit_admin_message_donation_path(donation), class: 'btn btn-info btn-xs'
+      = link_remote_delete(admin_message_donation_path(donation), class: 'btn btn-danger btn-xs', confirm: 'Are you sure?')
