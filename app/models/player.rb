@@ -358,6 +358,18 @@ class Player < ActiveRecord::Base
     [$1.to_i, $2.to_i, $3.to_i] if last_location =~ /^x=([\-0-9]+),y=([\-0-9]+),z=([\-0-9]+)$/
   end
   
+  def current_block_type
+    return (pos = current_pos) if pos.nil?
+    
+    Player.execute("testforblock #{pos[0]} #{pos[1]} #{pos[2]} minecraft:air")
+  end
+
+  def last_block_type
+    return (pos = last_pos) if pos.nil?
+    
+    Player.execute("testforblock #{pos[0]} #{pos[1]} #{pos[2]} minecraft:air")
+  end
+  
   def update_biomes_explored
     self.biomes_explored = explore_all_biome_progress
   end
