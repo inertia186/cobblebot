@@ -37,6 +37,16 @@ module ApplicationHelper
   def flag_exists(cc)
     File.exists?("#{Rails.root}/app/assets/images/flag/16/#{cc.downcase}.png")
   end
+  
+  def help_docs(key)
+    help = ''
+    
+    ServerCallback.where(help_doc_key: key).each do |callback|
+      help << callback.help_doc.gsub('<', '&lt;').gsub('>', '&gt;').gsub("\n", "<br />") + "<br />"
+    end
+    
+    help.html_safe
+  end
 private
   def nav_link(path, id, target, accesskey, prefix, suffix)
     link_to(path, id: id, class: 'btn btn-default', accesskey: accesskey, data: { remote: true, target: target}) do

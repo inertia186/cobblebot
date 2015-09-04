@@ -3,6 +3,19 @@
 .row
   %h3
     Topics
+    %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_topics'}} ?
+  .modal.fade#explain_topics{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_messages_label', 'aria-hidden' => true}
+    .modal-dialog
+      .modal-content
+        .modal-header
+          %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+            %span{'aria-hidden' => true} &times;
+          %h4.modal-title#explain_topics_label Explanation of Topics
+        .modal-body
+          %p
+            To see current topic in-game ...
+          %p
+            %code= help_docs('topic')
 
 .row
   %table.table

@@ -3,6 +3,19 @@
 .row
   %h3
     Donations (#{@donations.count})
+    %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_donations'}} ?
+  .modal.fade#explain_donations{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_messages_label', 'aria-hidden' => true}
+    .modal-dialog
+      .modal-content
+        .modal-header
+          %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+            %span{'aria-hidden' => true} &times;
+          %h4.modal-title#explain_donations_label Explanation of Donations
+        .modal-body
+          %p
+            To see donations in-game ...
+          %p
+            %code= help_docs('donations')
 
 .row
   %table.table
