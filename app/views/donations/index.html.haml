@@ -1,0 +1,27 @@
+= content_for :head, auto_discovery_link_tag(:atom, "http://#{donations_url(format: :atom).split('://')[1]}")
+
+.row
+  %h3
+    Donations (#{@donations.count})
+
+.row
+  %table.table
+    %thead
+      %tr
+        %th Donation
+        %th Donor
+        %th Created
+    %tbody
+    %tr
+      - @donations.each do |donation|
+        %tr
+          %td= donation.body
+          %td
+            - if !!donation.author
+              %a.tip{data: { title: donation.author.last_chat }}= image_tag "https://minotar.net/avatar/#{donation.author.nick}/16.png", width: 16, height: 16, alt: donation.author.nick
+              = donation.author.nick
+          %td{title: donation.created_at}
+            = distance_of_time_in_words_to_now donation.created_at
+            ago
+
+%p= will_paginate @donations
