@@ -15,3 +15,17 @@
 //= require turbolinks
 //= require bootstrap.min
 //= require_tree .
+
+$(function () {
+  if ( $("#public-players").length > 0 ) {
+    setTimeout(updatePublicPlayers, 5000);
+  }
+});
+
+function updatePublicPlayers() {
+  var after = $("a.tip:last-child").attr("data-last-chat-at");
+
+  $.getScript("/players.js?after=" + after)
+  
+  setTimeout(updatePublicPlayers, 5000);
+}

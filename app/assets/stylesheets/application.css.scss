@@ -91,7 +91,7 @@ a.tip {
   text-decoration: none;
 }
 
-a.tip:hover:before {
+a.tip:hover:before, .jqhover {
   display: block;
   position: absolute;
   padding: .5em;
@@ -111,7 +111,7 @@ a.tip:hover:before {
   font-size: .86em;
 }
 
-a.tip:hover:after {
+a.tip:hover:after, .jqhover-point {
   position: absolute;
   display: block;
   content: “”;
@@ -132,4 +132,21 @@ select.chzn, select.chzn-multi {
 
 select.chzn.full, select.chzn-multi.full {
   width: 100%;
+}
+
+#chat {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 148px;
+  border: 1px solid;
+  padding: 0 0 4px 0;
+  overflow: none;
+  margin: 0;
+  background: none repeat scroll 0% 0% #333;
+  z-index: 9999;
+  color: #FFF;
+  font-family: monospace;
+  font-size: 14px;
 }

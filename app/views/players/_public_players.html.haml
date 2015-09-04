@@ -1,0 +1,47 @@
+.row
+  %h3
+    Players connected: 
+    = ServerQuery.numplayers
+    of
+    = ServerQuery.maxplayers
+
+.row
+  %table.table
+    %thead
+      %tr
+        %th
+        %th Player
+        %th Logged in
+        %th Biomes Explored
+        %th PVP Wins
+        %th PVP Losses
+    %tbody
+      - @players.each do |player|
+        %tr
+          %td{align: :right}
+            %a.tip{id: "player_nick_#{player.nick}", data: { title: player.last_chat, 'last-chat-at' => player.updated_at.to_i }}
+              = image_tag "https://minotar.net/avatar/#{player.nick}/16.png", width: 16, height: 16, alt: player.nick
+          %td= player.nick
+          -if !!player
+            %td{title: player.last_login_at}
+              - if player.last_login_at
+                = distance_of_time_in_words_to_now player.last_login_at
+                ago
+            %td= player.biomes_explored
+            %td= player.pvp_wins.count
+            %td= player.pvp_losses.count
+    %tr
+      %th{colspan: 4} Logged in Today (#{@players_today.count})
+      - @players_today.each do |player|
+        %tr
+          %td{align: :right}
+            %a.tip{data: { title: player.last_chat }}
+              = image_tag "https://minotar.net/avatar/#{player.nick}/16.png", width: 16, height: 16, alt: player.nick
+          %td= player.nick
+          -if !!player
+            %td{title: player.last_login_at}
+              = distance_of_time_in_words_to_now player.last_login_at
+              ago
+            %td= player.explore_all_biome_progress
+            %td= player.pvp_wins.count
+            %td= player.pvp_losses.count
