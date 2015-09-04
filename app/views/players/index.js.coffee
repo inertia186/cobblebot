@@ -8,5 +8,5 @@ chat = $("#chat")
 chat.slideDown('slow')
 if ( chat.text().indexOf(new_chat) == -1 )
   chat.append("&lt;<%= chat.keys.first %>&gt; " + new_chat + "<br />")
-  chat.scrollTop(chat.height())
+  chat.scrollTop(chat.height() * 100)
 <% end %>
