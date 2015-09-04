@@ -45,3 +45,4 @@
             %td= player.explore_all_biome_progress
             %td= player.pvp_wins.count
             %td= player.pvp_losses.count
+#last_chat{data: {'last-chat-at' => @players.map(&:updated_at).map(&:to_i).max}}

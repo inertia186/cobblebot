@@ -2,7 +2,7 @@ $("#public-players").replaceWith("<div id=\"public-players\"><%= raw escape_java
 
 <% @new_chat.each do |chat| %>
 e = $("#player_nick_<%= chat.keys.first %>")
-new_chat = '<%= escape_javascript(chat.values.first) %>'
+new_chat = '<%= raw escape_javascript(chat.values.first) %>'
 e.attr('data-title', new_chat)
 chat = $("#chat")
 chat.slideDown('slow')

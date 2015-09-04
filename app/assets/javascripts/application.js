@@ -23,7 +23,7 @@ $(function () {
 });
 
 function updatePublicPlayers() {
-  var after = $("a.tip:last-child").attr("data-last-chat-at");
+  var after = $("#last_chat").attr("data-last-chat-at");
 
   $.getScript("/players.js?after=" + after)
   
