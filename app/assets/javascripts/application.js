@@ -19,6 +19,11 @@
 $(function () {
   if ( $("#public-players").length > 0 ) {
     setTimeout(updatePublicPlayers, 5000);
+    
+    $('body').on('click', '#chat_controls', function(e) {
+      chat = $("#chat")
+      chat.slideToggle('slow')
+    })
   }
 });
 

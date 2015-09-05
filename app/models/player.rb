@@ -101,6 +101,9 @@ class Player < ActiveRecord::Base
       return lang_es ? r : where.not(id: r).where.not(id: cc(['**', '??']))
     end
   }
+  scope :updated_after, lambda { |after|
+    where("updated_at > ?", after)
+  }
   scope :has_links, lambda { |has_links = true|
     joins(:links).uniq.tap do |r|
       return has_links ? r : where.not(id: r)

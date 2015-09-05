@@ -150,3 +150,20 @@ select.chzn.full, select.chzn-multi.full {
   font-family: monospace;
   font-size: 14px;
 }
+
+#chat_controls {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  width: 22px;
+  height: 22px;
+  border: 1px solid;
+  padding: 0 0 4px 0;
+  overflow: auto;
+  margin: 0;
+  background: none repeat scroll 0% 0% #333;
+  z-index: 9999;
+  color: #FFF;
+  font-family: monospace;
+  font-size: 14px;
+}
