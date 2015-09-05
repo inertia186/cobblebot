@@ -58,6 +58,7 @@ module Sayable
         results = ["#{line_1a}#{line_1b}#{line_1d} (#{line_1c})"]
         results += say_last_chat(selector, nick, player: player)
         results += say_biomes_explored(selector, nick, player: player)
+        results += say_reputation_sum(selector, nick, player: player)
       
         # TODO get rate:
         # say selector, "Sum of all trust: ..."
@@ -86,6 +87,18 @@ module Sayable
 
       if !!player
         say(selector, result = "Biomes explored: #{player.explore_all_biome_progress}")
+      end
+      
+      [result]
+    end
+    
+    def say_reputation_sum(selector, nick, options = {})
+      player = options[:player]
+      player ||= Player.find_by_nick(nick)
+      result = nil
+
+      if !!player
+        say(selector, result = "Sum of all trust: #{player.reputations.map(&:rate).sum}")
       end
       
       [result]
