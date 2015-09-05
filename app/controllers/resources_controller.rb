@@ -1,4 +1,6 @@
 class ResourcesController < ApplicationController
+  caches_action :server_icon
+  
   def server_icon
     server_icon = Server.server_icon
 

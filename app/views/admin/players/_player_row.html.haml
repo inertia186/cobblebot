@@ -1,6 +1,6 @@
 %tr{id: "player_tr_#{player.id}", data: { id: player.id }}
   %td{align: :right}
-    %a.tip{data: { title: player.last_chat }}= image_tag "https://minotar.net/avatar/#{player.nick}/16.png", width: 16, height: 16, alt: player.nick
+    %a.tip{data: { title: player.last_chat }}= image_tag player_images_path(id: player.nick, size: 16, format: 'png'), width: 16, height: 16, alt: player.nick
   %td= link_to player.nick, admin_player_path(player)
   %td= player.last_nick
   %td= player.spam_ratio

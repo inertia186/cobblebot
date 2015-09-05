@@ -4,7 +4,9 @@ class PlayersController < ApplicationController
     @players_today = Player.logged_in_today.where.not(id: @players)
     
     if params[:after].present?
-      @new_chat = @players.where('updated_at > ?', Time.at(params[:after].to_i + 1)).
+      after = Time.at(params[:after].to_i + 1)
+      
+      @new_chat = @players.updated_after(after).
         order('updated_at DESC').map do |p|
           {p.nick => p.last_chat}
         end.reverse

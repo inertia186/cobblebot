@@ -1,4 +1,4 @@
-$('#show_player_label').replaceWith('<h4 class="modal-title" id="show_player_label"><img lowsrc="https://minotar.net/avatar/<%= @player.nick %>/16.png" src="https://minotar.net/avatar/<%= @player.nick %>/32.png" width="32" height="32" /> <%= @player.nick %></h4>');
+$('#show_player_label').replaceWith('<h4 class="modal-title" id="show_player_label"><img lowsrc="<%= player_images_path(id: @player.nick, size: 16, format: 'png') %>" src="<%= player_images_path(id: @player.nick, size: 32, format: 'png') %>" width="32" height="32" /> <%= @player.nick %></h4>');
 $('#show_player_body').replaceWith('<div class="modal-body" id="show_player_body"><%= j render 'player', player: @player, modal: 'true' %></div>');
 
 current_player_row = $('#player_tr_<%= @player.id %>')
