@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150820194204) do
+ActiveRecord::Schema.define(version: 20150905180113) do
 
   create_table "ips", force: :cascade do |t|
     t.string  "address",    null: false
@@ -24,6 +24,7 @@ ActiveRecord::Schema.define(version: 20150820194204) do
   end
 
   add_index "ips", ["cc", "player_id"], name: "index_ips_on_cc_and_player_id"
+  add_index "ips", ["player_id"], name: "index_ips_on_player_id"
 
   create_table "links", force: :cascade do |t|
     t.string   "url",              null: false
@@ -36,6 +37,8 @@ ActiveRecord::Schema.define(version: 20150820194204) do
     t.datetime "created_at",       null: false
     t.datetime "updated_at",       null: false
   end
+
+  add_index "links", ["actor_type", "actor_id"], name: "index_links_on_actor_type_and_actor_id"
 
   create_table "messages", force: :cascade do |t|
     t.string   "type"
@@ -52,11 +55,19 @@ ActiveRecord::Schema.define(version: 20150820194204) do
     t.datetime "deleted_at"
   end
 
+  add_index "messages", ["author_id"], name: "index_messages_on_author_id"
+  add_index "messages", ["recipient_id"], name: "index_messages_on_recipient_id"
+  add_index "messages", ["type", "author_id"], name: "index_messages_on_type_and_author_id"
+  add_index "messages", ["type", "recipient_id"], name: "index_messages_on_type_and_recipient_id"
+
   create_table "mutes", force: :cascade do |t|
     t.integer  "player_id",       null: false
     t.integer  "muted_player_id", null: false
     t.datetime "created_at",      null: false
   end
+
+  add_index "mutes", ["player_id", "muted_player_id"], name: "index_mutes_on_player_id_and_muted_player_id"
+  add_index "mutes", ["player_id"], name: "index_mutes_on_player_id"
 
   create_table "players", force: :cascade do |t|
     t.string   "uuid"
@@ -75,6 +86,7 @@ ActiveRecord::Schema.define(version: 20150820194204) do
     t.datetime "created_at",                     null: false
     t.datetime "updated_at",                     null: false
     t.boolean  "may_autolink",    default: true, null: false
+    t.datetime "last_chat_at"
   end
 
   create_table "preferences", force: :cascade do |t|
@@ -84,6 +96,17 @@ ActiveRecord::Schema.define(version: 20150820194204) do
     t.datetime "created_at",                 null: false
     t.datetime "updated_at",                 null: false
   end
+
+  create_table "reputations", force: :cascade do |t|
+    t.integer  "truster_id"
+    t.integer  "trustee_id"
+    t.integer  "rate"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_index "reputations", ["truster_id", "trustee_id"], name: "index_reputation_on_truster_id_and_trustee_id"
+  add_index "reputations", ["truster_id"], name: "index_reputation_on_truster_id"
 
   create_table "server_callbacks", force: :cascade do |t|
     t.string   "type"

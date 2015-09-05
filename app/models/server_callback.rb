@@ -1,12 +1,20 @@
 class ServerCallback < ActiveRecord::Base
-  ALL_TYPES = %w(ServerCallback::AnyEntry ServerCallback::PlayerChat ServerCallback::PlayerEmote ServerCallback::AnyPlayerEntry ServerCallback::ServerEntry)
-  PLAYER_ENTRY_TYPES = %(ServerCallback::AnyEntry ServerCallback::PlayerChat ServerCallback::PlayerEmote ServerCallback::AnyPlayerEntry)
+  ALL_TYPES = %w(ServerCallback::AnyEntry ServerCallback::PlayerChat
+    ServerCallback::PlayerEmote ServerCallback::AnyPlayerEntry
+    ServerCallback::ServerEntry ServerCallback::AchievementAnnouncement
+    ServerCallback::DeathAnnouncement ServerCallback::RunningBehind
+    ServerCallback::PlayerAuthenticated)
+  PLAYER_ENTRY_TYPES = %(ServerCallback::AnyEntry ServerCallback::PlayerChat
+    ServerCallback::PlayerEmote ServerCallback::AnyPlayerEntry)
 
   REGEX_ANY = %r{^\[\d{2}:\d{2}:\d{2}\] .*$}
   REGEX_PLAYER_CHAT = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: <[^<]+> .*$}
   REGEX_PLAYER_EMOTE = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: \* [^<]+ .*$}
   REGEX_PLAYER_CHAT_OR_EMOTE = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: [\* ]*[ ]*[<]*[^<]+[>]* .*$}
   REGEX_USER_AUTHENTICATOR = %r{^\[\d{2}:\d{2}:\d{2}\] \[User Authenticator #\d+/INFO\]: .*$}
+  REGEX_ACHIEVEMENT_ANNOUNCEMENT = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread/INFO\]: .* has just earned the achievement.*$}
+  REGEX_RUNNING_BEHIND = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread/WARN\]: Can't keep up! Did the system time change, or is the server overloaded? Running [0-9]+ms behind, skipping [0-9]+ tick.*$}
+  REGEX_PLAYER_AUTHENTICATED = %r{^\[\d{2}:\d{2}:\d{2}\] \[User Authenticator #\d+/INFO\]: UUID of player ([a-zA-Z0-9_]+) is ([a-fA-Z0-9-]+)$}
   
   validates :name, presence: true
   validates_uniqueness_of :name, case_sensitive: true

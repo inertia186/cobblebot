@@ -12,6 +12,7 @@ class ServerCommand
   include Emotable
   include Teleportable
   include Relayable
+  include Trustable
 
   def self.eval_pattern(pattern, name = nil, options = {})
     eval(pattern, Proc.new {}.binding, name)
@@ -40,7 +41,7 @@ class ServerCommand
     player = Player.find_by_nick(nick)
     return unless !!player
     
-    player.update_attribute(:last_chat, message) # no AR callbacks
+    player.update_attributes(last_chat: message, last_chat_at: Time.now)
     
     player
   end

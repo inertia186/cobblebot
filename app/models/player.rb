@@ -101,8 +101,8 @@ class Player < ActiveRecord::Base
       return lang_es ? r : where.not(id: r).where.not(id: cc(['**', '??']))
     end
   }
-  scope :updated_after, lambda { |after|
-    where("DATETIME(last_login_at) <> DATETIME(updated_at) AND updated_at > ?", after)
+  scope :last_chat_after, lambda { |after|
+    where("last_chat_at > ?", after)
   }
   scope :has_links, lambda { |has_links = true|
     joins(:links).uniq.tap do |r|
@@ -144,6 +144,16 @@ class Player < ActiveRecord::Base
       return has_ips ? r : where.not(id: r)
     end
   }
+  scope :has_reputations, lambda { |has_reputations = true|
+    joins(:reputations).uniq.tap do |r|
+      return has_reputations ? r : where.not(id: r)
+    end
+  }
+  scope :has_inverse_reputations, lambda { |has_inverse_reputations = true|
+    joins(:inverse_reputations).uniq.tap do |r|
+      return has_inverse_reputations ? r : where.not(id: r)
+    end
+  }
   scope :has_donations, lambda { |has_donations = true|
     joins(:donations).uniq.tap do |r|
       return has_donations ? r : where.not(id: r)
@@ -161,6 +171,10 @@ class Player < ActiveRecord::Base
   has_many :mutes
   has_many :inverse_mutes, foreign_key: 'muted_player_id', class_name: 'Mute'
   has_many :muted_players, through: :mutes
+  has_many :reputations, foreign_key: 'trustee_id', class_name: 'Reputation'
+  has_many :rating_players, through: :reputations, source: :truster
+  has_many :inverse_reputations, foreign_key: 'truster_id', class_name: 'Reputation'
+  has_many :rated_players, through: :inverse_reputations, source: :trustee
   has_many :donations, class_name: 'Message::Donation', as: :author
 
   before_save :update_biomes_explored
@@ -168,17 +182,6 @@ class Player < ActiveRecord::Base
 
   def self.max_explore_all_biome_progress
     all.map(&:explore_all_biome_progress).map(&:to_i).max
-  end
-
-  def players_with_same_ip(options = {})
-    a = options[:except_address] || []
-    o = options[:except_origin] || []
-    
-    other_ips = Ip.where(address: ips.where.not(address: a, origin: o).
-      select(:address)).
-      where.not(player_id: id)
-      
-    Player.where(id: other_ips.distinct(:player_id).select(:player_id))
   end
 
   def self.best_match_by_nick(nick, options = {}, &block)
@@ -196,6 +199,42 @@ class Player < ActiveRecord::Base
     else
       player
     end
+  end
+
+  # Level I trust is the sum of direct trust for this player by a truster.
+  # Level II trust is the sum of all trust for this player by those the truster trusts (through recursion).
+  def reputation_sum(options = {level: 'I'})
+    truster = options[:truster]
+    return unless !!truster
+    
+    case options[:level]
+    when 'I'
+      reputation = truster.inverse_reputations.find_by_trustee_id(self)
+      if !!reputation
+        reputation.rate
+      else
+        0
+      end
+    when 'II'
+      sum = 0
+      
+      truster.inverse_reputations.where.not(trustee: self).find_each do |reputation|
+        sum = sum + reputation_sum(level: 'I', truster: reputation.trustee)
+      end
+        
+      sum
+    end
+  end
+
+  def players_with_same_ip(options = {})
+    a = options[:except_address] || []
+    o = options[:except_origin] || []
+    
+    other_ips = Ip.where(address: ips.where.not(address: a, origin: o).
+      select(:address)).
+      where.not(player_id: id)
+      
+    Player.where(id: other_ips.distinct(:player_id).select(:player_id))
   end
 
   def to_param
@@ -326,7 +365,7 @@ class Player < ActiveRecord::Base
   end
   
   def last_activity_at
-    Time.at([last_login_at.to_i, last_logout_at.to_i, updated_at.to_i].max)
+    Time.at([last_chat_at.to_i, last_login_at.to_i, last_logout_at.to_i, updated_at.to_i].max)
   end
 
   def stats_file_path
@@ -362,13 +401,13 @@ class Player < ActiveRecord::Base
   end
   
   def current_block_type
-    return (pos = current_pos) if pos.nil?
+    return if (pos = current_pos).nil?
     
     Player.execute("testforblock #{pos[0]} #{pos[1]} #{pos[2]} minecraft:air")
   end
 
   def last_block_type
-    return (pos = last_pos) if pos.nil?
+    return if (pos = last_pos).nil?
     
     Player.execute("testforblock #{pos[0]} #{pos[1]} #{pos[2]} minecraft:air")
   end

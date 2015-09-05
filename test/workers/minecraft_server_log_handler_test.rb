@@ -18,19 +18,19 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
 
   def test_check_version
     assert_callback_ran 'Check Version' do
-      ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server version')
+      ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server version', debug: true)
     end
   end
 
   def test_not_check_version
     refute_callback_ran 'Check Version' do
-      ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> test')
+      ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> test', debug: true)
     end
   end
 
   def test_playercheck
     assert_callback_ran 'Player Check' do
-      ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> @server playercheck inertia186')
+      ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> @server playercheck inertia186', debug: true)
     end
   end
 
@@ -40,7 +40,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     
     assert_no_difference -> { Link.count }, 'did not expect new link record' do
       assert_callback_ran 'Autolink' do
-        ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> http://github.com/inertia186/cobblebot')
+        ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> http://github.com/inertia186/cobblebot', debug: true)
       end
     end
   end
@@ -51,14 +51,14 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     player.update_attribute(:may_autolink, false)    
     assert_no_difference -> { player.links.count }, 'did not expect new link record' do
       assert_callback_ran 'Autolink' do
-        ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> https://www.youtube.com/watch?v=OdSkx7QmO7k')
+        ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> https://www.youtube.com/watch?v=OdSkx7QmO7k', debug: true)
       end
     end
 
     player.update_attribute(:may_autolink, true)
     assert_difference -> { player.links.count }, 1, 'expect new link record' do
       assert_callback_ran 'Autolink' do
-        ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> https://www.youtube.com/watch?v=OdSkx7QmO7k')
+        ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> https://www.youtube.com/watch?v=OdSkx7QmO7k', debug: true)
       end
     end
   end
@@ -68,27 +68,29 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       return ['Frozen Projectile']
     end
 
+    ServerCommand.detectable_reset
+
     refute Preference.is_junk_objective_timestamp, "did not expect is_junk_objective_timestamp, it was: #{Preference.is_junk_objective_timestamp}"
-    
+
     assert_difference -> { Player.count }, 1, 'expect new player' do
       assert_callback_ran 'Player Authenticated' do
-        ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')
+        ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848', debug: true)
       end
     end
 
-    ServerCommand.detectable_reset
-
     assert Preference.is_junk_objective_timestamp, 'expect is_junk_objective_timestamp'
 
+    ServerCommand.detectable_reset
+
     assert_no_difference -> { Player.count }, 'did not expect new player' do
-      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')
+      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848', debug: true)
     end
 
     player = Player.last
     assert_nil player.last_nick, 'expect last_nick to be nil'
 
     assert_no_difference -> { Player.count }, 'did not expect new player' do
-      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player yYPlayerYy is f6ddf946-f162-8d48-a21b-ac00929fb848')
+      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player yYPlayerYy is f6ddf946-f162-8d48-a21b-ac00929fb848', debug: true)
     end
 
     player.reload
@@ -97,7 +99,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute_equal player.nick, player.last_nick, 'expect last_nick not to be equal to nick'
 
     assert_no_difference -> { Player.count }, 'did not expect new player' do
-      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player zZPlayerZz is f6ddf946-f162-8d48-a21b-ac00929fb848')
+      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player zZPlayerZz is f6ddf946-f162-8d48-a21b-ac00929fb848', debug: true)
     end
 
     player.reload
@@ -113,7 +115,8 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     ServerCommand.detectable_reset
 
     refute Preference.is_junk_objective_timestamp, "did not expect is_junk_objective_timestamp, it was: #{Preference.is_junk_objective_timestamp}"
-    ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848')
+    
+    ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848', debug: true)
     assert Preference.is_junk_objective_timestamp, 'expect is_junk_objective_timestamp'
     travel 2.days do
       ServerCommand.send(:handle_frozen_projectiles)
@@ -123,7 +126,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   
   def test_message_of_the_day
     assert_callback_ran 'Message of the Day' do
-      ServerCallback::ServerEntry.handle('[08:57:14] [Server thread/INFO]: inertia186 joined the game')
+      ServerCallback::ServerEntry.handle('[08:57:14] [Server thread/INFO]: inertia186 joined the game', debug: true)
     end
   end
 
@@ -132,7 +135,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     callback = ServerCallback.find_by_name('Latest Player Chat')
     
     assert_callback_ran callback do
-      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> Hello!')
+      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> Hello!', debug: true)
     end
 
     assert_equal 'Hello!', player.reload.last_chat, 'did not expect nil last_chat'
@@ -140,7 +143,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     player.update_attribute(:last_chat, nil)
     
     assert_callback_ran callback do
-      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> "quoted"')
+      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> "quoted"', debug: true)
     end
   
     assert_equal '"quoted"', player.reload.last_chat, 'did not expect nil last_chat'
@@ -148,7 +151,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     player.update_attribute(:last_chat, nil)
     
     assert_callback_ran callback do
-      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> #{0}')
+      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> #{0}', debug: true)
     end
 
     refute_nil player.reload.last_chat, 'did not expect nil last_chat'
@@ -156,7 +159,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     player.update_attribute(:last_chat, nil)
 
     assert_callback_ran callback do
-      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> #{1/0}')
+      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> #{1/0}', debug: true)
     end
 
     refute_nil player.reload.last_chat, 'did not expect nil last_chat'
@@ -164,7 +167,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
 
   def test_latest_player_ip
     assert_callback_ran 'Latest Player IP' do
-      ServerCallback::ServerEntry.handle('[17:45:49] [Server thread/INFO]: inertia186[/127.0.0.1:63640] logged in with entity id 7477 at (15.11891680919476, 63.0, 296.4194632969733)')
+      ServerCallback::ServerEntry.handle('[17:45:49] [Server thread/INFO]: inertia186[/127.0.0.1:63640] logged in with entity id 7477 at (15.11891680919476, 63.0, 296.4194632969733)', debug: true)
     end
     refute_nil Player.find_by_nick('inertia186').last_ip, 'did not expect nil last_ip'
     refute_nil Player.find_by_nick('inertia186').last_location, 'did not expect nil last_location'
@@ -174,7 +177,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     callback = ServerCallback.find_by_name('Player Logged Out')
     
     assert_callback_ran callback do
-      ServerCallback::ServerEntry.handle('[15:29:35] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'Disconnected\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+      ServerCallback::ServerEntry.handle('[15:29:35] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'Disconnected\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}', debug: true)
     end
 
     refute_nil Player.find_by_nick('inertia186').last_logout_at, 'did not expect nil last_chat'
@@ -182,61 +185,61 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     # Variations
     
     assert_callback_ran callback do
-      ServerCallback::ServerEntry.handle('[11:44:45] [Server thread/INFO]: inertia186 lost connection: TranslatableComponent{key=\'disconnect.timeout\', args=[], siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+      ServerCallback::ServerEntry.handle('[11:44:45] [Server thread/INFO]: inertia186 lost connection: TranslatableComponent{key=\'disconnect.timeout\', args=[], siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}', debug: true)
     end
 
     assert_callback_ran callback do
-      ServerCallback::ServerEntry.handle('[19:27:46] [Server thread/INFO]: inertia186 lost connection: TranslatableComponent{key=\'disconnect.genericReason\', args=[Internal Exception: java.io.IOException: Connection reset by peer], siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+      ServerCallback::ServerEntry.handle('[19:27:46] [Server thread/INFO]: inertia186 lost connection: TranslatableComponent{key=\'disconnect.genericReason\', args=[Internal Exception: java.io.IOException: Connection reset by peer], siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}', debug: true)
     end
 
     assert_callback_ran callback do
-      ServerCallback::ServerEntry.handle('[18:28:53] [Server thread/INFO]: blackhat186 lost connection: TextComponent{text=\'Flying is not enabled on this server\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+      ServerCallback::ServerEntry.handle('[18:28:53] [Server thread/INFO]: blackhat186 lost connection: TextComponent{text=\'Flying is not enabled on this server\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}', debug: true)
     end
 
     assert_callback_ran callback do
-      ServerCallback::ServerEntry.handle('[10:21:31] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'You logged in from another location\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+      ServerCallback::ServerEntry.handle('[10:21:31] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'You logged in from another location\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}', debug: true)
     end
 
     assert_callback_ran callback do
-      ServerCallback::ServerEntry.handle('[00:03:37] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'You have been idle for too long!\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+      ServerCallback::ServerEntry.handle('[00:03:37] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'You have been idle for too long!\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}', debug: true)
     end
 
     assert_callback_ran callback do
-      ServerCallback::ServerEntry.handle('[03:05:08] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'Have a Nice Day!\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+      ServerCallback::ServerEntry.handle('[03:05:08] [Server thread/INFO]: inertia186 lost connection: TextComponent{text=\'Have a Nice Day!\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}', debug: true)
     end
 
     assert_callback_ran callback do
-      ServerCallback::ServerEntry.handle('[08:01:11] [Server thread/INFO]: jackass186 lost connection: TextComponent{text=\'disconnect.spam\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+      ServerCallback::ServerEntry.handle('[08:01:11] [Server thread/INFO]: jackass186 lost connection: TextComponent{text=\'disconnect.spam\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}', debug: true)
     end
 
     assert_callback_ran callback do
-      ServerCallback::ServerEntry.handle('[11:11:38] [Server thread/INFO]: jackass186 lost connection: TextComponent{text=\'Kicked by an operator.\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}')
+      ServerCallback::ServerEntry.handle('[11:11:38] [Server thread/INFO]: jackass186 lost connection: TextComponent{text=\'Kicked by an operator.\', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}', debug: true)
     end
 
     # Ignore
 
     callback.update_attribute(:ran_at, nil)
-    ServerCallback::ServerEntry.handle('[15:12:31] [Server thread/INFO]: /127.0.0.1:50472 lost connection: Failed to verify username!')
+    ServerCallback::ServerEntry.handle('[15:12:31] [Server thread/INFO]: /127.0.0.1:50472 lost connection: Failed to verify username!', debug: true)
     refute callback.reload.error_flag_at, callback.last_command_output
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
-    ServerCallback::ServerEntry.handle('[19:06:04] [Server thread/INFO]: /127.0.0.1:52748 lost connection: Internal Exception: io.netty.handler.codec.DecoderException: The received string length is longer than maximum allowed (22 > 16)')
+    ServerCallback::ServerEntry.handle('[19:06:04] [Server thread/INFO]: /127.0.0.1:52748 lost connection: Internal Exception: io.netty.handler.codec.DecoderException: The received string length is longer than maximum allowed (22 > 16)', debug: true)
     refute callback.reload.error_flag_at, callback.last_command_output
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
-    ServerCallback::ServerEntry.handle('[09:59:11] [Server thread/INFO]: com.mojang.authlib.GameProfile@77550cf1[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:56157) lost connection: Authentication servers are down. Please try again later, sorry!')
+    ServerCallback::ServerEntry.handle('[09:59:11] [Server thread/INFO]: com.mojang.authlib.GameProfile@77550cf1[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:56157) lost connection: Authentication servers are down. Please try again later, sorry!', debug: true)
     refute callback.reload.error_flag_at, callback.last_command_output
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
-    ServerCallback::ServerEntry.handle('[13:28:33] [Server thread/INFO]: com.mojang.authlib.GameProfile@22ad3285[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:53908) lost connection: Timed out')
+    ServerCallback::ServerEntry.handle('[13:28:33] [Server thread/INFO]: com.mojang.authlib.GameProfile@22ad3285[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:53908) lost connection: Timed out', debug: true)
     refute callback.reload.error_flag_at, callback.last_command_output
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
-    ServerCallback::ServerEntry.handle('[00:22:23] [Server thread/INFO]: com.mojang.authlib.GameProfile@622ca134[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:15274) lost connection: Internal Exception: java.io.IOException: Connection reset by peer')
+    ServerCallback::ServerEntry.handle('[00:22:23] [Server thread/INFO]: com.mojang.authlib.GameProfile@622ca134[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:15274) lost connection: Internal Exception: java.io.IOException: Connection reset by peer', debug: true)
     refute callback.reload.error_flag_at, callback.last_command_output
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
 
-    ServerCallback::ServerEntry.handle('[17:01:27] [Server thread/INFO]: com.mojang.authlib.GameProfile@e509a8b[id=ffffffff-ffff-ffff-ffff-ffffffffffff,name=blackhat186,properties={textures=[com.mojang.authlib.properties.Property@6688ce2c]},legacy=false] (/127.0.0.1:57235) lost connection: You are banned from this server!')
+    ServerCallback::ServerEntry.handle('[17:01:27] [Server thread/INFO]: com.mojang.authlib.GameProfile@e509a8b[id=ffffffff-ffff-ffff-ffff-ffffffffffff,name=blackhat186,properties={textures=[com.mojang.authlib.properties.Property@6688ce2c]},legacy=false] (/127.0.0.1:57235) lost connection: You are banned from this server!', debug: true)
     refute callback.reload.error_flag_at, callback.last_command_output
     assert_nil callback.reload.ran_at, 'expect nil ran_at'
   end
@@ -245,7 +248,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     callback = ServerCallback.find_by_name('Predict')
     
     assert_callback_ran callback do
-      ServerCallback::ServerEntry.handle('[18:45:22] [Server thread/INFO]: com.mojang.authlib.GameProfile@4835d4bb[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:61582) lost connection: Disconnected')
+      ServerCallback::ServerEntry.handle('[18:45:22] [Server thread/INFO]: com.mojang.authlib.GameProfile@4835d4bb[id=<null>,name=inertia186,properties={},legacy=false] (/127.0.0.1:61582) lost connection: Disconnected', debug: true)
     end
     
     assert callback.last_command_output
@@ -253,19 +256,19 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   
   def test_autosync
     assert_callback_ran 'Autosync' do
-      ServerCallback::ServerEntry.handle('[19:23:22] [Server thread/WARN]: inertia186 moved wrongly!')
+      ServerCallback::ServerEntry.handle('[19:23:22] [Server thread/WARN]: inertia186 moved wrongly!', debug: true)
     end
   end
 
   def test_search_replace
     assert_callback_ran 'Search Replace' do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> %s/axe/sword/')
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> %s/axe/sword/', debug: true)
     end
   end
   
   def test_random_tip
     assert_callback_ran 'Random Tip' do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip')
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip', debug: true)
     end
     # Make sure the "pretend" option reaches the callback for simulated chat.
     assert_equal '@server tip', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip'
@@ -274,7 +277,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   def test_random_tip_server
     Message::Tip.where.not("body LIKE 'server%'").update_all('read_at = CURRENT_TIMESTAMP')
     assert_callback_ran 'Random Tip' do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip server')
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip server', debug: true)
     end
     # Make sure the "pretend" option reaches the callback for simulated chat.
     assert_equal '@server tip server', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip server'
@@ -283,7 +286,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   def test_random_tip_herobrine
     Message::Tip.where.not("body LIKE 'herobrine%'").update_all('read_at = CURRENT_TIMESTAMP')
     assert_callback_ran 'Random Tip' do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip herobrine')
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip herobrine', debug: true)
     end
     # Make sure the "pretend" option reaches the callback for simulated chat.
     assert_equal '@server tip herobrine', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip herobrine'
@@ -296,7 +299,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     
     Message::Tip.where.not("body LIKE 'slap%'").update_all('read_at = CURRENT_TIMESTAMP')
     assert_callback_ran 'Random Tip' do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip slap')
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip slap', debug: true)
     end
     # Make sure the "pretend" option reaches the callback for simulated chat.
     assert_equal '@server tip slap', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip slap'
@@ -305,7 +308,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   def test_random_tip_mfw
     Message::Tip.where.not("body LIKE '>%'").update_all('read_at = CURRENT_TIMESTAMP')
     assert_callback_ran 'Random Tip' do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip >')
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip >', debug: true)
     end
     # Make sure the "pretend" option reaches the callback for simulated chat.
     assert_equal '@server tip >', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip >'
@@ -314,9 +317,9 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   def test_random_got_nothin
     Message::Tip.update_all('read_at = CURRENT_TIMESTAMP')
     assert_callback_ran 'Random Tip' do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip')
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip')
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip')
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip', debug: true)
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip', debug: true)
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip', debug: true)
     end
     # Make sure the "pretend" option reaches the callback for simulated chat.
     assert_equal '@server tip', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip'
@@ -325,7 +328,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   def test_add_tip
     assert_difference -> { Message::Tip.count }, 1, 'expect new tip' do
       assert_callback_ran 'Add Tip' do
-        ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server addtip This is a tip.')
+        ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server addtip This is a tip.', debug: true)
       end
     end
   end
@@ -334,7 +337,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { Link.count }, 1, 'expect new link' do
       assert_difference -> { Message::Tip.count }, 1, 'expect new tip' do
         assert_callback_ran 'Add Tip' do
-          ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server addtip https://www.youtube.com/watch?v=GVgMzKMgNxw')
+          ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server addtip https://www.youtube.com/watch?v=GVgMzKMgNxw', debug: true)
         end
       end
     end
@@ -344,7 +347,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   
   def test_slap
     assert_callback_ran 'Slap' do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server slap Dinnerbone')
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server slap Dinnerbone', debug: true)
     end
     # Make sure the "pretend" option reaches the callback for simulated chat.
     assert_equal '@server slap Dinnerbone', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server slap Dinnerbone'
@@ -352,7 +355,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   
   def test_slap_no_target
     assert_callback_ran 'Slap' do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server slap')
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server slap', debug: true)
     end
     # Make sure the "pretend" option reaches the callback for simulated chat.
     assert_equal '@server slap', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server slap'
@@ -416,7 +419,8 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       end
     end
 
-    assert Player.find_by_nick('GracieBoo').spam_ratio <= 0.1, 'expect kickable spam ratio'
+    assert (player = Player.find_by_nick('GracieBoo')).spam_ratio <= 0.1, 'expect kickable spam ratio'
+    assert player.above_exploration_threshold?, 'expect player above exploration threshold'
   end
 
   def test_spam_detect_alt
@@ -461,12 +465,13 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_callback_ran 'Spammy' do
       assert_kicked 'GracieBoo' do
         refute_kicked 'inertia186' do
-          MinecraftServerLogHandler.handle "[08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttttttttt"
+          MinecraftServerLogHandler.handle "[08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttttttttt", debug: true
         end
       end
     end
 
-    assert Player.find_by_nick('GracieBoo').spam_ratio <= 0.1, 'expect kickable spam ratio'
+    assert (player = Player.find_by_nick('GracieBoo')).spam_ratio <= 0.1, 'expect kickable spam ratio'
+    assert player.above_exploration_threshold?, 'expect player above exploration threshold'
   end
 
   def test_spam_with_tool_detect
@@ -505,7 +510,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_callback_ran 'Spammy' do
       refute_kicked 'SnowMan35' do
         refute_kicked 'xXPlayerXx' do
-          MinecraftServerLogHandler.handle "[13:31:51] [Server thread/INFO]: <SnowMan35> ==/================\==="
+          MinecraftServerLogHandler.handle "[13:31:51] [Server thread/INFO]: <SnowMan35> ==/================\===", debug: true
         end
       end
     end
@@ -598,7 +603,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_callback_ran 'Spammy' do
       assert_kicked 'GracieBoo' do
         refute_kicked 'inertia186' do
-          MinecraftServerLogHandler.handle "[08:33:21] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN"
+          MinecraftServerLogHandler.handle "[08:33:21] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN", debug: true
         end
       end
     end
@@ -610,7 +615,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     callback = ServerCallback.find_by_name('Sound Check')
 
     assert_callback_ran callback do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server soundcheck')
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server soundcheck', debug: true)
     end
 
     def Server.player_nicks(selector = nil)
@@ -620,7 +625,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     Player.find_by_nick('inertia186').update_attribute(:play_sounds, false)
     
     assert_callback_ran callback do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server soundcheck')
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server soundcheck', debug: true)
     end
   end
   
@@ -628,7 +633,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     callback = ServerCallback.find_by_name('Search Replace')
     
     assert_callback_ran callback do
-      result = ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> %s/axe/sword')
+      result = ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> %s/axe/sword', debug: true)
     end
   end
 
@@ -638,7 +643,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute_nil callback.help_doc, 'expect help doc for callback'
     
     assert_callback_ran callback do
-      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help')
+      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help', debug: true)
       assert_equal 2, ServerCommand.commands_executed.keys.join.split(callback.help_doc.strip).size, 'expect help doc in command executed'
     end
   end
@@ -649,7 +654,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute_nil callback.help_doc, 'expect help doc for callback'
     
     assert_callback_ran 'Help ...' do
-      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help help')
+      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help help', debug: true)
       assert_equal 2, ServerCommand.commands_executed.keys.join.split(callback.help_doc.strip).size, 'expect help doc in command executed'
     end
   end
@@ -672,14 +677,31 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     callback = ServerCallback.find_by_name('Register')
     player = Player.find_by_nick('inertia186')
     player.update_attribute(:created_at, 48.hours.ago)
+    def player.biomes_explored
+      13 # Required to be above 12.
+    end
 
     refute player.registered?, 'did not expect player to be registered'
     
     assert_callback_ran callback do
-      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server register')
+      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server register', debug: true)
     end
     
     assert player.reload.registered?, 'expect player to be registered'
+  end
+
+  def test_register_low_samples
+    callback = ServerCallback.find_by_name('Register')
+    player = Player.find_by_nick('inertia186')
+    player.update_attribute(:created_at, 48.hours.ago)
+
+    refute player.registered?, 'did not expect player to be registered'
+    
+    assert_callback_ran callback do
+      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server register', debug: true)
+    end
+    
+    assert player.reload.registered?, 'did not expect player to be registered (did not explore enough, but not enough samples either)'
   end
 
   def test_unregister
@@ -691,7 +713,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert player.registered?, 'expect player to be registered'
     
     assert_callback_ran callback do
-      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server unregister')
+      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server unregister', debug: true)
     end
     
     assert player.reload.registered?, 'for now, still expect player to be registered (unregister not supported yet)'
@@ -702,7 +724,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     player = Player.find_by_nick('inertia186')
 
     assert_callback_ran callback do
-      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server origin inertia186')
+      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server origin inertia186', debug: true)
     end
   end
 
@@ -712,70 +734,76 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     callback = ServerCallback.find_by_name('Send Mail')
     assert_difference -> { inertia186.messages.read(false).count }, 2, 'expected unread' do
       assert_callback_ran callback do
-        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <Dinnerbone> @inertia186 Hello there!')
-        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <Dinnerbone> @inertia186 Check this out: http://www.mojang.com/')
+        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <Dinnerbone> @inertia186 Hello there!', debug: true)
+        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <Dinnerbone> @inertia186 Check this out: http://www.mojang.com/', debug: true)
       end
     end
 
-    ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player inertia186 is d6edf996-6182-4d58-ac1b-4ca0321fb748')
+    ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player inertia186 is d6edf996-6182-4d58-ac1b-4ca0321fb748', debug: true)
     
     callback = ServerCallback.find_by_name('Read Mail')
     assert_difference -> { inertia186.messages.read.count }, 2, 'expected read' do
       assert_callback_ran callback do
-        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail')
+        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail', debug: true)
       end
     end
 
     callback = ServerCallback.find_by_name('Read Mail')
     assert_difference -> { inertia186.messages.read.count }, 0, 'expected fewer messages' do
       assert_callback_ran callback do
-        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail clear')
+        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail clear', debug: true)
       end
     end
 
     assert_difference -> { inertia186.messages.read.muted(false).count }, -2, 'expected fewer messages' do
       assert_difference -> { inertia186.muted_players.count }, 1, 'expected muted player' do
-        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail mute dinnerbone')
+        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail mute dinnerbone', debug: true)
       end
     end
 
     assert_difference -> { inertia186.muted_players.count }, 0, 'did not expect muted player (already muted)' do
-      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail mute dinnerbone')
+      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail mute dinnerbone', debug: true)
     end
     
     assert_difference -> { inertia186.messages.read.muted(false).count }, 2, 'expected read' do
       assert_difference -> { inertia186.muted_players.count }, -1, 'expected unmuted player' do
-        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail unmute dinnerbone')
+        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail unmute dinnerbone', debug: true)
       end
     end
 
     assert_difference -> { inertia186.muted_players.count }, 0, 'did not expect unmuted player (already unmuted)' do
-      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail unmute dinnerbone')
+      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail unmute dinnerbone', debug: true)
     end
 
     callback = ServerCallback.find_by_name('Read Mail')
     assert_difference -> { inertia186.messages.read.count }, 0, 'expected fewer messages' do
       assert_callback_ran callback do
-        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail clear')
+        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail clear', debug: true)
       end
     end
   end
   
   def test_unknown_callback
     refute_callback_ran "Unknown" do
-      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> test')
+      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> test', debug: true)
+    end
+  end
+
+  def test_behind
+    assert_callback_ran "Behind" do
+      MinecraftServerLogHandler.handle('[14:50:24] [Server thread/WARN]: Can\'t keep up! Did the system time change, or is the server overloaded? Running 3454ms behind, skipping 69 tick(s)', debug: true)
     end
   end
 
   def test_topic
     assert_callback_ran "Topic" do
-      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server topic')
+      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server topic', debug: true)
     end
   end
 
   def test_set_topic
     assert_callback_ran "Set Topic" do
-      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server topic test')
+      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server topic test', debug: true)
     end
   end
   
@@ -786,7 +814,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
       assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
         assert_callback_ran "Slain" do
-          MinecraftServerLogHandler.handle('[19:09:22] [Server thread/INFO]: inertia186 was slain by Dinnerbone using [Hugs IV]')
+          MinecraftServerLogHandler.handle('[19:09:22] [Server thread/INFO]: inertia186 was slain by Dinnerbone using [Hugs IV]', debug: true)
         end
       end
     end
@@ -799,7 +827,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
       assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
         assert_callback_ran "Slain" do
-          MinecraftServerLogHandler.handle('[19:09:22] [Server thread/INFO]: inertia186 was slain by Dinnerbone')
+          MinecraftServerLogHandler.handle('[19:09:22] [Server thread/INFO]: inertia186 was slain by Dinnerbone', debug: true)
         end
       end
     end
@@ -812,7 +840,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
       assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
         assert_callback_ran "Shot" do
-          MinecraftServerLogHandler.handle('[09:34:15] [Server thread/INFO]: inertia186 was shot by Dinnerbone using [Spiky Hugger]')
+          MinecraftServerLogHandler.handle('[09:34:15] [Server thread/INFO]: inertia186 was shot by Dinnerbone using [Spiky Hugger]', debug: true)
         end
       end
     end
@@ -825,7 +853,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
       assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
         assert_callback_ran "Shot" do
-          MinecraftServerLogHandler.handle('[09:34:15] [Server thread/INFO]: inertia186 was shot by Dinnerbone')
+          MinecraftServerLogHandler.handle('[09:34:15] [Server thread/INFO]: inertia186 was shot by Dinnerbone', debug: true)
         end
       end
     end
@@ -838,7 +866,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
       assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
         assert_callback_ran "Killed" do
-          MinecraftServerLogHandler.handle('[19:01:52] [Server thread/INFO]: inertia186 was killed by Dinnerbone using [Liquid Hugs]')
+          MinecraftServerLogHandler.handle('[19:01:52] [Server thread/INFO]: inertia186 was killed by Dinnerbone using [Liquid Hugs]', debug: true)
         end
       end
     end
@@ -851,7 +879,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
       assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
         assert_callback_ran "Killed" do
-          MinecraftServerLogHandler.handle('[19:01:52] [Server thread/INFO]: inertia186 was killed by Dinnerbone')
+          MinecraftServerLogHandler.handle('[19:01:52] [Server thread/INFO]: inertia186 was killed by Dinnerbone', debug: true)
         end
       end
     end
@@ -864,7 +892,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
       assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
         assert_callback_ran "Thorns" do
-          MinecraftServerLogHandler.handle('[17:57:25] [Server thread/INFO]: inertia186 was killed trying to hurt Dinnerbone')
+          MinecraftServerLogHandler.handle('[17:57:25] [Server thread/INFO]: inertia186 was killed trying to hurt Dinnerbone', debug: true)
         end
       end
     end
@@ -877,7 +905,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
       assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
         assert_callback_ran "Burnt" do
-          MinecraftServerLogHandler.handle('[09:55:50] [Server thread/INFO]: inertia186 was burnt to a crisp whilst fighting Dinnerbone')
+          MinecraftServerLogHandler.handle('[09:55:50] [Server thread/INFO]: inertia186 was burnt to a crisp whilst fighting Dinnerbone', debug: true)
         end
       end
     end
@@ -890,7 +918,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
       assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
         assert_callback_ran "Lava Swim" do
-          MinecraftServerLogHandler.handle('[17:11:23] [Server thread/INFO]: inertia186 tried to swim in lava to escape Dinnerbone')
+          MinecraftServerLogHandler.handle('[17:11:23] [Server thread/INFO]: inertia186 tried to swim in lava to escape Dinnerbone', debug: true)
         end
       end
     end
@@ -903,7 +931,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
       assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
         assert_callback_ran "Sploded to Death" do
-          MinecraftServerLogHandler.handle('[15:40:09] [Server thread/INFO]: inertia186 was blown up by Dinnerbone')
+          MinecraftServerLogHandler.handle('[15:40:09] [Server thread/INFO]: inertia186 was blown up by Dinnerbone', debug: true)
         end
       end
     end

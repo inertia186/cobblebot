@@ -50,8 +50,10 @@ module Linkable
         last_modified_at = link.last_modified_at
       end
     
+      as = "[#{options[:as]}] " if !!options[:as]
+    
       execute(<<-DONE
-        tellraw #{selector} { "text": "", "extra": [{
+        tellraw #{selector} { "text": "#{as}", "extra": [{
           "text": "#{escape(title)}", "color": "dark_purple", "underlined": "true", "hoverEvent": {
             "action": "show_text", "value": "Last Modified: #{last_modified_at ? last_modified_at : '???'}"
           }, "clickEvent": {

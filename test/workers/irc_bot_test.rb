@@ -2,6 +2,7 @@ require 'test_helper'
 
 class IrcBotTest < ActiveSupport::TestCase
   def setup
+    Preference.path_to_server = "#{Rails.root}/tmp"
     Preference.irc_server_host = 'localhost'
     Preference.irc_server_port = 1234
     Preference.irc_enabled = true
@@ -19,7 +20,7 @@ class IrcBotTest < ActiveSupport::TestCase
       # :nocov:
       fail 'did not expect valid connection'
       # :nocov:
-    rescue Errno::ECONNREFUSED => e
+    rescue
       # success
     end
   end

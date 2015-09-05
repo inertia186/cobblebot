@@ -62,7 +62,7 @@ module Detectable
       return if lines.nil?
     
       player = Player.find_by_nick(nick)
-      col = if player.nil? || player.new?
+      col = if player.nil? || player.new? || !player.above_exploration_threshold?
         7
       else
         20
@@ -72,8 +72,11 @@ module Detectable
       all = []
 
       lines.each do |line|
-        sample = line.split(' ')[4..-1].join(' ').downcase
-        all << sample[0..[sample.size - 1, col].min] if regexp.match(line)
+        words = line.split(' ')[4..-1]
+        unless words.nil?
+          sample = words.join(' ').downcase
+          all << sample[0..[sample.size - 1, col].min] if regexp.match(line)
+        end
       end
 
       return "No spam detected for #{nick}." if all.size == 0

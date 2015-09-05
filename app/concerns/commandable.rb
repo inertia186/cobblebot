@@ -101,7 +101,10 @@ module Commandable
         return 
       end
 
-      # TODO Also check how many biomes the player has explored before allowing them to register.
+      unless player.above_exploration_threshold?
+        tell(nick, 'Not registered, still too close to spawn.')
+        return 
+      end
 
       if player.registered?
         tell(nick, 'Already registered.')

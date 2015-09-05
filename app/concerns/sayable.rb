@@ -33,8 +33,12 @@ module Sayable
         say_nick_not_found(selector, nick, command: '@server playercheck %nick%')
       }) do |player|
         line_1a = "Latest activity for #{player.nick} was "
-        line_1b = distance_of_time_in_words_to_now(player.last_activity_at)
-        line_1c = player.last_activity_at.to_s
+        line_1b = if player.last_chat_at.nil?
+          '???'
+        else
+          distance_of_time_in_words_to_now(player.last_chat_at)
+        end
+        line_1c = player.last_chat_at.to_s
         line_1d = ' ago.'
         execute(
         <<-DONE
@@ -352,5 +356,59 @@ module Sayable
       
       say('@a', escape(translation[0][0][0]), as: 'Google')
     end
+    
+    def say_trust(selector, truster_nick, trustee_nick)
+      truster = nil
+      trustee = nil
+      
+      Player.best_match_by_nick(truster_nick, no_match: -> {
+        # FIXME The 'command' option should come from the callback record, not hardcoded.
+        say_nick_not_found(selector, truster_nick, command: "@server gettrust %nick% #{trustee_nick}")
+      }) do |target|
+        truster = target
+      end
+      
+      Player.best_match_by_nick(trustee_nick, no_match: -> {
+        # FIXME The 'command' option should come from the callback record, not hardcoded.
+        say_nick_not_found(selector, trustee_nick, command: "@server gettrust #{truster_nick} %nick%")
+      }) do |target|
+        trustee = target
+      end
+      
+      if truster == trustee
+        execute <<-DONE
+          tellraw #{selector} [{"color": "green", "text": "There is infinite trust for #{trustee.nick} by #{truster.nick}."}]
+        DONE
+      else
+        level1 = trustee.reputation_sum(level: 'I', truster: truster)
+        level2 = trustee.reputation_sum(level: 'II', truster: truster)
+        
+        if level1 != 0 || level2 != 0
+          if level1 != 0
+            execute <<-DONE
+              tellraw #{selector} [{"color": "dark_purple", "text": "Level I Trust", "hoverEvent": {"action": "show_text", "value":"This is the sum of direct trust for #{trustee.nick} by #{truster.nick}."}}, {"color": "green", "text": " for #{trustee.nick} by #{truster.nick}: "}, {"color": "blue", "text": "#{level1}"}]
+            DONE
+          end
+          
+          if level2 != 0
+            execute <<-DONE
+              tellraw #{selector} [{"color": "dark_purple", "text": "Level II Trust", "hoverEvent": {"action": "show_text", "value":"This is the sum of all trust for #{trustee.nick} by those #{truster.nick} trusts."}}, {"color": "green", "text": " for #{trustee.nick} via #{truster.nick}: "}, {"color": "blue", "text": "#{level2}"}]
+            DONE
+          end
+        elsif !trustee.registered?
+          execute <<-DONE
+            tellraw #{selector} [{"color": "green", "text": "#{trustee.nick} cannot be trusted."}]
+          DONE
+        elsif !truster.registered?
+          execute <<-DONE
+            tellraw #{selector} [{"color": "green", "text": "#{truster.nick} cannot trust."}]
+          DONE
+        else
+          execute <<-DONE
+            tellraw #{selector} [{"color": "green", "text": "No trust exists for #{trustee.nick} by #{truster.nick}."}]
+          DONE
+        end
+      end
+    end      
   end
 end
