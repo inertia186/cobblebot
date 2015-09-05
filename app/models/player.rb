@@ -102,7 +102,7 @@ class Player < ActiveRecord::Base
     end
   }
   scope :updated_after, lambda { |after|
-    where("updated_at > ?", after)
+    where("DATETIME(last_login_at) <> DATETIME(updated_at) AND updated_at > ?", after)
   }
   scope :has_links, lambda { |has_links = true|
     joins(:links).uniq.tap do |r|
