@@ -232,4 +232,14 @@ class Server
   def self.whitelist
     JSON[File.read whitelist_file_path] if File.exists? whitelist_file_path
   end
+
+  def self.latest_debug_report_path
+    debug_path = file_path 'debug'
+    
+    Dir.glob("#{debug_path}/*.txt").sort.last
+  end
+  
+  def self.latest_debug_report
+    File.read latest_debug_report_path if File.exists? latest_debug_report_path
+  end
 end
