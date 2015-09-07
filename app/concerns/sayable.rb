@@ -15,13 +15,41 @@ module Sayable
       return if selector.nil?
     
       if options[:as].present?
-        execute <<-DONE
-          tellraw #{selector} [{ "color": "white", "text": "[#{options[:as]}] "}, { "color": "#{options[:color]}", "text": "#{message}" }]
-        DONE
+        if !!(hover_text = options[:hover_text])
+          execute <<-DONE
+            tellraw #{selector} [
+              { "color": "white", "text": "[#{options[:as]}] "},
+              {
+                "color": "#{options[:color]}", "text": "#{message}",
+                "hoverEvent": {
+                  "action": "show_text", "value": "#{hover_text}"
+                }
+              }
+            ]
+          DONE
+        else
+          execute <<-DONE
+            tellraw #{selector} [{ "color": "white", "text": "[#{options[:as]}] "}, { "color": "#{options[:color]}", "text": "#{message}" }]
+          DONE
+        end
       else
-        execute <<-DONE
-          tellraw #{selector} { "color": "#{options[:color]}", "text": "#{message}" }
-        DONE
+        if !!(hover_text = options[:hover_text])
+          execute <<-DONE
+            tellraw #{selector} [
+              { "color": "white", "text": "[#{options[:as]}] "},
+              {
+                "color": "#{options[:color]}", "text": "#{message}",
+                "hoverEvent": {
+                  "action": "show_text", "value": "#{hover_text}"
+                }
+              }
+            ]
+          DONE
+        else
+          execute <<-DONE
+            tellraw #{selector} { "color": "#{options[:color]}", "text": "#{message}" }
+          DONE
+        end
       end
       
       # FIXME Probably need to return a text-only version for logging purposes.
@@ -60,9 +88,6 @@ module Sayable
         results += say_biomes_explored(selector, nick, player: player)
         results += say_reputation_sum(selector, nick, player: player)
       
-        # TODO get rate:
-        # say selector, "Sum of all trust: ..."
-    
         results
       end
     end
@@ -86,7 +111,8 @@ module Sayable
       result = nil
 
       if !!player
-        say(selector, result = "Biomes explored: #{player.explore_all_biome_progress}")
+        the_end = player.achievement.explore_all_biomes["progress"].include? 'The End' rescue false
+        say(selector, result = "Biomes explored: #{player.explore_all_biome_progress}", color: 'white', as: 'Server', hover_text: the_end ? 'Including The End' : 'Not including The End.')
       end
       
       [result]
@@ -98,7 +124,7 @@ module Sayable
       result = nil
 
       if !!player
-        say(selector, result = "Sum of all trust: #{player.reputations.map(&:rate).sum}")
+        say(selector, result = "Sum of all trust: #{player.reputations.map(&:rate).sum}", color: 'white', as: 'Server', hover_text: "From #{pluralize(player.reputations.count, 'player')}.")
       end
       
       [result]
@@ -235,11 +261,11 @@ module Sayable
       message
     end
     
-    def tips
+    def tips(selector = '@a')
       tips = Message::Tip.all
       tips_in_cooldown = Message::Tip.in_cooldown
     
-      say('@a', "There are currently #{tips.count} tips.  In cooldown: #{tips_in_cooldown.count}")
+      say(selector, "There are currently #{tips.count} tips.  In cooldown: #{tips_in_cooldown.count}")
     end
     
     def say_slap(selector = "@a", nick = "Server", target = nil)
@@ -314,7 +340,7 @@ module Sayable
           no_match = true
         }) do |target|
           if target.pvp_losses.none?
-            say('@a', "No pvp log for: #{target.nick}") and return
+            say(selector, "No pvp log for: #{target.nick}") and return
           else
             victim = target
           end
@@ -329,7 +355,7 @@ module Sayable
         Message::Pvp.all
       end.order(:created_at).last
       
-      say('@a', "No pvp log.") and return if pvp.nil?
+      say(selector, "No pvp log.") and return if pvp.nil?
       
       body = pvp.body
       
@@ -358,7 +384,7 @@ module Sayable
     def say_translation(selector, pair, term)
       pair = pair.split(':')
       if pair.size == 1
-        from = 'auto'
+        from = :auto
         to = pair[0].to_sym
       else
         from = pair[0].to_sym
@@ -367,7 +393,7 @@ module Sayable
       translator = GoogleTranslate.new
       translation = translator.translate(from, to, term)
       
-      say('@a', escape(translation[0][0][0]), as: 'Google')
+      say(selector, escape(translation.first.first.first), as: 'Google', color: 'white', hover_text: "Translation from: #{translation.third}")
     end
     
     def say_trust(selector, truster_nick, trustee_nick)
