@@ -3,11 +3,12 @@ require 'csv'
 namespace :cobblebot do
   PREFERENCE_KEYS = %w(key value system created_at updated_at)
   SERVER_CALLBACK_KEYS = %w(type name pattern command cooldown enabled system help_doc_key help_doc created_at updated_at)
-  PLAYER_KEYS = %w(uuid nick last_nick last_ip last_chat last_location last_login_at last_logout_at spam_ratio play_sounds biomes_explored may_autolink registered_at vetted_at created_at updated_at)
+  PLAYER_KEYS = %w(uuid nick last_nick last_ip last_chat last_chat_at last_location last_login_at last_logout_at spam_ratio play_sounds biomes_explored may_autolink registered_at vetted_at created_at updated_at)
   LINK_KEYS = %w(url title actor_uuid expires_at last_modified_at can_embed created_at updated_at)
   MESSAGE_KEYS = %w(type body keywords recipient_term recipient_uuid author_uuid read_at deleted_at created_at updated_at)
-  IP_KEYS = %w(address player_uuid origin cc created_at)
+  IP_KEYS = %w(address player_uuid origin cc state city created_at)
   MUTE_KEYS = %w(player_uuid muted_player_uuid created_at)
+  REPUTATION_KEYS = %w(truster_uuid trustee_uuid rate created_at updated_at)
   
   desc 'display the current information of rake'
   task :info do
@@ -158,7 +159,7 @@ namespace :cobblebot do
       puts data
     end
 
-    desc 'dump out nutes to csv'
+    desc 'dump out mutes to csv'
     task mutes: :environment do
       data = CSV.generate do |csv|
         csv << MUTE_KEYS
@@ -173,6 +174,31 @@ namespace :cobblebot do
               row << mute.muted_player.uuid if mute.muted_player
             else
               row << mute.send(key)
+            end
+          end
+          csv << row
+        end
+        
+      end
+
+      puts data
+    end
+
+    desc 'dump out reputations to csv'
+    task reputations: :environment do
+      data = CSV.generate do |csv|
+        csv << REPUTATION_KEYS
+        
+        Reputation.find_each do |reputation|
+          row = []
+          REPUTATION_KEYS.each do |key|
+            case key
+            when 'truster_uuid'
+              row << reputation.truster.uuid if reputation.truster
+            when 'trustee_uuid'
+              row << reputation.trustee.uuid if reputation.trustee
+            else
+              row << reputation.send(key)
             end
           end
           csv << row
@@ -310,6 +336,32 @@ namespace :cobblebot do
 
         next if mute_params[:player].nil? || mute_params[:muted_player].nil?
         Mute.create(mute_params)
+      end
+    end
+
+    desc 'pump in reputations from csv'
+    task reputations: :environment do
+      CSV.parse(STDIN, headers: true) do |row|
+        reputation_params = {}
+        REPUTATION_KEYS.each do |key|
+          case key
+          when 'truster_uuid'
+            if (uuid = row[key]).present?
+              truster = Player.find_by_uuid uuid
+              reputation_params[:truster] = truster
+            end
+          when 'trustee_uuid'
+            if (uuid = row[key]).present?
+              trustee = Player.find_by_uuid uuid
+              reputation_params[:trustee] = trustee
+            end
+          else
+            reputation_params[key] = row[key]
+          end
+        end
+
+        next if reputation_params[:truster].nil? || reputation_params[:trustee].nil?
+        Reputation.create(reputation_params)
       end
     end
   end

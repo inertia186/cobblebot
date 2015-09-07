@@ -25,6 +25,9 @@ There is also an optional IRC bot that allows players to interact.
   * Google Translate
   * Optional Country Code lookup using db-ip.com
   * Donation Tracking
+  * Tutorial and Rules templates.
+  * IP Tracking (extras)
+  * Web of Trust
 
 ## Installation
 
@@ -204,11 +207,8 @@ CobbleBot is limited to information that can be gathered from the server logs.  
 
 ## TODO
 
-  * Expand DSL for more complex tasks (like in-game Mail and Web of Trust).
   * Implement more test cases for DSL callback events.
-  * Tutorial and Rules templates.
   * Books
-  * IP Tracking (extras)
   * Improve twitch.tv bot support.
 
 ## Resource Pack
