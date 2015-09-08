@@ -1,6 +1,6 @@
 class ServerCallback::DeathAnnouncement < ServerCallback::ServerEntry
   def self.for_handling(line)
-    regex = Regex.union(
+    regex = Regexp.union(
       /was.*by/,
       /was killed trying to hurt/,
       /was burnt to a crisp/,

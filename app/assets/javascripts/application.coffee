@@ -12,7 +12,7 @@ updatePublicPlayers = ->
 
 updateIrcCount = ->
   $.getScript '/irc.js'
-  setTimeout updatePublicPlayers, 60000
+  setTimeout updateIrcCount, 60000
   return
 
 $ ->
