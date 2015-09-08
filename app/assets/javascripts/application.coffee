@@ -10,6 +10,11 @@ updatePublicPlayers = ->
   setTimeout updatePublicPlayers, 5000
   return
 
+updateIrcCount = ->
+  $.getScript '/irc.js'
+  setTimeout updatePublicPlayers, 60000
+  return
+
 $ ->
   if $('#public-players').length > 0
     setTimeout updatePublicPlayers, 5000
@@ -17,4 +22,9 @@ $ ->
       chat = $('#chat')
       chat.slideToggle 'slow'
       return
+  return
+
+$ ->
+  if !!$('a#irc-link')
+    setTimeout updateIrcCount, 60000
   return

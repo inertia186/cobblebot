@@ -23,7 +23,7 @@
         %li{class: active_nav('status')}= link_to 'Server Status', status_index_path
         - if Preference.irc_enabled? && Preference.irc_web_chat_enabled?
           %li{class: active_nav('irc_web_chat')}
-            = link_to 'IRC' + ((c = Preference.active_in_irc.to_i) > 0 ? " (#{c})" : ''), Preference.irc_web_chat_url, target: 'irc'
+            = link_to 'IRC' + ((c = Preference.active_in_irc.to_i) > 0 ? " (#{c})" : ''), Preference.irc_web_chat_url, target: 'irc', id: 'irc-link'
         %li.dropdown{class: active_nav('admin')}
           = link_to '#', class: 'dropdown-toggle', data: { toggle: :dropdown }, role: :button do
             Admin

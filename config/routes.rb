@@ -20,6 +20,7 @@ Rails.application.routes.draw do
   resources :topics, only: :index
   resources :pvps, only: :index
   resources :donations, only: :index
+  resources :irc, only: :index
   get 'server-icon.png' => 'resources#server_icon', as: :server_icon
 
   # Example resource route with options:
