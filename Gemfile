@@ -41,8 +41,7 @@ gem 'file-tail'
 gem 'mechanize'
 
 # Can be used by callbacks.
-gem 'mc-slap', gist: '5002463'
-
+gem 'mc-slap', git: 'git://gist.github.com/5002463.git'
 # Used to translate in-game chat.
 gem 'google-translate'
 
