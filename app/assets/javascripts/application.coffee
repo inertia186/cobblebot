@@ -2,22 +2,26 @@
 #= require jquery_ujs
 #= require turbolinks
 #= require bootstrap.min
+#= require chosen-jquery
 #= require_tree .
 
+document.updatePublicPlayersTimerId = -1
+document.updateIrcCountTimerId = -1
+
 updatePublicPlayers = ->
-  after = $('#last_chat').attr('data-last-chat-at')
+  after = $('#last_chat').attr 'data-last-chat-at'
   $.getScript '/players.js?after=' + after
-  setTimeout updatePublicPlayers, 5000
+  document.updatePublicPlayersTimerId = setTimeout updatePublicPlayers, 5000
   return
 
 updateIrcCount = ->
   $.getScript '/irc.js'
-  setTimeout updateIrcCount, 60000
+  document.updateIrcCountTimerId = setTimeout updateIrcCount, 60000
   return
 
 $ ->
   if $('#public-players').length > 0
-    setTimeout updatePublicPlayers, 5000
+    document.updatePublicPlayersTimerId = setTimeout updatePublicPlayers, 5000
     $('body').on 'click', '#chat_controls', (e) ->
       chat = $('#chat')
       chat.slideToggle 'slow'
@@ -26,5 +30,5 @@ $ ->
 
 $ ->
   if !!$('a#irc-link')
-    setTimeout updateIrcCount, 60000
+    document.updateIrcCountTimerId = setTimeout updateIrcCount, 60000
   return

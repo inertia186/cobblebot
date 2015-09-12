@@ -18,7 +18,7 @@
     .input-group
       = f.label :author, 'Donor (leave blank if anonymous)'
       %br
-      = f.select :author_id, Player.order('LOWER(nick)').map {|p| ["#{p.nick}#{p.last_nick.present? ? " (aka #{p.last_nick})" : ''}", p.id]}, {prompt: ''}, {class: 'chzn', multiple: false}
+      = f.select :author_id, Player.order('LOWER(nick)').map {|p| ["#{p.nick}#{p.last_nick.present? ? " (aka #{p.last_nick})" : ''}", p.id]}, {prompt: ''}, {multiple: false}
     .input-group
       = f.label :body, 'Donation Details'
       %br
@@ -27,4 +27,4 @@
     .input-group
       = f.submit 'Save Donation', class: 'btn btn-primary'
     .input-group
-      = link_to 'Back', admin_server_callbacks_path, class: 'btn btn-info btn-xs'
+      = link_to 'Back', admin_message_donations_path, class: 'btn btn-info btn-xs'

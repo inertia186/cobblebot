@@ -11,6 +11,7 @@
  * file per style scope.
  *
  *= require bootstrap.min
+ *= require chosen
  *= require_tree .
  *= require_self
  */
@@ -124,14 +125,6 @@ a.tip:hover:after, .jqhover-point {
   position:absolute;
   top: -8px;
   left:1em;
-}
-
-select.chzn, select.chzn-multi {
-  width: 400px;
-}
-
-select.chzn.full, select.chzn-multi.full {
-  width: 100%;
 }
 
 #chat {
