@@ -56,9 +56,13 @@ class Server
         nicks = result.split(' is a player and cannot be changed')
       end
     else
-      result = ServerCommand.execute 'list'
-      n = result.split(':')[1] if !!result
-      nicks = n.split(', ') if !!n
+      nicks = begin
+        ServerQuery.full_query[:players]
+      rescue
+        result = ServerCommand.execute 'list'
+        n = result.split(':')[1] if !!result
+        n.split(', ') if !!n
+      end
     end
 
     nicks ||= []
