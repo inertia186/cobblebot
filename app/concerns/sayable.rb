@@ -472,15 +472,21 @@ module Sayable
       
       if Preference.latest_gametick_in_progress?
         say(selector, "Still checking ...")
+        if latest_gametick_at > 10.seconds.ago
+          execute('debug stop')
+          Preference.latest_gametick_in_progress = false
+        end
       elsif latest_gametick_timestamp.nil? || (latest_gametick_at < 10.minutes.ago)
         say(selector, "Checking ...")
         begin
           Preference.latest_gametick_in_progress = true
           execute('debug start')
           sleep 10
-          execute('debug stop')
+        rescue
+          Rails.logger.warn 'Failed to get gametick.'
         ensure
-          Preference.latest_gametick_in_progress = false          
+          execute('debug stop')
+          Preference.latest_gametick_in_progress = false
         end
         
         if !!(report = Server.latest_debug_report)
