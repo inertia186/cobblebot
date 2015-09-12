@@ -365,6 +365,14 @@ module Sayable
         body
       end
       
+      loser_quote = "<#{pvp.recipient.nick}> #{pvp.loser_quote}"
+      winner_quote = "<#{pvp.author.nick}> #{pvp.winner_quote}"
+      pvp_quotes = if loser_quote == winner_quote
+        winner_quote
+      else
+        "#{loser_quote}\n#{winner_quote}"
+      end
+      
       execute(
       <<-DONE
         tellraw #{selector} [
@@ -375,7 +383,12 @@ module Sayable
               "action": "show_text", "value": "#{pvp.created_at.to_s}"
             }
           },
-          { "color": "white", "text": "#{pvp_log}" }
+          {
+            "color": "white", "text": "#{pvp_log}",
+            "hoverEvent": {
+              "action": "show_text", "value": "#{pvp_quotes}"
+            }
+          }
         ]
       DONE
       ) unless selector.nil?
