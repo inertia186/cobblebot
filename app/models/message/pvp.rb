@@ -31,4 +31,12 @@ class Message::Pvp < Message
   def setup_defaults
     self.recipient_term ||= '@a'
   end
+  
+  def loser_quote
+    recipient.quotes.where("created_at > ?", created_at).order(:created_at).limit(1).first.body rescue recipient.last_chat
+  end
+  
+  def winner_quote
+    author.quotes.where("created_at > ?", created_at).order(:created_at).limit(1).first.body rescue author.last_chat
+  end
 end

@@ -42,6 +42,8 @@ class ServerCommand
     return unless !!player
     
     player.update_attributes(last_chat: message, last_chat_at: Time.now)
+    player.quotes.create(body: message) unless player.last_pvp_loss_has_quote?
+    player.quotes.create(body: message) unless player.last_pvp_win_has_quote?
     
     player
   end

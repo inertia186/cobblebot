@@ -159,6 +159,11 @@ class Player < ActiveRecord::Base
       return has_donations ? r : where.not(id: r)
     end
   }
+  scope :has_quotes, lambda { |has_quotes = true|
+    joins(:quotes).uniq.tap do |r|
+      return has_quotes ? r : where.not(id: r)
+    end
+  }
 
   has_many :links, as: :actor
   has_many :messages, -> { where(type: nil) }, as: :recipient
@@ -176,6 +181,7 @@ class Player < ActiveRecord::Base
   has_many :inverse_reputations, foreign_key: 'truster_id', class_name: 'Reputation'
   has_many :rated_players, through: :inverse_reputations, source: :trustee
   has_many :donations, class_name: 'Message::Donation', as: :author
+  has_many :quotes, class_name: 'Message::Quote', as: :author
 
   before_save :update_biomes_explored
   before_save :update_last_nick, if: :nick_changed?
@@ -386,6 +392,14 @@ class Player < ActiveRecord::Base
     "%.2f hours" % (stats.time_since_death / 60.0 / 60.0 / 24.0) if player_data
   end
   
+  # All kills, mobs + players
+  def total_kills
+    mob_kills = stats.mob_kills rescue 0
+    player_kills = stats.player_kills rescue 0
+    
+    mob_kills + player_kills
+  end
+  
   def current_location
     response = Player.tp(nick, '~ ~ ~')
     
@@ -449,6 +463,73 @@ class Player < ActiveRecord::Base
   
   def latest_country_code
     ips.last.cc if ips.any?
+  end
+
+  # This will return the player's nick plus any additional information about them.
+  #
+  # http://wiki.vg/Mojang_API#UUID_-.3E_Profile_.2B_Skin.2FCape
+  def profile
+    _uuid = uuid.gsub(/-/, '')
+    url = "https://sessionserver.mojang.com/session/minecraft/profile/#{_uuid}"
+    response = Net::HTTP.get_response(URI.parse(url))
+    json = JSON.parse(response.body)
+  end
+
+  # Returns all the nicks this player has used in the past and the one they are using currently.
+  #
+  # http://wiki.vg/Mojang_API#UUID_-.3E_Name_history
+  def nick_history
+    _uuid = uuid.gsub(/-/, '')
+    url = "https://api.mojang.com/user/profiles/#{_uuid}/names"
+    response = Net::HTTP.get_response(URI.parse(url))
+    json = JSON.parse(response.body)
+  end
+  
+  # To check if a player has voted or not in the last 24 hours.
+  def mmp_vote_status
+    url = "http://minecraft-mp.com/api/?object=votes&element=claim&key=#{Preference.mmp_api_key}&username=#{nick}"
+    response = Net::HTTP.get_response(URI.parse(url))
+    # 0	Not found
+    # 1	Has voted and not claimed
+    # 2	Has voted and claimed
+    case response.body
+    when "0"
+      :not_found
+    when "1"
+      :has_voted_and_not_claimed
+    when "2"
+      :has_voted_and_claimed
+    else
+      :unknown
+    end
+  end
+  
+  # To set a vote as claimed for a player.
+  def mmp_vote_claim!
+    uri =     uri = URI.parse('http://minecraft-mp.com/api/')
+    options = {
+      action: 'post',
+      object: 'votes',
+      element: 'claim',
+      key: Preference.mmp_api_key,
+      username: nick
+    }
+    response = Net::HTTP.post_form(uri, options)
+    # 0  Vote has not been claimed
+    # 1  Vote has been claimed
+    response.body == "1"
+  end
+
+  def last_pvp_loss_has_quote?
+    return true if pvp_losses.none?
+    
+    !!(pvp = pvp_losses.last) && quotes.where('messages.created_at > ?', pvp.created_at).any?
+  end
+  
+  def last_pvp_win_has_quote?
+    return true if pvp_wins.none?
+
+    !!(pvp = pvp_wins.last) && quotes.where('messages.created_at > ?', pvp.created_at).any?
   end
 private  
   def update_last_nick

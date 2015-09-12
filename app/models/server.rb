@@ -242,4 +242,18 @@ class Server
   def self.latest_debug_report
     File.read latest_debug_report_path if File.exists? latest_debug_report_path
   end
+
+  # To get the full list of votes.
+  def self.mmp_votes
+    url = "http://minecraft-mp.com/api/?object=servers&element=votes&key=#{Preference.mmp_api_key}&format=json"
+    response = Net::HTTP.get_response(URI.parse(url))
+    json = JSON.parse(response.body)
+  end
+
+  # To get the full detail of this server.  
+  def self.mmp_status
+    url = "http://minecraft-mp.com/api/?object=servers&element=detail&key=#{Preference.mmp_api_key}"
+    response = Net::HTTP.get_response(URI.parse(url))
+    json = JSON.parse(response.body)
+  end
 end

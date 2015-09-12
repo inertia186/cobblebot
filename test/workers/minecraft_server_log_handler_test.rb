@@ -820,6 +820,31 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_detect_pvp_slain_with_quotes
+    inertia186 = Player.find_by_nick('inertia186')
+    dinnerbone = Player.find_by_nick('Dinnerbone')
+    
+    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
+      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
+        assert_callback_ran "Slain" do
+          MinecraftServerLogHandler.handle('[19:09:22] [Server thread/INFO]: inertia186 was slain by Dinnerbone using [Hugs IV]', debug: true)
+        end
+      end
+    end
+
+    assert_callback_ran "Latest Player Chat" do
+      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> Darn.', debug: true)
+    end
+
+    assert_callback_ran "Latest Player Chat" do
+      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <Dinnerbone> Yeah!', debug: true)
+    end
+    
+    pvp = Message::Pvp.last
+    assert_equal 'Darn.', pvp.loser_quote
+    assert_equal 'Yeah!', pvp.winner_quote
+  end
+
   def test_detect_pvp_slain_not_named
     inertia186 = Player.find_by_nick('inertia186')
     dinnerbone = Player.find_by_nick('Dinnerbone')
