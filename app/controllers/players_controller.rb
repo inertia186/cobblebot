@@ -1,7 +1,7 @@
 class PlayersController < ApplicationController
   def index
-    @players = Server.players
-    @players_today = Player.logged_in_today.where.not(id: @players)
+    @players = Server.players.with_pvp_counts
+    @players_today = Player.with_pvp_counts.logged_in_today.where.not(id: @players.except(:select))
     
     if params[:after].present?
       after = Time.at(params[:after].to_i + 1)

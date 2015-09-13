@@ -328,7 +328,7 @@ module Sayable
       no_match = false
       
       if nick == '@p' || nick == '@r'
-        nick = Server.player_nicks.sample
+        nick = Server.player_nicks(nick).first
       elsif nick =~ /@/
         nick = ''
       end
@@ -479,11 +479,12 @@ module Sayable
       elsif latest_gametick_timestamp.nil? || (latest_gametick_at < 10.minutes.ago)
         say(selector, "Checking ...")
         begin
+          Preference.latest_gametick_timestamp = Time.now.to_i
           Preference.latest_gametick_in_progress = true
           execute('debug start')
           sleep 10
-        rescue
-          Rails.logger.warn 'Failed to get gametick.'
+        rescue Exception => e
+          Rails.logger.error "Failed to get gametick: #{e.inspect}"
         ensure
           execute('debug stop')
           Preference.latest_gametick_in_progress = false
@@ -501,7 +502,6 @@ module Sayable
           
           Preference.latest_gametick = gametick
           Preference.latest_gametick_population = gametick_population
-          Preference.latest_gametick_timestamp = Time.now.to_i
         end
       else
         say(selector, "Gametick from #{ago} ago was: #{latest_gametick} with #{pluralize(latest_gametick_population, 'player')}; ideal gametick: 20.0")

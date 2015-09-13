@@ -19,6 +19,8 @@ class DenormalizeStats < ActiveRecord::Migration
 
       print '.'
     end
+    
+    puts "\nDone."
   end
   
   def down
