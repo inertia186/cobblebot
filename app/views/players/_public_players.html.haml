@@ -43,6 +43,6 @@
               = distance_of_time_in_words_to_now player.last_login_at
               ago
             %td= player.explore_all_biome_progress
-            %td= player.pvp_wins.count
-            %td= player.pvp_losses.count
+            %td= player.pvp_wins_count
+            %td= player.pvp_losses_count
 #last_chat{data: {'last-chat-at' => @players.map(&:updated_at).map(&:to_i).max || Time.now.to_i}}
