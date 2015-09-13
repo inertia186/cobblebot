@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150905180113) do
+ActiveRecord::Schema.define(version: 20150913064149) do
 
   create_table "ips", force: :cascade do |t|
     t.string  "address",    null: false
@@ -79,14 +79,19 @@ ActiveRecord::Schema.define(version: 20150905180113) do
     t.datetime "last_login_at"
     t.datetime "last_logout_at"
     t.float    "spam_ratio"
-    t.boolean  "play_sounds",     default: true, null: false
-    t.integer  "biomes_explored", default: 0,    null: false
+    t.boolean  "play_sounds",      default: true, null: false
+    t.integer  "biomes_explored",  default: 0,    null: false
     t.datetime "registered_at"
     t.datetime "vetted_at"
-    t.datetime "created_at",                     null: false
-    t.datetime "updated_at",                     null: false
-    t.boolean  "may_autolink",    default: true, null: false
+    t.datetime "created_at",                      null: false
+    t.datetime "updated_at",                      null: false
+    t.boolean  "may_autolink",     default: true, null: false
     t.datetime "last_chat_at"
+    t.integer  "leave_game",       default: 0,    null: false
+    t.integer  "deaths",           default: 0,    null: false
+    t.integer  "mob_kills",        default: 0,    null: false
+    t.integer  "time_since_death", default: 0,    null: false
+    t.integer  "player_kills",     default: 0,    null: false
   end
 
   create_table "preferences", force: :cascade do |t|

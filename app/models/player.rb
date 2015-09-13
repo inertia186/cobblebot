@@ -183,7 +183,7 @@ class Player < ActiveRecord::Base
   has_many :donations, class_name: 'Message::Donation', as: :author
   has_many :quotes, class_name: 'Message::Quote', as: :author
 
-  before_save :update_biomes_explored
+  before_save :update_stats
   before_save :update_last_nick, if: :nick_changed?
 
   def self.max_explore_all_biome_progress
@@ -388,15 +388,12 @@ class Player < ActiveRecord::Base
     achievements.explore_all_biomes['progress'].count rescue 0
   end
   
-  def time_since_death
-    "%.2f hours" % (stats.time_since_death / 60.0 / 60.0 / 24.0) if player_data
+  def hours_since_death
+    "%.2f hours" % (time_since_death / 60.0 / 60.0 / 24.0)
   end
   
   # All kills, mobs + players
   def total_kills
-    mob_kills = stats.mob_kills rescue 0
-    player_kills = stats.player_kills rescue 0
-    
     mob_kills + player_kills
   end
   
@@ -426,8 +423,13 @@ class Player < ActiveRecord::Base
     Player.execute("testforblock #{pos[0]} #{pos[1]} #{pos[2]} minecraft:air")
   end
   
-  def update_biomes_explored
+  def update_stats
     self.biomes_explored = explore_all_biome_progress
+    self.leave_game = stat.leave_game rescue 0
+    self.deaths = stat.deaths rescue 0
+    self.mob_kills = stat.mob_kills rescue 0
+    self.time_since_death = stat.time_since_death rescue 0
+    self.player_kills = stat.player_kills rescue 0
   end
 
   def toggle_play_sounds!
