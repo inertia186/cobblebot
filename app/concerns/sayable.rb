@@ -281,7 +281,7 @@ module Sayable
       if keywords.empty?
         say(selector, "There are currently #{tips.count} tips.  In cooldown: #{tips_in_cooldown.count}")
       else
-        say(selector, "There are currently #{tips.count} tips matching #{keywords}.  In cooldown: #{tips_in_cooldown.count}")
+        say(selector, "Tips matching #{keywords}: #{tips.count}.  In cooldown: #{tips_in_cooldown.count}")
       end
     end
     
