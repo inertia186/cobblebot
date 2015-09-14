@@ -200,7 +200,7 @@ module Sayable
       return say_nothing(selector) unless !!tip
   
       replies = tip.replies.map(&:body).join("\n").strip
-      replies ||= "In reply to: #{tip.parent.body.strip}"
+      replies ||= "In reply to: #{tip.parent.body.strip}" if !!tip.parent
 
       tip_body = sub_safe_selectors(escape(tip.body.dup))
       tip.update_attribute(:read_at, Time.now) # set cooldown, no AR callbacks
