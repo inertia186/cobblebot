@@ -206,6 +206,7 @@ module Sayable
       end
       replies += tip.replies.map(&:body).join("\n")
       replies = replies.strip
+      replies = sub_safe_selectors(escape(replies))
 
       tip_body = sub_safe_selectors(escape(tip.body.dup))
       tip.update_attribute(:read_at, Time.now) # set cooldown, no AR callbacks
