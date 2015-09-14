@@ -274,7 +274,7 @@ module Sayable
       tips = if keywords.empty?
         Message::Tip.all
       else
-        Message::Tip.query(keywords).except(:select)
+        Message::Tip.query(keywords.strip).except(:select)
       end
       tips_in_cooldown = tips.in_cooldown
     
