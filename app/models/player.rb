@@ -429,12 +429,14 @@ class Player < ActiveRecord::Base
   end
   
   def update_stats
-    self.biomes_explored = explore_all_biome_progress
-    self.leave_game = stat.leave_game rescue 0
-    self.deaths = stat.deaths rescue 0
-    self.mob_kills = stat.mob_kills rescue 0
-    self.time_since_death = stat.time_since_death rescue 0
-    self.player_kills = stat.player_kills rescue 0
+    Thread.start do
+      self.biomes_explored = explore_all_biome_progress
+      self.leave_game = stat.leave_game rescue 0
+      self.deaths = stat.deaths rescue 0
+      self.mob_kills = stat.mob_kills rescue 0
+      self.time_since_death = stat.time_since_death rescue 0
+      self.player_kills = stat.player_kills rescue 0
+    end
   end
 
   def toggle_play_sounds!
