@@ -10,9 +10,23 @@ module Emotable
     def emote(selector, message, options = {color: 'white', as: 'Server'})
       return if selector.nil?
     
-      execute <<-DONE
-        tellraw #{selector} [{ "color": "white", "text": "* #{options[:as]} "}, { "color": "#{options[:color]}", "text": "#{message}" }]
-      DONE
+      if !!(hover_text = options[:hover_text]) && hover_text.present?
+        execute <<-DONE
+          tellraw #{selector} [
+            { "color": "white", "text": "* #{options[:as]} "},
+            { 
+              "color": "#{options[:color]}", "text": "#{message}",
+              "hoverEvent": {
+                "action": "show_text", "value": "#{hover_text}"
+              }
+            }
+          ]
+        DONE
+      else
+        execute <<-DONE
+          tellraw #{selector} [{ "color": "white", "text": "* #{options[:as]} "}, { "color": "#{options[:color]}", "text": "#{message}" }]
+        DONE
+      end
     end
     
     def emote_player_prediction(selector, nick)

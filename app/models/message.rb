@@ -44,8 +44,23 @@ class Message < ActiveRecord::Base
   scope :latest, lambda { |latest = 10| order(:created_at).limit(latest) }
   scope :supplementary, lambda { |message| where.not(id: message).where(body: message.body) }
 
+  scope :has_parent, lambda { |has_parent = true|
+    joins(:parent).uniq.tap do |r|
+      return has_parent ? r : where.not(id: r)
+    end
+  }
+
+  scope :has_replies, lambda { |has_replies = true|
+    joins(:replies).uniq.tap do |r|
+      return has_replies ? r : where.not(id: r)
+    end
+  }
+
   belongs_to :recipient, polymorphic: true
   belongs_to :author, polymorphic: true
+  belongs_to :parent, class_name: 'Message', foreign_key: :reply_id
+
+  has_many :replies, class_name: 'Message', foreign_key: :reply_id
   
   after_initialize :look_up_recipient
   

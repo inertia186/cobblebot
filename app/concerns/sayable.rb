@@ -15,7 +15,7 @@ module Sayable
       return if selector.nil?
     
       if options[:as].present?
-        if !!(hover_text = options[:hover_text])
+        if !!(hover_text = options[:hover_text]) && hover_text.present?
           execute <<-DONE
             tellraw #{selector} [
               { "color": "white", "text": "[#{options[:as]}] "},
@@ -33,7 +33,7 @@ module Sayable
           DONE
         end
       else
-        if !!(hover_text = options[:hover_text])
+        if !!(hover_text = options[:hover_text]) && hover_text.present?
           execute <<-DONE
             tellraw #{selector} [
               { "color": "white", "text": "[#{options[:as]}] "},
@@ -199,29 +199,31 @@ module Sayable
       
       return say_nothing(selector) unless !!tip
   
+      replies = tip.replies.map(&:body).join("\n").strip
+
       tip_body = sub_safe_selectors(escape(tip.body.dup))
       tip.update_attribute(:read_at, Time.now) # set cooldown, no AR callbacks
       if tip_body =~ /^server/i
-        emote(selector, tip_body.split(' ')[1..-1].join(' '))
+        emote(selector, tip_body.split(' ')[1..-1].join(' '), color: 'white', as: 'Server', hover_text: replies)
       elsif tip_body =~ /^herobrine/i
-        say_fake_achievement(selector, 'Herobrine', tip_body.split(' ')[1..-1].join(' '))
+        say_fake_achievement(selector, 'Herobrine', tip_body.split(' ')[1..-1].join(' '), replies || 'AH YISS', true)
       elsif tip_body =~ /^slap/i
         nick = if !!tip.author
           tip.author.nick
         else
           'Server'
         end
-        say_slap(selector, nick, tip_body.split(' ')[1..-1].join(' '))
+        say_slap(selector, nick, tip_body.split(' ')[1..-1].join(' '), hover_text: replies)
       elsif tip_body =~ /^>/i
-        say(selector, tip_body, color: 'green', as: 'Server')
+        say(selector, tip_body, color: 'green', as: 'Server', hover_text: replies)
       elsif tip_body =~ /explode/i
         play_sound(selector, 'random.explode')
-        say(selector, tip_body)
+        say(selector, tip_body, color: 'white', as: 'Server', hover_text: replies)
       elsif tip_body =~ /there is no place like/i
         play_sound(selector, 'loz_recorder')
-        say(selector, tip_body)
+        say(selector, tip_body, color: 'white', as: 'Server', hover_text: replies)
       else
-        say(selector, tip_body)
+        say(selector, tip_body, color: 'white', as: 'Server', hover_text: replies)
       end
     
       # FIXME Doing the simulate_server_message is a security risk until the
@@ -268,12 +270,12 @@ module Sayable
       say(selector, "There are currently #{tips.count} tips.  In cooldown: #{tips_in_cooldown.count}")
     end
     
-    def say_slap(selector = "@a", nick = "Server", target = nil)
+    def say_slap(selector = "@a", nick = "Server", target = nil, options = {})
       result = nil
       target = target.strip if !!target
     
       if target.present?
-        emote selector, result = McSlap.slap(sub_safe_selectors(target)), color: 'white', as: nick
+        emote selector, result = McSlap.slap(sub_safe_selectors(target)), color: 'white', as: nick, hover_text: options[:hover_text]
       else
         emote selector, "has #{McSlap.combinations} slap combinations, see:"
         say_link selector, "https://gist.github.com/inertia186/5002463", only_title: true

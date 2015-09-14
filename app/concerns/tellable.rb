@@ -46,11 +46,13 @@ module Tellable
       end
     end
   
-    def add_tip(nick, tip)
+    def add_tip(nick, tip, options = {})
       return tell(nick, 'Tip not added.  Nice try.') if tip =~ /@@/
       return tell(nick, 'Tip not added.  Entity selector no longer supported.') if tip =~ /@e/
       return tell(nick, 'Tip not added.  Sheez, do you know how annoying that selector would be?') if tip =~ /@a/
       return tell(nick, 'Tip not added.  Similar tip exists.') if Message::Tip.where("lower(messages.body) LIKE ?", "%#{tip.downcase}%").any?
+    
+      reply = options[:reply]
     
       # Try to get keywords if the tip contains a link.
       result = say_link(nil, tip)
@@ -62,6 +64,8 @@ module Tellable
     
       if _tip.save
         tell(nick, 'Tip added, thank you.')
+        latest_tip = Message::Tip.order(:read_at).last
+        latest_tip.replies << _tip if !!reply && !!latest_tip
       else
         tell(nick, "Tip not added.")
       end
@@ -94,7 +98,7 @@ module Tellable
             
             return
           elsif args == '@r' || args == '@p'
-            args = Server.players.sample.nick
+            args = Server.player_nicks(args).first
           elsif args == '@e'
             return tell(nick, "Spy Chicken has been muted.")
           end
@@ -122,7 +126,7 @@ module Tellable
             end
             return tell(nick, "Here is the list of players you have muted: #{nicks}")
           elsif args == '@r' || args == '@p'
-            args = Server.players.sample.nick
+            args = Server.player_nicks(args).first
           elsif args == '@a'
             count = player.mutes.where(muted_player_id: Server.players).destroy_all.size
             return tell(nick, "Unmuted #{pluralize(count, 'player')}.")

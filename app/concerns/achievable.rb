@@ -16,11 +16,14 @@ module Achievable
         hover_text ||= 'Scary'
       end
     
+      hover_text = 'AH YISS' if hover_text.nil? || hover_text.empty?
+    
       if hover_obfuscated
         # Apparently, even setting "obfuscated: true" in the json will not cause
         # tellraw to make hover text obfuscated.  So, we force it with the old
         # inline strategy originally introduced by Notch.
         hover_text = "§k#{hover_text}§r".force_encoding('US-ASCII')
+        # hover_text = hover_text.gsub("\n", "§r\n§k").force_encoding('US-ASCII')
       end
 
       execute <<-DONE
