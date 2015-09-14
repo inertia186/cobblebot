@@ -65,7 +65,11 @@ module Tellable
       if _tip.save
         tell(nick, 'Tip added, thank you.')
         latest_tip = Message::Tip.order(:read_at).last
-        latest_tip.replies << _tip if !!reply && !!latest_tip
+        if !!reply && !!latest_tip
+          latest_tip.replies << _tip
+          _tip.keywords = "#{latest_tip.body} #{latest_tip.keywords}".split(' ').uniq.join(' ')
+          _tip.save
+        end
       else
         tell(nick, "Tip not added.")
       end
