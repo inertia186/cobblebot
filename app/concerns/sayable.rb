@@ -270,11 +270,19 @@ module Sayable
       message
     end
     
-    def tips(selector = '@a')
-      tips = Message::Tip.all
-      tips_in_cooldown = Message::Tip.in_cooldown
+    def tips(selector = '@a', keywords = '')
+      tips = if keywords.empty?
+        Message::Tip.all
+      else
+        Message::Tip.query(keywords).except(:select)
+      end
+      tips_in_cooldown = tips.in_cooldown
     
-      say(selector, "There are currently #{tips.count} tips.  In cooldown: #{tips_in_cooldown.count}")
+      if keywords.empty?
+        say(selector, "There are currently #{tips.count} tips.  In cooldown: #{tips_in_cooldown.count}")
+      else
+        say(selector, "There are currently #{tips.count} tips matching #{keywords}.  In cooldown: #{tips_in_cooldown.count}")
+      end
     end
     
     def say_slap(selector = "@a", nick = "Server", target = nil, options = {})
