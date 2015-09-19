@@ -105,7 +105,7 @@ class Player < ActiveRecord::Base
     where("last_chat_at > ?", after)
   }
   scope :with_pvp_counts, -> {
-    select("*, ( SELECT COUNT(*) FROM messages pvp_losses WHERE pvp_losses.type IN ('Message::Pvp') AND pvp_losses.author_type = 'Player' AND pvp_losses.author_id = players.id ) AS pvp_losses_count").
+    select("*, ( SELECT COUNT(*) FROM messages pvp_losses WHERE pvp_losses.type IN ('Message::Pvp') AND pvp_losses.recipient_type = 'Player' AND pvp_losses.recipient_id = players.id ) AS pvp_losses_count").
       select("*, ( SELECT COUNT(*) FROM messages pvp_wins WHERE pvp_wins.type IN ('Message::Pvp') AND pvp_wins.author_type = 'Player' AND pvp_wins.author_id = players.id ) AS pvp_wins_count")
   }
   
