@@ -62,7 +62,11 @@ module Commandable
     end
   
     def execute(command, options = {try_max: try_max})
-      _try_max = options[:try_max]
+      _try_max = if options[:try_max].present?
+        options[:try_max].to_i
+      else
+        try_max
+      end
       
       _try_max.times do
         case command_scheme
