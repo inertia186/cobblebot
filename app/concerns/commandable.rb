@@ -1,6 +1,8 @@
 require 'rcon/rcon'
 
 module Commandable
+  extend Runnable
+
   def self.included(base)
     base.extend ClassMethods
   end

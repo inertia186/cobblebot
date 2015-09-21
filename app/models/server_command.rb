@@ -3,6 +3,7 @@ include ActionView::Helpers::DateHelper
 
 class ServerCommand
   include Commandable
+  include Runnable
   include Sayable
   include Audible
   include Achievable

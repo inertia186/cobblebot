@@ -1,5 +1,6 @@
 module Audible
   extend Commandable
+  extend Runnable
   
   def self.included(base)
     base.extend ClassMethods
@@ -12,7 +13,7 @@ module Audible
     end
     
     def check_mail(nick)
-      Thread.start do
+      run do
         player = Player.find_by_nick nick
         return if player.nil?
 
