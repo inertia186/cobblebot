@@ -339,7 +339,7 @@ module Sayable
       end
     end
     
-    def say_last_pvp(selector, nick)
+    def say_last_pvp(selector, nick = '')
       nick = nick.strip
       victim = nil
       no_match = false
@@ -366,7 +366,7 @@ module Sayable
       
       return if no_match
       
-      pvp = if victim
+      pvp = if !!victim
         victim.pvp_losses
       else
         Message::Pvp.all
@@ -488,10 +488,12 @@ module Sayable
       ago = distance_of_time_in_words_to_now(latest_gametick_at) unless latest_gametick_at.nil?
       
       if Preference.latest_gametick_in_progress?
-        say(selector, "Still checking ...")
         if latest_gametick_at > 10.seconds.ago
           execute('debug stop')
           Preference.latest_gametick_in_progress = false
+          say(selector, "Gave up checking ...")
+        else
+          say(selector, "Still checking ...")
         end
       elsif latest_gametick_timestamp.nil? || (latest_gametick_at < 10.minutes.ago)
         say(selector, "Checking ...")
@@ -501,9 +503,9 @@ module Sayable
           execute('debug start')
           sleep 10
         rescue Exception => e
-          Rails.logger.error "Failed to get gametick: #{e.inspect}"
+          Rails.logger.error "Failed to start gametick: #{e.inspect}"
         ensure
-          execute('debug stop')
+          execute('debug stop', try_max: 20)
           Preference.latest_gametick_in_progress = false
         end
         

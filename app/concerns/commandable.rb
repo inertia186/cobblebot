@@ -59,8 +59,10 @@ module Commandable
       nil
     end
   
-    def execute(command)
-      try_max.times do
+    def execute(command, options = {try_max: try_max})
+      _try_max = options[:try_max]
+      
+      _try_max.times do
         case command_scheme
         when 'rcon'
           return rcon.command(command)
