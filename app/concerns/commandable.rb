@@ -83,6 +83,11 @@ module Commandable
         
         break
       end
+    rescue Errno::ECONNRESET => e
+      Rails.logger.error e.inspect
+      sleep retry_sleep
+      ServerProperties.reset_vars
+      reset_vars
     rescue StandardError => e
       Rails.logger.warn e.inspect
       sleep retry_sleep
