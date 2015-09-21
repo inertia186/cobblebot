@@ -68,6 +68,8 @@ module Commandable
         try_max
       end
       
+      _try_max = try_max if _try_max == 0
+      
       _try_max.times do
         case command_scheme
         when 'rcon'
