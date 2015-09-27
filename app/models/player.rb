@@ -440,7 +440,7 @@ class Player < ActiveRecord::Base
       }
       
       if persisted?
-        update_colums(options) # no AR callbacks
+        update_columns(options) # no AR callbacks
       else
         update_attributes(options)
       end
