@@ -439,7 +439,11 @@ class Player < ActiveRecord::Base
         player_kills: (stat.player_kills rescue 0)
       }
       
-      update_colums(options) # no AR callbacks
+      if persisted?
+        update_colums(options) # no AR callbacks
+      else
+        update_attributes(options)
+      end
     end
   end
 

@@ -54,7 +54,9 @@ module Audible
           'That player cannot be found',
           /Player [^ ]* is too far away to hear the sound/
         ].each do |junk|
-          result = result.split(junk).reject(&:empty?).join(', ')
+          if result.respond_to?(:split)
+            result = result.split(junk).reject(&:empty?).join(', ')
+          end
         end
         
         result

@@ -186,7 +186,7 @@ class ServerCallback < ActiveRecord::Base
       # TODO clear the error flag
     rescue StandardError => e
       Rails.logger.error "#{e.inspect}\n#{e.backtrace.join("\n")}"
-      result = e.inspect
+      result = "#{e.inspect}\n#{e.backtrace.join("\n")}"
       error_flag!
     end
     

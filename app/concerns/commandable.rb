@@ -90,12 +90,15 @@ module Commandable
           ServerProperties.reset_vars
           reset_vars
         rescue StandardError => e
-          Rails.logger.warn e.inspect
+          Rails.logger.error e.inspect
+          e.backtrace.each { |line| Rails.logger.error line }
           sleep retry_sleep
           ServerProperties.reset_vars
           reset_vars
         end
       end
+      
+      return nil
     end
     
     def kick(nick, reason = "Have A Nice Day")
