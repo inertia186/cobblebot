@@ -13,10 +13,10 @@ module Audible
     end
     
     def check_mail(nick)
-      run do
-        player = Player.find_by_nick nick
-        return if player.nil?
+      player = Player.find_by_nick nick
+      return if player.nil?
 
+      run do
         # Slight delay here to make sure resource packs have loaded.
         sleep(5)
       
