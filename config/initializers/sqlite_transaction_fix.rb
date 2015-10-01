@@ -8,7 +8,7 @@ end
 
 module ActiveRecord
   module ConnectionAdapters
-    class SQLiteAdapter < AbstractAdapter
+    class SQLite3Adapter < AbstractAdapter
       prepend SqliteTransactionFix
     end
   end
