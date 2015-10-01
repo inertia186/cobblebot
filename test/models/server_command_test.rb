@@ -60,19 +60,21 @@ class ServerCommandTest < ActiveSupport::TestCase
     end
 
     commands = ServerCommand.commands_executed
-    assert_equal 3, commands.size, 'expect three commands'
+    assert_equal 4, commands.size, 'expect three commands'
     assert commands.keys.first =~ %r(Latest activity for inertia186 was), 'expect correct player name'
     assert commands.keys.second =~ %r("<inertia186> Normal Tuesday night for Shia Labeouf."), 'expect correct player last chat'
-    assert commands.keys.last =~ %r(Biomes explored: 8), 'expect correct player biome info'
+    assert commands.keys.third =~ %r(Biomes explored: 8), 'expect correct player biome info'
+    # TODO check trust
     
     assert_command_executed do
       ServerCommand.say_playercheck '@a', 'Dinnerbone'
     end
     
     commands = ServerCommand.commands_executed
-    assert_equal 2, commands.size, 'expect two commands'
+    assert_equal 3, commands.size, 'expect two commands'
     assert commands.keys.first =~ %r(Latest activity for Dinnerbone was), 'expect correct player name'
-    assert commands.keys.last =~ %r(Biomes explored: 0), 'expect correct player biome info'
+    assert commands.keys.second =~ %r(Biomes explored: 0), 'expect correct player biome info'
+    # TODO check trust
 
     assert_command_executed do
       ServerCommand.say_playercheck '@a', 'inertia'
@@ -107,19 +109,21 @@ class ServerCommandTest < ActiveSupport::TestCase
     end
 
     commands = ServerCommand.commands_executed
-    assert_equal 2, commands.size, 'expect two commands'
+    assert_equal 3, commands.size, 'expect three commands'
     assert commands.keys.first =~ %r(Latest activity for inertia186 was), 'expect correct player name'
-    assert commands.keys.last =~ %r(Biomes explored: 0), 'expect correct player biome info'
+    assert commands.keys.second =~ %r(Biomes explored: 0), 'expect correct player biome info'
+    # TODO check trust
     
     assert_command_executed do
       ServerCommand.say_playercheck '@a', 'Dinnerbone'
     end
     
     commands = ServerCommand.commands_executed
-    assert_equal 3, commands.size, 'expect three commands'
+    assert_equal 4, commands.size, 'expect three commands'
     assert commands.keys.first =~ %r(Latest activity for Dinnerbone was), 'expect correct player name'
     assert commands.keys.second =~ %r("<Dinnerbone> Normal Tuesday night for Shia Labeouf."), 'expect correct player last chat'
-    assert commands.keys.last =~ %r(Biomes explored: 8), 'expect correct player biome info'
+    assert commands.keys.third =~ %r(Biomes explored: 8), 'expect correct player biome info'
+    # TODO check trust
 
     assert_command_executed do
       ServerCommand.say_playercheck '@a', 'inertia'

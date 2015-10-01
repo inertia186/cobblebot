@@ -169,6 +169,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_callback_ran 'Latest Player IP' do
       ServerCallback::ServerEntry.handle('[17:45:49] [Server thread/INFO]: inertia186[/127.0.0.1:63640] logged in with entity id 7477 at (15.11891680919476, 63.0, 296.4194632969733)', debug: true)
     end
+    skip 'The follwing are now updated asynchronously.'
     refute_nil Player.find_by_nick('inertia186').last_ip, 'did not expect nil last_ip'
     refute_nil Player.find_by_nick('inertia186').last_location, 'did not expect nil last_location'
   end
