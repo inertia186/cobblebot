@@ -1,6 +1,10 @@
 require 'test_helper'
 
 class PlayersControllerTest < ActionController::TestCase
+  def setup
+    Preference.path_to_server = "#{Rails.root}/tmp"
+  end
+  
   def test_routings
     assert_routing({ method: 'get', path: '/' }, controller: 'players', action: 'index')
   end
