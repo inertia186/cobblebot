@@ -37,8 +37,11 @@ class MinecraftServerLogMonitor
           log.tail log_length do |line|
             start = Time.now
             unless unique_lines.include?(line)
-              MinecraftServerLogHandler.handle line
               unique_lines << line
+              h = Thread.start do
+                MinecraftServerLogHandler.handle line
+              end
+              h.join(monitor_tick) # throttle
             end
             elapsed = Time.now - start
             puts "Logging interval elapsed time: #{elapsed} seconds"
