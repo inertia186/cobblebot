@@ -19,6 +19,7 @@ class MinecraftWatchdog
       check_resource_pack
       prettify_callbacks
       update_ip_cc
+      update_player_stats
 
       break if !!options[:debug]      
       Rails.logger.info "#{self} sleeping for #{WATCHDOG_TICK}"
@@ -129,6 +130,14 @@ private
     
     ips.each do |ip|
       break unless !!Ip.send(:update_cc, ip)
+    end
+  end
+  
+  def self.update_player_stats
+    [].tap do |a|
+      Player.shall_update_stats.find_each do |player|
+        a << {player_id: player.id, stats_updated: player.update_stats!}
+      end
     end
   end
 end

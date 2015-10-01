@@ -69,6 +69,7 @@ class Player < ActiveRecord::Base
   scope :origin, lambda { |origin| joins(:ips).where(Ip.arel_table[:origin].in(origin)) }
   scope :address, lambda { |address| joins(:ips).where(Ip.arel_table[:address].in(address)) }
   scope :may_autolink, lambda { |may_autolink = true| where(may_autolink: may_autolink) }
+  scope :shall_update_stats, lambda { |shall_update_stats = true| where(shall_update_stats: shall_update_stats) }
   scope :spammers, lambda { |spammers = true, ratio = 0.1|
     spam_ratio = Player.arel_table[:spam_ratio]
 
@@ -429,22 +430,22 @@ class Player < ActiveRecord::Base
   end
   
   def update_stats
-    Thread.start do
-      options = {
-        biomes_explored: explore_all_biome_progress,
-        leave_game: (stat.leave_game rescue 0),
-        deaths: (stat.deaths rescue 0),
-        mob_kills: (stat.mob_kills rescue 0),
-        time_since_death: (stat.time_since_death rescue 0),
-        player_kills: (stat.player_kills rescue 0)
-      }
-      
-      if persisted?
-        update_columns(options) # no AR callbacks
-      else
-        update_attributes(options)
-      end
-    end
+    self.shall_update_stats = true
+  end
+
+  # This method is not instant, so it's best if it is kicked off from a worker.
+  def update_stats!
+    options = {
+      biomes_explored: explore_all_biome_progress,
+      leave_game: (stat.leave_game rescue 0),
+      deaths: (stat.deaths rescue 0),
+      mob_kills: (stat.mob_kills rescue 0),
+      time_since_death: (stat.time_since_death rescue 0),
+      player_kills: (stat.player_kills rescue 0),
+      shall_update_stats: false
+    }
+    
+    update_columns(options) if persisted? # no AR callbacks
   end
 
   def toggle_play_sounds!
