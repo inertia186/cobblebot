@@ -4,7 +4,7 @@ class PlayerImagesController < ApplicationController
 
   def show
     uuid = request.env["HTTP_IF_NONE_MATCH"]
-    head 304 and return if !!uuid && !uuid.empty?
+    head 304 and return unless uuid.to_s.empty?
 
     nick = params[:id]
     size = params[:size] || 16
