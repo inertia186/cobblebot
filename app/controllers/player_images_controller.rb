@@ -20,7 +20,7 @@ class PlayerImagesController < ApplicationController
     end
 
     if !!image
-      uuid ||= Player.find_by_nick(nick).uuid rescue nil
+      uuid = Player.find_by_nick(nick).uuid rescue nil
       response.headers['Expires'] = 2.hours.from_now.httpdate
       response.headers['Cache-Control'] = "max-age=#{2.hours.from_now.to_i / 1000}, public"
       response.headers['Pragma'] = 'cache'
