@@ -14,6 +14,15 @@ class Admin::PlayersController < Admin::AdminController
     @players = @players.where(id: Ip.where(origin: @origin).select(:player_id)) if !!@origin
     @players = @players.where(id: Ip.where(cc: @cc).select(:player_id)) if !!@cc
 
+    @players = @players.select <<-DONE
+      players.*,
+      (SELECT COUNT(links.id) FROM links WHERE links.actor_type = 'Player' AND links.actor_id = players.id) AS links_count,
+      (SELECT COUNT(messages.id) FROM messages WHERE messages.type IS NULL AND messages.recipient_type = 'Player' AND messages.recipient_id = players.id) AS messages_count,
+      (SELECT COUNT(pvp_wins.id) FROM messages AS pvp_wins WHERE pvp_wins.type = 'Message::Pvp' AND pvp_wins.author_type = 'Player' AND pvp_wins.author_id = players.id) AS pvp_wins_count,
+      (SELECT COUNT(pvp_losses.id) FROM messages AS pvp_losses WHERE pvp_losses.type = 'Message::Pvp' AND pvp_losses.recipient_type = 'Player' AND pvp_losses.recipient_id = players.id) AS pvp_losses_count,
+      (SELECT ips.cc FROM ips WHERE ips.player_id = players.id ORDER BY ips.id DESC LIMIT 1) AS last_ip_cc
+    DONE
+
     timeframe
     query
     sort
@@ -53,25 +62,7 @@ private
   end
   
   def sort
-    case @sort_field
-    when 'links_count'
-      @players = @players.select("players.*, ( SELECT COUNT(*) FROM links WHERE players.id = links.actor_id AND links.actor_type = 'Player') AS links_count").
-        order("#{@sort_field} #{@sort_order}")
-    when 'messages_count'
-      @players = @players.select("players.*, ( SELECT COUNT(*) FROM messages WHERE players.id = messages.recipient_id AND messages.recipient_type = 'Player') AS messages_count").
-        order("#{@sort_field} #{@sort_order}")
-    when 'latest_country_code'
-      @players = @players.select("players.*, ( SELECT ips.cc FROM ips WHERE players.id = ips.player_id ORDER BY ips.id DESC LIMIT 1 ) AS latest_country_code").
-        order("#{@sort_field} #{@sort_order}")
-    when 'pvp_wins_count'
-      @players = @players.select("players.*, ( SELECT COUNT(*) FROM messages WHERE messages.type = 'Message::Pvp' AND messages.recipient_type = 'Player' AND messages.author_id = players.id ) AS pvp_wins_count").
-        order("#{@sort_field} #{@sort_order}")
-    when 'pvp_losses_count'
-      @players = @players.select("players.*, ( SELECT COUNT(*) FROM messages WHERE messages.type = 'Message::Pvp' AND messages.recipient_type = 'Player' AND messages.recipient_id = players.id ) AS pvp_losses_count").
-        order("#{@sort_field} #{@sort_order}")
-    else
-      @players = @players.order("#{@sort_field} #{@sort_order}")
-    end
+    @players = @players.order("#{@sort_field} #{@sort_order}")
   end
   
   def paginate

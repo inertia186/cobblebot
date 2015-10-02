@@ -4,17 +4,17 @@
   %td= link_to player.nick, admin_player_path(player)
   %td= player.last_nick
   %td= player.spam_ratio
-  %td= link_to player.links.count, admin_player_links_path(player_id: player)
-  %td= link_to player.messages.count, admin_player_messages_path(player_id: player, filter_modes: false)
-  %td= player.pvp_wins.count
-  %td= player.pvp_losses.count
+  %td= link_to player.links_count, admin_player_links_path(player_id: player)
+  %td= link_to player.messages_count, admin_player_messages_path(player_id: player, filter_modes: false)
+  %td= player.pvp_wins_count
+  %td= player.pvp_losses_count
   %td= last_login(player.last_login_at)
   %td= player.biomes_explored
   %td
-    - if player.latest_country_code
-      =link_to admin_players_path(cc: player.latest_country_code) do
-        = image_tag "flag/16/#{player.latest_country_code.downcase}.png" if flag_exists(player.latest_country_code)
-        = player.latest_country_code
+    - if player.last_ip_cc
+      =link_to admin_players_path(cc: player.last_ip_cc) do
+        = image_tag "flag/16/#{player.last_ip_cc.downcase}.png" if flag_exists(player.last_ip_cc)
+        = player.last_ip_cc
   %td= relative_time(player.created_at)
   %td
     %span{style: 'float: right'}
