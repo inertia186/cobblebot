@@ -31,6 +31,8 @@ class Admin::MessagesController < Admin::AdminController
       @messages = @messages.where(recipient_id: @recipient_id)
     end
 
+    @messages = @messages.preload(:author, :recipient)
+
     timeframe
     query
     sort

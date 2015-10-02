@@ -81,6 +81,9 @@ class Preference < ActiveRecord::Base
     keys = ALL_KEYS
     keys -= SYSTEM_KEYS unless system
     
+    r = Preference.where(key: keys)
+    return r if r.count == keys.size
+    
     keys.each do |key|
       result << Preference.find_or_create_by(key: key)
     end
