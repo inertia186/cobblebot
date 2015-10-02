@@ -16,11 +16,11 @@ module SqliteTransactionFix
         begin
           @connection.transaction(:immediate)
           success = true
-        rescue SQLite3::BusyException
+        rescue
           sleep (@sleep = @sleep * 2)
         end
       end
-      raise SQLite3::BusyException("Retries: #{tries}, sleep: #{@sleep}") unless success
+      raise "Retries: #{tries}, sleep: #{@sleep}" unless success
     end
   end
 end
