@@ -83,6 +83,6 @@ private
   end
   
   def etag
-    Digest::MD5.hexdigest @messages.pluck(:id).to_s
+    Digest::MD5.hexdigest @messages.except(:order).pluck(:id).to_s
   end
 end
