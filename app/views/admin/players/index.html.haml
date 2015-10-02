@@ -70,7 +70,6 @@
             %th=sortable_header_link 'Created', 'created_at'
             %th
         %tbody
-          - @players.each do |player|
-            = render 'player_row', player: player
+          = render partial: 'player_row', collection: @players, as: :player
 
 %p= will_paginate @players

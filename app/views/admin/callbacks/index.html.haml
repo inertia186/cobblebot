@@ -46,8 +46,7 @@
             %th=sortable_header_link 'Created', 'created_at'
             %th
         %tbody
-          - @callbacks.each do |callback|
-            = render 'callback_row', callback: callback
+          = render partial: 'callback_row', collection: @callbacks, as: :callback
 
 = link_to 'New', new_admin_server_callback_path, class: 'btn btn-success'
 

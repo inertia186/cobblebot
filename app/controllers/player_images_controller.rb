@@ -1,7 +1,11 @@
 class PlayerImagesController < ApplicationController
-  caches_action :show
+  skip_before_action :check_server_status
+  caches_action :show, expires_in: 2.hours
 
   def show
+    uuid = request.env["HTTP_IF_NONE_MATCH"]
+    head 304 and return if !!uuid
+
     nick = params[:id]
     size = params[:size] || 16
     format = params[:format] || 'png'
@@ -16,6 +20,11 @@ class PlayerImagesController < ApplicationController
     end
 
     if !!image
+      uuid ||= Player.find_by_nick(nick).uuid rescue nil
+      response.headers['Expires'] = 2.hours.from_now.httpdate
+      response.headers['Cache-Control'] = "max-age=#{2.hours.from_now.to_i / 1000}, public"
+      response.headers['Pragma'] = 'cache'
+      response.headers['ETag'] = uuid unless uuid.nil?
       send_data image, stream: false, filename: "#{nick}.#{format}", type: "image/#{format}", disposition: 'inline'
     else
       redirect_to url

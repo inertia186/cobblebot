@@ -9,6 +9,7 @@ class ApplicationController < ActionController::Base
   add_flash_types :error, :info
 
   helper_method :admin_signed_in?
+  helper_method :show_irc_web_chat?
 
   before_filter :check_server_status, unless: Proc.new {
     [Admin, Api::V1].include? self.class.parent
@@ -36,5 +37,9 @@ class ApplicationController < ActionController::Base
 private
   def admin_signed_in?
     session[:admin_signed_in]
+  end
+  
+  def show_irc_web_chat?
+    Preference.where(key: ['irc_enabled', 'irc_web_chat_enabled']).where(value: '1').count == 2
   end
 end

@@ -126,7 +126,11 @@ class ServerCallback < ActiveRecord::Base
   def ready?
     return true unless ran?
     
-    ServerCallback.where(id: self).ready.any?
+    if respond_to? :status
+      status.nil? || status <= Time.now
+    else
+      ServerCallback.where(id: self).ready.any?
+    end
   end
   
   def handle_entry(player, message, line, options = {})

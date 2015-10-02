@@ -25,16 +25,6 @@
         %th Donor
         %th Created
     %tbody
-    %tr
-      - @donations.each do |donation|
-        %tr
-          %td= donation.body
-          %td
-            - if !!donation.author
-              %a.tip{data: { title: donation.author.last_chat }}= image_tag player_images_path(id: donation.author.nick, size: 16, format: 'png'), width: 16, height: 16, alt: donation.author.nick
-              = donation.author.nick
-          %td{title: donation.created_at}
-            = distance_of_time_in_words_to_now donation.created_at
-            ago
+    %tr= render partial: 'donation', collection: @donations
 
 %p= will_paginate @donations

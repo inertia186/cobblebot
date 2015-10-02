@@ -1,0 +1,13 @@
+%tr
+  %td= pvp.body
+  %td
+    - if !!pvp.recipient
+      %a.tip{data: { title: pvp.loser_quote }}= image_tag player_images_path(id: pvp.recipient.nick, size: 16, format: 'png'), width: 16, height: 16, alt: pvp.recipient.nick
+      = pvp.recipient.nick
+  %td
+    - if !!pvp.author
+      %a.tip{data: { title: pvp.winner_quote }}= image_tag player_images_path(id: pvp.author.nick, size: 16, format: 'png'), width: 16, height: 16, alt: pvp.author.nick
+      = pvp.author.nick
+  %td{title: pvp.created_at}
+    = distance_of_time_in_words_to_now pvp.created_at
+    ago

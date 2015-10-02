@@ -8,6 +8,11 @@ class Admin::CallbacksController < Admin::AdminController
     @sort_field = params[:sort_field].present? ? params[:sort_field] : 'ran_at'
     @callbacks = ServerCallback.all
 
+    @callbacks = @callbacks.select <<-DONE
+      server_callbacks.*,
+      datetime(server_callbacks.ran_at, server_callbacks.cooldown) AS status
+    DONE
+
     system
     query
     status
@@ -130,12 +135,7 @@ private
   end
 
   def sort
-    case @sort_field
-    when 'status'
-      @callbacks = @callbacks.select('*, datetime(server_callbacks.ran_at, server_callbacks.cooldown) AS status').order("enabled #{@sort_order}, status #{@sort_order}")
-    else
-      @callbacks = @callbacks.order("#{@sort_field} #{@sort_order}")
-    end
+    @callbacks = @callbacks.order("#{@sort_field} #{@sort_order}")
   end
 
   def paginate

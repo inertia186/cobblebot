@@ -44,8 +44,7 @@
             %th=sortable_header_link 'Created', 'created_at'
             %th
         %tbody
-          - @donations.each do |donation|
-            = render 'donation_row', donation: donation
+          = render partial: 'donation_row', collection: @donations, as: :donation
 
 = link_to 'New', new_admin_message_donation_path, class: 'btn btn-success'
 

@@ -84,6 +84,7 @@ group :development do
 
   gem 'better_errors', require: false
   gem 'binding_of_caller', require: false
+  gem 'rack-mini-profiler', require: false
 end
 
 group :test do

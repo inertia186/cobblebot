@@ -21,7 +21,7 @@
         %li{class: active_nav('pvps')}= link_to 'PVP', pvps_path
         %li{class: active_nav('donations')}= link_to 'Donations', donations_path
         %li{class: active_nav('status')}= link_to 'Server Status', status_index_path
-        - if Preference.irc_enabled? && Preference.irc_web_chat_enabled?
+        - if show_irc_web_chat?
           %li{class: active_nav('irc_web_chat')}
             = link_to 'IRC' + ((c = Preference.active_in_irc.to_i) > 0 ? " (#{c})" : ''), Preference.irc_web_chat_url, target: 'irc', id: 'irc-link'
         %li.dropdown{class: active_nav('admin')}

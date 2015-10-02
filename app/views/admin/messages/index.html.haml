@@ -63,7 +63,6 @@
             %th=sortable_header_link 'Created', 'created_at'
             %th
         %tbody
-          - @messages.each do |message|
-            = render 'message_row', message: message
+          = render partial: 'message_row', collection: @messages, as: :message
 
 %p= will_paginate @messages

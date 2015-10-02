@@ -26,26 +26,7 @@
         %th Created
     %tbody
       - if @topic
-        %tr
-          %td
-            %b Current Topic: 
-            = @topic.body
-          %td
-            - if !!@topic.author
-              %a.tip{data: { title: @topic.author.last_chat }}= image_tag player_images_path(id: @topic.author.nick, size: 16, format: 'png'), width: 16, height: 16, alt: @topic.author.nick
-              = @topic.author.nick
-          %td{title: @topic.created_at}
-            = distance_of_time_in_words_to_now @topic.created_at
-            ago
+        = render partial: 'topic', object: @topic
     %tr
       %th{colspan: 4} Past Topics (#{@past_topics.count})
-      - @past_topics.each do |topic|
-        %tr
-          %td= topic.body
-          %td
-            - if !!topic.author
-              %a.tip{data: { title: topic.author.last_chat }}= image_tag player_images_path(id: topic.author.nick, size: 16, format: 'png'), width: 16, height: 16, alt: topic.author.nick
-              = topic.author.nick
-          %td{title: topic.created_at}
-            = distance_of_time_in_words_to_now topic.created_at
-            ago
+      = render partial: 'topic', collection: @topics

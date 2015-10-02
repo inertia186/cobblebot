@@ -66,7 +66,7 @@ class Link < ActiveRecord::Base
     
     Rails.logger.warn "Removed characters from: #{original_title}" if title != original_title # FIXME Remove later.
     
-    save unless new_record?
+    save if changed? && !new_record?
     
     self
   end
