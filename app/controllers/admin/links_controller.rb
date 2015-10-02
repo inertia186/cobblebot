@@ -9,7 +9,7 @@ class Admin::LinksController < Admin::AdminController
     if @player_id.present? && !!( @player = Player.find @player_id )
       @links = @player.links
     else
-      @links = Link.all
+      @links = Link.preload(:actor)
     end
 
     timeframe

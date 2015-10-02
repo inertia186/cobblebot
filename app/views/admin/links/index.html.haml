@@ -44,7 +44,6 @@
             %th=sortable_header_link 'Created', 'created_at'
             %th
         %tbody
-          - @links.each do |link|
-            = render 'link_row', link: link
+          = render partial: 'link_row', collection: @links, as: :link
 
 %p= will_paginate @links
