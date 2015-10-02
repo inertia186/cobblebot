@@ -38,6 +38,9 @@ Rails.application.configure do
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
+
+  # When a console cannot be shown for a given IP address or content type, a messages is printed in the logs.  Let's not do this.
+  config.web_console.whiny_requests = false
 end
 
 Resque.redis = Redis.connect(:url => 'redis://localhost:6379/3')
