@@ -4,7 +4,7 @@ class PlayerImagesController < ApplicationController
 
   def show
     uuid = request.env["HTTP_IF_NONE_MATCH"]
-    head 304 and return if !uuid
+    head 304 and return if !!uuid
 
     nick = params[:id]
     size = params[:size] || 16
@@ -24,7 +24,7 @@ class PlayerImagesController < ApplicationController
       response.headers['Expires'] = 2.hours.from_now.httpdate
       response.headers['Cache-Control'] = "max-age=#{2.hours.from_now.to_i / 1000}, public"
       response.headers['Pragma'] = 'cache'
-      response.headers['ETag'] = uuid unless uuid.nil?
+      response.headers['ETag'] = uuid unless uuid.to_s.empty?
       send_data image, stream: false, filename: "#{nick}.#{format}", type: "image/#{format}", disposition: 'inline'
     else
       redirect_to url
