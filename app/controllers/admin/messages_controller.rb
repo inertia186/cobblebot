@@ -4,6 +4,8 @@ class Admin::MessagesController < Admin::AdminController
   before_filter :setup_params, only: :index
   
   def index
+    cache_key = request.env["HTTP_IF_NONE_MATCH"]
+    
     @author_id = params[:author_id]
     @author_type = params[:author_type] || 'Player'
 
@@ -37,6 +39,10 @@ class Admin::MessagesController < Admin::AdminController
     query
     sort
     paginate
+    
+    head 304 and return if cache_key == etag
+    
+    response.headers['ETag'] = etag
   end
 
   def show
@@ -74,5 +80,9 @@ private
 
   def paginate
     @messages = @messages.paginate(page: params[:page], per_page: params[:per_page] || 25)
+  end
+  
+  def etag
+    Digest::MD5.hexdigest @messages.pluck(:id).to_s
   end
 end

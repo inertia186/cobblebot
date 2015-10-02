@@ -4,7 +4,7 @@ atom_feed do |feed|
   
   @messages.each do |message|
     feed.entry message, url: admin_message_path(message) do |entry|
-      entry.title "By: #{message.author.nick}; To: #{message.recipient.nick}"
+      entry.title "By: #{message.author.nick rescue '[REDACTED]'}; To: #{message.recipient.nick rescue '[REDACTED]'}"
       entry.content message.body
       if !!message.author
         entry.author do |author|
