@@ -5,12 +5,13 @@ class PlayersController < ApplicationController
     
     if params[:after].present?
       after = Time.at(params[:after].to_i + 1)
+      p = @players.except(:select)
       
-      @new_chat = @players.except(:select).last_chat_after(after).
+      @new_chat = p.last_chat_after(after).
         order('updated_at DESC').map do |p|
           {p.nick => p.last_chat}
         end.reverse
-      head 204 if @new_chat.empty? && @players.except(:select).update_after(after).any?
+      head 204 if p.any? && p.updated_after(after).none? && @new_chat.empty?
     end
   end
 end
