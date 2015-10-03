@@ -14,9 +14,14 @@ class PlayerImagesController < ApplicationController
     begin
       agent = CobbleBotAgent.new
       agent.get url
-      image = agent.page.body
+      image = if agent.page.code == '200'
+        agent.page.body
+      else
+        File.read('public/images/steve.png')
+      end
     rescue StandardError => e
       Rails.logger.error e.inspect
+      image = File.read('public/images/steve.png')
     end
 
     if !!image
