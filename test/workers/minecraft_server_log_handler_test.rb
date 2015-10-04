@@ -962,4 +962,36 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       end
     end
   end
+
+  def test_ignore_duplicate_uuid_warning
+    duplicate_uuid_warning = '[09:45:52] [Server thread/WARN]: Tried to add entity Villager with pending removal and duplicate UUID f120c531-6b15-4f0e-889a-4e6c5a7f687e'
+    assert MinecraftServerLogHandler.ignore?(duplicate_uuid_warning, debug: true), 'expect handler to ignore duplicate UUID warning'
+    refute_callback_ran do
+      MinecraftServerLogHandler.handle(duplicate_uuid_warning, debug: true)
+    end
+  end
+
+  def test_ignore_rcon_listener
+    rcon_listener = '[12:00:02] [RCON Listener #2/INFO]: Rcon connection from: /127.0.0.1'
+    assert MinecraftServerLogHandler.ignore?(rcon_listener, debug: true), 'expect handler to ignore RCON listener'
+    refute_callback_ran do
+      MinecraftServerLogHandler.handle(rcon_listener, debug: true)
+    end
+  end
+
+  def test_ignore_rcon_client
+    rcon_client = '[12:00:01] [RCON Client #294/INFO]: [Rcon: Saved the world]'
+    assert MinecraftServerLogHandler.ignore?(rcon_client, debug: true), 'expect handler to ignore RCON client'
+    refute_callback_ran do
+      MinecraftServerLogHandler.handle(rcon_client, debug: true)
+    end
+  end
+
+  def test_ignore_non_log_event
+    non_log_event = '        at lj.a(SourceFile:166) [minecraft_server.jar:?]'
+    assert MinecraftServerLogHandler.ignore?(non_log_event, debug: true), 'expect handler to ignore non-log event'
+    refute_callback_ran do
+      MinecraftServerLogHandler.handle(non_log_event, debug: true)
+    end
+  end
 end

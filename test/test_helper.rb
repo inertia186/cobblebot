@@ -117,8 +117,14 @@ class ActiveSupport::TestCase
     end
   end
   
-  def refute_callback_ran(callback, &block)
-    !assert_callback_ran(callback, inverted: true, &block)
+  def refute_callback_ran(callback = nil, &block)
+    if callback.nil?
+      ServerCallback.find_each do |c|
+        !assert_callback_ran(c, inverted: true, &block)
+      end
+    else
+      !assert_callback_ran(callback, inverted: true, &block)
+    end
   rescue
     true
   end

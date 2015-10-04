@@ -105,6 +105,24 @@ class Player < ActiveRecord::Base
   scope :last_chat_after, lambda { |after|
     where("last_chat_at > ?", after)
   }
+  scope :activity_before, lambda { |before|
+    clause = <<-DONE
+      players.last_chat_at < ? OR
+      players.last_login_at < ? OR
+      players.last_logout_at < ? OR
+      players.updated_at < ?
+    DONE
+    where(clause, after, after, after, after)
+  }
+  scope :activity_after, lambda { |after|
+    clause = <<-DONE
+      players.last_chat_at > ? OR
+      players.last_login_at > ? OR
+      players.last_logout_at > ? OR
+      players.updated_at > ?
+    DONE
+    where(clause, after, after, after, after)
+  }
   scope :updated_before, lambda { |before|
     where("updated_at < ?", before)
   }

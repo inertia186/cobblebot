@@ -346,7 +346,11 @@ private
   end
 
   def should_monitor_sleep?
-    !Server.up? || ( ServerQuery.numplayers.to_i < 1 && Message::IrcReply.all.none? )
+    !Server.up? || (
+      ServerQuery.numplayers.to_i < 1 &&
+      ServerQuery.active_in_irc.to_i < 1 &&
+      Message::IrcReply.all.none? 
+    )
   end
   
   def should_quit_irc?

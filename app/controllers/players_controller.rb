@@ -11,7 +11,7 @@ class PlayersController < ApplicationController
         order('updated_at DESC').map do |p|
           {p.nick => p.last_chat}
         end.reverse
-      head 204 if p.any? && p.updated_after(after).none? && @new_chat.empty?
+      head 204 if p.any? && p.activity_after(after).none? && @new_chat.empty?
     end
   end
 end
