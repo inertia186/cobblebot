@@ -226,7 +226,7 @@ class SummerBot < Summer::Connection
   def handle_421 message
     if message =~ /NAMES :Unknown command/
       # Sometimes Twitch will disable the NAMES command for events like e3.  See: https://discuss.dev.twitch.tv/t/join-part-changes-temporary-and-future/2519
-      Preference.active_in_irc = 1
+      # Preference.active_in_irc = 1
     end
   end
   
