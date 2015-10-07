@@ -8,6 +8,28 @@ class MinecraftWatchdog
   end
   
   def self.perform(options = {})
+    if !!options['operation']
+      case options['operation']
+      when 'update_player_last_ip'
+        player = Player.find_by_nick(options['nick'])
+        _retry(options) if player.nil?
+        
+        address = options['address']
+        player.update_attribute(:last_ip, address) # no AR callbacks
+        player.ips.create(address: address)
+      when 'update_player_last_location'
+        player = Player.find_by_nick(options['nick'])
+        _retry(options) if player.nil?
+
+        x = options['x']
+        y = options['y']
+        z = options['z']
+        player.update_attribute(:last_location, "x=#{x.to_i},y=#{y.to_i},z=#{z.to_i}") # no AR callbacks
+      else
+        Rails.logger.error "Unknown operation: #{operation}"
+      end
+    end
+    
     Rails.logger.info "Started #{self}"
 
     begin
@@ -23,13 +45,18 @@ class MinecraftWatchdog
 
       break if !!options[:debug]      
       Rails.logger.info "#{self} sleeping for #{WATCHDOG_TICK}"
-      sleep WATCHDOG_TICK
+      sleep WATCHDOG_TICK if Resque.size(@queue) < 4
     rescue Errno::ENOENT => e
       Rails.logger.error "Need to finish setup: #{e.inspect}"
       WATCHDOG_TICK 300 * 4
     end while Resque.size(@queue) < 4
   end
 private
+  def _retry(options = {})
+    sleep 5
+    Resque.enqueue(MinecraftWatchdog, options)
+  end
+
   def self.check_resque
     # Make sure the other workers are queued and working (like IRC and Log Monitor)
     
@@ -75,7 +102,7 @@ private
           next
         end
         
-        if Resque.size(queue) > q[:max_queues]
+        if Resque.size(queue) > q[:max_queues] && q[:class] != MinecraftWatchdog
           Rails.logger.info "Dequeuing #{queue}.  Current queue: #{Resque.size(queue)}"
           Resque.dequeue(q[:class])
         end

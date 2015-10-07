@@ -50,22 +50,11 @@ class ServerCommand
   end
 
   def self.update_player_last_ip(nick, address)
-    player = Player.find_by_nick(nick)
-    return if player.nil?
-  
-    player.update_attribute(:last_ip, address) # no AR callbacks
-    player.ips.create(address: address)
-  
-    player
+    Resque.enqueue(MinecraftWatchdog, operation: 'update_player_last_ip', nick: nick, address: address)
   end
 
   def self.update_player_last_location(nick, x, y, z)
-    player = Player.find_by_nick(nick)
-    return if player.nil?
-
-    player.update_attribute(:last_location, "x=#{x.to_i},y=#{y.to_i},z=#{z.to_i}") # no AR callbacks
-
-    player
+    Resque.enqueue(MinecraftWatchdog, operation: 'update_player_last_location', nick: nick, x: x, y: y, z: z)
   end
 
   def self.touch_player_last_logged_out(nick)
