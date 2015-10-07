@@ -44,7 +44,7 @@ class MinecraftWatchdog
       update_player_stats
 
       break if !!options[:debug]      
-      if Resque.size(@queue) < 5
+      if Resque.size(@queue) < 6
         Rails.logger.info "#{self} sleeping for #{WATCHDOG_TICK}"
         sleep WATCHDOG_TICK
       end
