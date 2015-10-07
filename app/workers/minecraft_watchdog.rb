@@ -44,8 +44,10 @@ class MinecraftWatchdog
       update_player_stats
 
       break if !!options[:debug]      
-      Rails.logger.info "#{self} sleeping for #{WATCHDOG_TICK}"
-      sleep WATCHDOG_TICK if Resque.size(@queue) < 3
+      if Resque.size(@queue) < 5
+        Rails.logger.info "#{self} sleeping for #{WATCHDOG_TICK}"
+        sleep WATCHDOG_TICK
+      end
     rescue Errno::ENOENT => e
       Rails.logger.error "Need to finish setup: #{e.inspect}"
       WATCHDOG_TICK 300 * 4
