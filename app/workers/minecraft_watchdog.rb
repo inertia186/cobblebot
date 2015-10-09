@@ -39,13 +39,13 @@ private
     op = options['operation']
     
     if DEFERRED_OPERATIONS.include? op
-      ActiveRecord::Base.transaction do
-        begin
+      begin
+        ActiveRecord::Base.transaction do
           MinecraftWatchdog.send(op, options)
-        rescue => e
-          options[:last_exception] = e
-          _retry(options)
         end
+      rescue => e
+        options[:last_exception] = e
+        _retry(options)
       end
     else
       Rails.logger.error "Unknown operation: #{op}"
