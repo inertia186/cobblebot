@@ -488,7 +488,7 @@ module Sayable
       ago = distance_of_time_in_words_to_now(latest_gametick_at) unless latest_gametick_at.nil?
       
       if Preference.latest_gametick_in_progress?
-        if latest_gametick_at > 10.seconds.ago
+        if 10.seconds.ago > latest_gametick_at
           execute('debug stop')
           Preference.latest_gametick_in_progress = false
           say(selector, "Gave up checking ...")

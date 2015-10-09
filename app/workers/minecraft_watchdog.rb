@@ -2,36 +2,17 @@ class MinecraftWatchdog
   @queue = :minecraft_watchdog
 
   WATCHDOG_TICK = 300
+  DEFERRED_OPERATIONS = %(update_player_last_ip update_player_last_location)
   
   def self.before_perform_log_job(*args)
     Rails.logger.info "About to perform #{self} with #{args.inspect}"
   end
   
   def self.perform(options = {})
-    if !!options['operation']
-      case options['operation']
-      when 'update_player_last_ip'
-        player = Player.find_by_nick(options['nick'])
-        _retry(options) if player.nil?
-        
-        address = options['address']
-        player.update_attribute(:last_ip, address) # no AR callbacks
-        player.ips.create(address: address)
-      when 'update_player_last_location'
-        player = Player.find_by_nick(options['nick'])
-        _retry(options) if player.nil?
-
-        x = options['x']
-        y = options['y']
-        z = options['z']
-        player.update_attribute(:last_location, "x=#{x.to_i},y=#{y.to_i},z=#{z.to_i}") # no AR callbacks
-      else
-        Rails.logger.error "Unknown operation: #{operation}"
-      end
-    end
-    
     Rails.logger.info "Started #{self}"
 
+    deferred_operation(options) if !!options['operation']
+    
     begin
       # TODO do quick stuff on live Query::simpleQuery results
       # TODO look for any new crash logs, e.g.: hs_err_pid29380.log or crash-reports/crash-2015-03-14_13.01.01-server.txt
@@ -54,8 +35,27 @@ class MinecraftWatchdog
     end while Resque.size(@queue) < 4
   end
 private
+  def deferred_operation(options)
+    op = options['operation']
+    
+    if DEFERRED_OPERATIONS.include? op
+      ActiveRecord::Base.transaction do
+        begin
+          MinecraftWatchdog.send(op, options)
+        rescue => e
+          options[:last_exception] = e
+          _retry(options)
+        end
+      end
+    else
+      Rails.logger.error "Unknown operation: #{op}"
+    end
+  end
+
   def _retry(options = {})
-    sleep 5
+    retry_count = options['retry_count'].to_i + 1
+    sleep 5 * retry_count
+    options['retry_count'] = options['retry_count']
     Resque.enqueue(MinecraftWatchdog, options)
   end
 
@@ -168,5 +168,24 @@ private
         a << {player_id: player.id, stats_updated: player.update_stats!}
       end
     end
+  end
+  
+  def self.update_player_last_ip(options)
+    player = Player.find_by_nick(options['nick'])
+    _retry(options) if player.nil?
+    
+    address = options['address']
+    player.update_attribute(:last_ip, address) # no AR callbacks
+    player.ips.create(address: address)
+  end
+  
+  def self.update_player_last_location(options)
+    player = Player.find_by_nick(options['nick'])
+    _retry(options) if player.nil?
+
+    x = options['x']
+    y = options['y']
+    z = options['z']
+    player.update_attribute(:last_location, "x=#{x.to_i},y=#{y.to_i},z=#{z.to_i}") # no AR callbacks
   end
 end
