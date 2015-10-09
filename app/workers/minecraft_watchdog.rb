@@ -35,7 +35,7 @@ class MinecraftWatchdog
     end while Resque.size(@queue) < 4
   end
 private
-  def deferred_operation(options)
+  def self.deferred_operation(options)
     op = options['operation']
     
     if DEFERRED_OPERATIONS.include? op
