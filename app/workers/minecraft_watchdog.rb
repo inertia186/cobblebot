@@ -52,7 +52,7 @@ private
     end
   end
 
-  def _retry(options = {})
+  def self._retry(options = {})
     retry_count = options['retry_count'].to_i + 1
     sleep 5 * retry_count
     options['retry_count'] = options['retry_count']
