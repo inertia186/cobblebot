@@ -39,11 +39,11 @@ class ServerCommand
   
   def self.update_player_last_chat(nick, message, options = {})
     return if !!options[:pretend]
+    Resque.enqueue(MinecraftWatchdog, operation: 'update_player_quotes', nick: nick, message: message)
     player = Player.find_by_nick(nick)
     return unless !!player
     
     player.update_columns(last_chat: message, last_chat_at: Time.now) # no AR callbacks
-    Resque.enqueue(MinecraftWatchdog, operation: 'update_player_quotes', nick: nick, message: message)
     
     player
   end
