@@ -44,7 +44,7 @@ private
           MinecraftWatchdog.send(op, options)
         end
       rescue => e
-        options[:last_exception] = e
+        options[:last_exception] = "#{e.inspect}\n#{e.backtrace.join("\n")}"
         _retry(options)
       end
     else
@@ -55,7 +55,7 @@ private
   def self._retry(options = {})
     retry_count = options['retry_count'].to_i + 1
     sleep 5 * retry_count
-    options['retry_count'] = options['retry_count']
+    options['retry_count'] = retry_count
     Resque.enqueue(MinecraftWatchdog, options)
   end
 
