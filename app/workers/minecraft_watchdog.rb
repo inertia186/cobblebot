@@ -172,11 +172,12 @@ private
 
   def self.update_player_quotes(options)
     message = options['message']
+    at = Time.at(options['at'].to_i)
     player = Player.find_by_nick(options['nick'])
     _retry(options) and return if player.nil?
     
-    player.quotes.create(body: message) unless player.last_pvp_loss_has_quote?
-    player.quotes.create(body: message) unless player.last_pvp_win_has_quote?
+    player.quotes.create(body: message) unless player.last_pvp_loss_has_quote?(at)
+    player.quotes.create(body: message) unless player.last_pvp_win_has_quote?(at)
   end
   
   def self.update_player_last_ip(options)

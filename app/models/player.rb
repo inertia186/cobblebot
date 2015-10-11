@@ -562,16 +562,16 @@ class Player < ActiveRecord::Base
     response.body == "1"
   end
 
-  def last_pvp_loss_has_quote?
+  def last_pvp_loss_has_quote?(at = Time.now)
     return true if pvp_losses.none?
     
-    !!(pvp = pvp_losses.last) && quotes.where('messages.created_at > ?', pvp.created_at).any?
+    !!(pvp = pvp_losses.last) && quotes.where('messages.created_at BETWEEN ? AND ?', pvp.created_at, at).any?
   end
   
-  def last_pvp_win_has_quote?
+  def last_pvp_win_has_quote?(at = Time.now)
     return true if pvp_wins.none?
 
-    !!(pvp = pvp_wins.last) && quotes.where('messages.created_at > ?', pvp.created_at).any?
+    !!(pvp = pvp_wins.last) && quotes.where('messages.created_at BETWEEN ? AND ?', pvp.created_at, at).any?
   end
 private  
   def update_last_nick

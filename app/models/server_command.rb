@@ -39,7 +39,7 @@ class ServerCommand
   
   def self.update_player_last_chat(nick, message, options = {})
     return if !!options[:pretend]
-    Resque.enqueue(MinecraftWatchdog, operation: 'update_player_quotes', nick: nick, message: message)
+    Resque.enqueue(MinecraftWatchdog, operation: 'update_player_quotes', nick: nick, message: message, at: Time.now.to_i)
     player = Player.find_by_nick(nick)
     return unless !!player
     
