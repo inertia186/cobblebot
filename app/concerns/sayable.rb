@@ -502,7 +502,7 @@ module Sayable
           Preference.latest_gametick_in_progress = true
           execute('debug start')
           sleep 10
-        rescue Exception => e
+        rescue => e
           Rails.logger.error "Failed to start gametick: #{e.inspect}"
         ensure
           execute('debug stop', try_max: 20)

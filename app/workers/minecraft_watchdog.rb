@@ -2,7 +2,7 @@ class MinecraftWatchdog
   @queue = :minecraft_watchdog
 
   WATCHDOG_TICK = 300
-  DEFERRED_OPERATIONS = %(update_player_last_ip update_player_last_location)
+  DEFERRED_OPERATIONS = %(update_player_quotes update_player_last_ip update_player_last_location)
   
   def self.before_perform_log_job(*args)
     Rails.logger.info "About to perform #{self} with #{args.inspect}"
@@ -169,10 +169,19 @@ private
       end
     end
   end
+
+  def self.update_player_quotes(options)
+    message = options['message']
+    player = Player.find_by_nick(options['nick'])
+    _retry(options) and return if player.nil?
+    
+    player.quotes.create(body: message) unless player.last_pvp_loss_has_quote?
+    player.quotes.create(body: message) unless player.last_pvp_win_has_quote?
+  end
   
   def self.update_player_last_ip(options)
     player = Player.find_by_nick(options['nick'])
-    _retry(options) if player.nil?
+    _retry(options) and return if player.nil?
     
     address = options['address']
     player.update_attribute(:last_ip, address) # no AR callbacks
@@ -181,7 +190,7 @@ private
   
   def self.update_player_last_location(options)
     player = Player.find_by_nick(options['nick'])
-    _retry(options) if player.nil?
+    _retry(options) and return if player.nil?
 
     x = options['x']
     y = options['y']
