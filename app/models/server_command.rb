@@ -43,7 +43,7 @@ class ServerCommand
     player = Player.find_by_nick(nick)
     return unless !!player
     
-    player.update_columns(last_chat: message, last_chat_at: Time.now) # no AR callbacks
+    player.update_attributes(last_chat: message, last_chat_at: Time.now)
     
     player
   end
