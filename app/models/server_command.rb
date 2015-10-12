@@ -108,9 +108,13 @@ class ServerCommand
         return tell(author_nick, "Not sent.  #{pluralize similar.count, 'similar unread message'} from you today.")
       end
 
-      recipient.messages.create(author: author, body: message, recipient_term: "@#{recipient_nick}")
-    
-      tell(author.nick, "Message sent to #{recipient.nick}")
+      mail = recipient.messages.build(author: author, body: message, recipient_term: "@#{recipient_nick}")
+
+      if mail.save
+        tell(author.nick, "Message sent to #{recipient.nick}")
+      else
+        tell(author.nick, "Message not sent.")
+      end
     end
   end
 end

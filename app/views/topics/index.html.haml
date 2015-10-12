@@ -29,4 +29,4 @@
         = render partial: 'topic', object: @topic
     %tr
       %th{colspan: 4} Past Topics (#{@past_topics.count})
-      = render partial: 'topic', collection: @topics
+      = render partial: 'topic', collection: @past_topics

@@ -1,4 +1,6 @@
 class Message < ActiveRecord::Base
+  before_validation :check_for_stop_words, if: :body_changed?
+  
   scope :query, lambda { |*keywords|
     keywords = [keywords].flatten.map { |k| "%#{k.to_s.downcase}%" }
 
@@ -63,6 +65,16 @@ class Message < ActiveRecord::Base
   has_many :replies, class_name: 'Message', foreign_key: :reply_id
   
   after_initialize :look_up_recipient
+
+  def check_for_stop_words
+    words = Preference.stop_words.downcase.split(' ')
+    
+    body.downcase.split(' ').each do |word|
+      if words.include? word.gsub(/[^a-zA-Z0-9]/, '')
+        errors.add(:body, 'not accepted') and return
+      end
+    end
+  end    
   
   def read!
     update_attribute(:read_at, Time.now) # no AR callbacks
