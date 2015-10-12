@@ -209,7 +209,7 @@ module Sayable
       replies = sub_safe_selectors(escape(replies))
 
       tip_body = sub_safe_selectors(escape(tip.body.dup))
-      tip.update_attribute(:read_at, Time.now) # set cooldown, no AR callbacks
+      tip.update_column(:read_at, Time.now) # set cooldown, no AR callbacks
       if tip_body =~ /^server/i
         emote(selector, tip_body.split(' ')[1..-1].join(' '), color: 'white', as: 'Server', hover_text: replies)
       elsif tip_body =~ /^herobrine/i

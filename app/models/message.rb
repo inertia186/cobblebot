@@ -77,7 +77,7 @@ class Message < ActiveRecord::Base
   end    
   
   def read!
-    update_attribute(:read_at, Time.now) # no AR callbacks
+    touch(:read_at) # no AR callbacks
   end
   
   def muted_at
