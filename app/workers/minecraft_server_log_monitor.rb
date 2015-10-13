@@ -1,10 +1,10 @@
 class MinecraftServerLogMonitor
   @queue = :minecraft_server_log_monitor
 
-  DEFAULT_LOG_LENGTH = 100
+  DEFAULT_LOG_LENGTH = 1000
   DEFAULT_MONITOR_TICK = 0.25
   DEFAULT_TICK_MULTIPLIER = 2
-  DEFAULT_MAX_TICKS = 1200
+  DEFAULT_MAX_TICKS = 12000
 
   def self.before_perform_log_job(*args)
     Rails.logger.info "About to perform #{self} with #{args.inspect}"

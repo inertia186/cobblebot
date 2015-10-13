@@ -791,9 +791,23 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
 
   def test_behind
+    behind_warning = '[14:50:24] [Server thread/WARN]: Can\'t keep up! Did the system time change, or is the server overloaded? Running 3454ms behind, skipping 69 tick(s)'
+    refute MinecraftServerLogHandler.ignore?(behind_warning, debug: true), 'expect handler to handle behind warning'
     assert_callback_ran "Behind" do
-      MinecraftServerLogHandler.handle('[14:50:24] [Server thread/WARN]: Can\'t keep up! Did the system time change, or is the server overloaded? Running 3454ms behind, skipping 69 tick(s)', debug: true)
+      MinecraftServerLogHandler.handle(behind_warning, debug: true)
     end
+    
+    names = []
+    behind_message = 'Can\'t keep up! Did the system time change, or is the server overloaded? Running 3454ms behind, skipping 69 tick(s)'
+    
+    ServerCallback.find_each do |c|
+      if !!c.handle_entry(nil, behind_message, behind_warning, debug: true)
+        names << c.name
+      end
+    end
+    
+    # FIXME, actually, names array has "Latest Player Chat", "Spammy", in addition to "Behind".  Only want "Behind" to respond.
+    assert_equal 3, names.size, "expect 3 callbacks to respond, but got: #{names.inspect}"
   end
 
   def test_topic
@@ -992,6 +1006,22 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert MinecraftServerLogHandler.ignore?(non_log_event, debug: true), 'expect handler to ignore non-log event'
     refute_callback_ran do
       MinecraftServerLogHandler.handle(non_log_event, debug: true)
+    end
+  end
+  
+  def test_ignore_vehicle_warning
+    vehicle_warning = '[04:34:21] [Server thread/WARN]: Boat (vehicle of Dinnerbone) moved too quickly! -8.011919811659027,-0.01862379291560501,7.374947875718135'
+    assert MinecraftServerLogHandler.ignore?(vehicle_warning, debug: true), 'expect handler to ignore vehicle warning'
+    refute_callback_ran do
+      MinecraftServerLogHandler.handle(vehicle_warning, debug: true)
+    end
+  end
+
+  def test_ignore_keeping_entity_warning
+    keeping_entity_warning = '[01:02:55] [Server thread/WARN]: Keeping entity Villager that already exists with UUID 1dcd1d24-f29b-4d90-b5cb-2847fd9c7949'
+    assert MinecraftServerLogHandler.ignore?(keeping_entity_warning, debug: true), 'expect handler to ignore keeping entity warning'
+    refute_callback_ran do
+      MinecraftServerLogHandler.handle(keeping_entity_warning, debug: true)
     end
   end
 end

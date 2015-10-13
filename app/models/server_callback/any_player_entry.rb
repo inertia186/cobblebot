@@ -6,8 +6,9 @@ class ServerCallback::AnyPlayerEntry < ServerCallback
   def self.handle(line, options = {})
     return unless for_handling(line)
     any_result = nil
+    types = [ServerCallback::PlayerChat, ServerCallback::PlayerEmote]
 
-    [ServerCallback::PlayerChat, ServerCallback::PlayerEmote].each do |c|
+    types.each do |c|
       result = c.handle(line, options)
       any_result ||= result
     end
