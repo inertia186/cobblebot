@@ -39,7 +39,9 @@ class ServerCommand
   
   def self.update_player_last_chat(nick, message, options = {})
     return if !!options[:pretend]
-    Resque.enqueue(MinecraftWatchdog, operation: 'update_player_quotes', nick: nick, message: message, at: Time.now.to_i)
+    unless Rails.env == 'test'
+      Resque.enqueue(MinecraftWatchdog, operation: 'update_player_quotes', nick: nick, message: message, at: Time.now.to_i)
+    end
     player = Player.find_by_nick(nick)
     return unless !!player
     
@@ -49,11 +51,15 @@ class ServerCommand
   end
 
   def self.update_player_last_ip(nick, address)
-    Resque.enqueue(MinecraftWatchdog, operation: 'update_player_last_ip', nick: nick, address: address)
+    unless Rails.env == 'test'
+      Resque.enqueue(MinecraftWatchdog, operation: 'update_player_last_ip', nick: nick, address: address)
+    end
   end
 
   def self.update_player_last_location(nick, x, y, z)
-    Resque.enqueue(MinecraftWatchdog, operation: 'update_player_last_location', nick: nick, x: x, y: y, z: z)
+    unless Rails.env == 'test'
+      Resque.enqueue(MinecraftWatchdog, operation: 'update_player_last_location', nick: nick, x: x, y: y, z: z)
+    end
   end
 
   def self.touch_player_last_logged_out(nick)

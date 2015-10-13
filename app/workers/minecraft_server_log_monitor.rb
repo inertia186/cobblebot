@@ -54,5 +54,7 @@ class MinecraftServerLogMonitor
       Rails.logger.error "Need to finish setup: #{e.inspect}"
       sleep 300
     end while max_ticks > ticks && Resque.size(@queue) < 4
+  rescue Resque::TermException => e
+    Rails.logger.info "Detected ^C"
   end
 end

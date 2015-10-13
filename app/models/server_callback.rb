@@ -137,7 +137,7 @@ class ServerCallback < ActiveRecord::Base
     case message
     when ServerCommand.eval_pattern(pattern, to_param)
       execute_command(player, message, options)
-      update_attribute(:last_match, line) # no AR callbacks
+      update_column(:last_match, line) # no AR callbacks
       true
     else
       nil
@@ -145,7 +145,7 @@ class ServerCallback < ActiveRecord::Base
   end
   
   def execute_command(nick, message, options = {})
-    update_attribute(:error_flag_at, nil) # no AR callbacks
+    update_column(:error_flag_at, nil) # no AR callbacks
     
     if player_input?(message)
       begin
@@ -195,7 +195,7 @@ class ServerCallback < ActiveRecord::Base
     end
     
     ran!
-    update_attribute(:last_command_output, result.inspect) # no AR callbacks
+    update_column(:last_command_output, result.inspect) # no AR callbacks
   end
   
   def ran!

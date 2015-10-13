@@ -33,6 +33,8 @@ class MinecraftWatchdog
       Rails.logger.error "Need to finish setup: #{e.inspect}"
       WATCHDOG_TICK 300 * 4
     end while Resque.size(@queue) < 4
+  rescue Resque::TermException => e
+    Rails.logger.info "Detected ^C"
   end
 private
   def self.deferred_operation(options)
@@ -56,7 +58,7 @@ private
     retry_count = options['retry_count'].to_i + 1
     sleep 5 * retry_count
     options['retry_count'] = retry_count
-    Resque.enqueue(MinecraftWatchdog, options)
+    Resque.enqueue(MinecraftWatchdog, options) unless Rails.env == 'test'
   end
 
   def self.check_resque
@@ -164,8 +166,14 @@ private
   
   def self.update_player_stats
     [].tap do |a|
-      Player.shall_update_stats.find_each do |player|
-        a << {player_id: player.id, stats_updated: player.update_stats!}
+      begin
+        ActiveRecord::Base.transaction do
+          Player.shall_update_stats.find_each do |player|
+            a << {player_id: player.id, stats_updated: player.update_stats!}
+          end
+        end
+      rescue => e
+        Rails.logger.warn "#{e.inspect}\n#{e.backtrace.join("\n")}"
       end
     end
   end

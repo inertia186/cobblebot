@@ -31,6 +31,8 @@ class IrcBot < SummerBot
     end
     
     self
+  rescue Resque::TermException => e
+    Rails.logger.info "Detected ^C"
   end
 
   # OP Commands
