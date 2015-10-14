@@ -108,6 +108,7 @@ ServerCallback::DeathAnnouncement.send method, name: 'Bat Death?', pattern: "/by
 ServerCallback::DeathAnnouncement.send method, name: 'Fireballed to Death', pattern: "/fireballed/", command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"", system: 'f'
 ServerCallback::DeathAnnouncement.send method, name: 'Just Died', pattern: "/died$/", command: "play_sound \"@a\", \"family_guy_bruce_what\"", system: 'f'
 ServerCallback::DeathAnnouncement.send method, name: 'Killer Bunny', pattern: "/was slain by The Killer Bunny$/", command: "play_sound \"@a\", \"cf_horn\"", system: 'f'
+ServerCallback::DeathAnnouncement.send method, name: 'Kinetic Energy', pattern: "/experienced kinetic energy$/", command: "play_sound \"@a\", \"cf_dangerzone\"", system: 'f'
 
 # Server sounds ...
 ServerCallback::ServerEntry.send method, name: 'Flying Kick', pattern: "/was kicked for floating too long/", command: "play_sound \"@a\", \"smas_smb3_thud\"", system: 'f'
