@@ -138,7 +138,10 @@ namespace :cobblebot do
       data = CSV.generate do |csv|
         csv << MESSAGE_KEYS
         
-        Message.where.not(type: 'Message::IrcReply').find_each do |message|
+        # Note, we do not export types: Message::IrcReply
+        exported_message_types = ["Message::Tip", nil, "Message::Topic", "Message::Pvp", "Message::Donation", "Message::Quote"]
+        
+        Message.where(type: exported_message_types).find_each do |message|
           row = []
           MESSAGE_KEYS.each do |key|
             case key
