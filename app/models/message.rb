@@ -1,5 +1,12 @@
 class Message < ActiveRecord::Base
+  validates :uuid, presence: true
+  validates_uniqueness_of :uuid, case_sensitive: true
+
   before_validation :check_for_stop_words, if: :body_changed?
+  
+  before_validation do |message|
+    message.uuid ||= SecureRandom.uuid
+  end
   
   scope :query, lambda { |*keywords|
     keywords = [keywords].flatten.map { |k| "%#{k.to_s.downcase}%" }

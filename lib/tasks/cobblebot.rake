@@ -1,7 +1,7 @@
 require 'csv'
-require 'webmock/minitest'
+# require 'webmock/minitest'
 
-WebMock.disable_net_connect! # We need to avoid making API calls during import/export.
+# WebMock.disable_net_connect! # We need to avoid making API calls during import/export.
 
 namespace :cobblebot do
   PREFERENCE_KEYS = %w(key value system created_at updated_at)
@@ -25,11 +25,10 @@ namespace :cobblebot do
     updated_at
   )
   
-  # Note, MESSAGE_KEYS use auhor_uuid instead of author_id/author_type; recipient_uuid instead of recipient_id/recipient_type.
-  # Note, id must be included in order to re-link reply_id.
+  # Note, MESSAGE_KEYS use auhor_uuid instead of author_id/author_type; recipient_uuid instead of recipient_id/recipient_type; parent_uuid to re-link reply_id.
   MESSAGE_KEYS = %w(
-    id type body keywords recipient_term recipient_uuid author_uuid read_at
-    deleted_at created_at updated_at reply_id
+    uuid type body keywords recipient_term recipient_uuid author_uuid read_at
+    deleted_at created_at updated_at parent_uuid
   )
   
   # Note, IP_KEYS use player_uuid instead of player_id.
@@ -143,6 +142,12 @@ namespace :cobblebot do
           row = []
           MESSAGE_KEYS.each do |key|
             case key
+            when 'parent_uuid'
+              if message.parent
+                row << message.parent.uuid
+              else
+                row << nil
+              end
             when 'recipient_uuid'
               if !!message.recipient
                 row << message.recipient.uuid
@@ -304,6 +309,13 @@ namespace :cobblebot do
         message_params = {}
         MESSAGE_KEYS.each do |key|
           case key
+          when 'type'
+            message_params[key] = nil if row[key].empty?
+          when 'parent_uuid'
+            if (uuid = row[key]).present?
+              parent = Message.find_by_uuid uuid
+              message_params[:parent] = parent
+            end
           when 'recipient_uuid'
             if (uuid = row[key]).present?
               player = Player.find_by_uuid uuid

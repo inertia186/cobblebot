@@ -1,4 +1,5 @@
 nether_horses:
+  uuid: '45383e36-b29d-49d4-b472-6ff5e69bb56a'
   body: 'Where have all of the nether horses gone?'
   author: inertia186
   author_type: 'Player'
@@ -7,6 +8,7 @@ nether_horses:
   recipient_term: '@dinnerbone'
 
 secure_oceans:
+  uuid: '70b946f4-4a24-4358-963d-057d0a95f7f8'
   body: 'http://i.imgur.com/aRko3NI.jpg'
   author: inertia186
   author_type: 'Player'
