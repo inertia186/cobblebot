@@ -179,6 +179,7 @@ To update CobbleBot, make sure the rails server is stopped.  Also stop the resqu
     $ rake cobblebot:export:messages > messages.csv
     $ rake cobblebot:export:ips > ips.csv
     $ rake cobblebot:export:mutes > mutes.csv
+    $ rake cobblebot:export:reputations > reputations.csv
     $ rake db:migrate
     $ rake db:seed
     
@@ -193,6 +194,7 @@ If migrations fail, you can now re-import your data as follows:
     $ cat messages.csv | rake cobblebot:import:messages
     $ cat ips.csv | rake cobblebot:import:ips
     $ cat mutes.csv | rake cobblebot:import:mutes
+    $ cat reputations.csv | rake cobblebot:reputations:mutes
     $ rake db:seed
     
 Now you can start rails and resque.

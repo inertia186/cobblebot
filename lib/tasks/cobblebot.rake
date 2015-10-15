@@ -1,13 +1,44 @@
 require 'csv'
+require 'webmock/minitest'
+
+WebMock.disable_net_connect! # We need to avoid making API calls during import/export.
 
 namespace :cobblebot do
   PREFERENCE_KEYS = %w(key value system created_at updated_at)
-  SERVER_CALLBACK_KEYS = %w(type name pattern command cooldown enabled system help_doc_key help_doc created_at updated_at)
-  PLAYER_KEYS = %w(uuid nick last_nick last_ip last_chat last_chat_at last_location last_login_at last_logout_at spam_ratio play_sounds biomes_explored may_autolink registered_at vetted_at created_at updated_at)
-  LINK_KEYS = %w(url title actor_uuid expires_at last_modified_at can_embed created_at updated_at)
-  MESSAGE_KEYS = %w(type body keywords recipient_term recipient_uuid author_uuid read_at deleted_at created_at updated_at)
+  
+  # Note, SERVER_CALLBACK_KEYS excludes: pretty_pattern last_match pretty_command last_command_output ran_at error_flag_at
+  SERVER_CALLBACK_KEYS = %w(
+    type name pattern command cooldown enabled system help_doc_key help_doc
+    created_at updated_at
+  )
+
+  # Note, PLAYER_KEYS excludes shall_update_stats
+  PLAYER_KEYS = %w(uuid nick last_nick last_ip last_chat last_chat_at
+    last_location last_login_at last_logout_at spam_ratio play_sounds
+    biomes_explored may_autolink registered_at vetted_at created_at updated_at
+    leave_game deaths mob_kills time_since_death player_kills
+  )
+  
+  # Note, LINK_KEYS use actor_uuid instead of actor_id/actor_type.
+  LINK_KEYS = %w(
+    url title actor_uuid expires_at last_modified_at can_embed created_at
+    updated_at
+  )
+  
+  # Note, MESSAGE_KEYS use auhor_uuid instead of author_id/author_type; recipient_uuid instead of recipient_id/recipient_type.
+  # Note, id must be included in order to re-link reply_id.
+  MESSAGE_KEYS = %w(
+    id type body keywords recipient_term recipient_uuid author_uuid read_at
+    deleted_at created_at updated_at reply_id
+  )
+  
+  # Note, IP_KEYS use player_uuid instead of player_id.
   IP_KEYS = %w(address player_uuid origin cc state city created_at)
+  
+  # Note, MUTE_KEYS use player_uuid instead of player_id; muted_player_uuid instead of muted_player_id.
   MUTE_KEYS = %w(player_uuid muted_player_uuid created_at)
+  
+  # Note, REPUTATION_KEYS use truster_uuid instead of truster_id; trustee_uuid instead of trustee_id.
   REPUTATION_KEYS = %w(truster_uuid trustee_uuid rate created_at updated_at)
   
   desc 'display the current information of rake'
@@ -276,7 +307,7 @@ namespace :cobblebot do
           when 'recipient_uuid'
             if (uuid = row[key]).present?
               player = Player.find_by_uuid uuid
-              message_params[:recipeint] = player
+              message_params[:recipient] = player
             end
           when 'author_uuid'
             if (uuid = row[key]).present?
@@ -309,6 +340,7 @@ namespace :cobblebot do
         end
 
         next if ip_params[:player].nil?
+        ip_params[:no_cc_lookup] = true
         Ip.create(ip_params)
       end
     end

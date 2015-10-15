@@ -237,6 +237,12 @@ class Player < ActiveRecord::Base
     end
   end
 
+  def self.to_selector
+    nicks = all.map { |p| "name=#{p.nick}" }.join(',')
+    
+    "@p[#{nicks}]"
+  end
+  
   # Level I trust is the sum of direct trust for this player by a truster.
   # Level II trust is the sum of all trust for this player by those the truster trusts (through recursion).
   def reputation_sum(options = {level: 'I'})

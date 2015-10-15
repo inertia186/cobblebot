@@ -66,6 +66,10 @@ class Message < ActiveRecord::Base
   
   after_initialize :look_up_recipient
 
+  def self.latest_replies(num = 10)
+    has_parent.order(:id).last(num).map { |t| {t.parent.body => t.body} }
+  end
+
   def check_for_stop_words
     words = Preference.stop_words.downcase.split(' ')
     

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151001213704) do
+ActiveRecord::Schema.define(version: 20151015171753) do
 
   create_table "ips", force: :cascade do |t|
     t.string  "address",    null: false
@@ -23,6 +23,7 @@ ActiveRecord::Schema.define(version: 20151001213704) do
     t.string  "city"
   end
 
+  add_index "ips", ["address", "player_id"], name: "index_ips_on_address_and_player_id"
   add_index "ips", ["cc", "player_id"], name: "index_ips_on_cc_and_player_id"
   add_index "ips", ["player_id"], name: "index_ips_on_player_id"
 

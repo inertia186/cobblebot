@@ -1,4 +1,6 @@
 class Ip < ActiveRecord::Base
+  attr_accessor :no_cc_lookup
+
   belongs_to :player
   
   validates_uniqueness_of :address, scope: :player
@@ -20,11 +22,13 @@ class Ip < ActiveRecord::Base
       salt = Preference.origin_salt.strip
       hash = Digest::MD5.hexdigest "#{salt} :: #{address.split('.')[0..2].join('.')}\n"
       self.origin = hash[0..2]
-      result = Ip.update_cc(address)
-      if !!result
-        self.cc = result[:country]
-        self.state = result[:state]
-        self.city = result[:city]
+      unless !!no_cc_lookup
+        result = Ip.update_cc(address)
+        if !!result
+          self.cc = result[:country]
+          self.state = result[:state]
+          self.city = result[:city]
+        end
       end
     end
   end
