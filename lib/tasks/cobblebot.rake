@@ -313,10 +313,10 @@ namespace :cobblebot do
         MESSAGE_KEYS.each do |key|
           case key
           when 'type'
-            if row[key].empty?
-              message_params[:type] = nil
-            else
+            if row[key].present?
               message_params[:type] = row[key]
+            else
+              message_params[:type] = nil
             end
           when 'parent_uuid'
             if (uuid = row[key]).present?
