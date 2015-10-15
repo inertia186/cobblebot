@@ -70,6 +70,11 @@ class Player < ActiveRecord::Base
   scope :address, lambda { |address| joins(:ips).where(Ip.arel_table[:address].in(address)) }
   scope :may_autolink, lambda { |may_autolink = true| where(may_autolink: may_autolink) }
   scope :shall_update_stats, lambda { |shall_update_stats = true| where(shall_update_stats: shall_update_stats) }
+  scope :autotranslate, lambda { |autotranslate = nil|
+    where(autotranslate: autotranslate).tap do |r|
+      return autotranslate.nil? ? where.not(id: r) : where(id: r)
+    end
+  }
   scope :spammers, lambda { |spammers = true, ratio = 0.1|
     spam_ratio = Player.arel_table[:spam_ratio]
 

@@ -10,9 +10,23 @@ module Tellable
     def tell(selector, message, options = {as: 'Server'})
       return if selector.nil?
     
-      execute <<-DONE
-        tellraw #{selector} { "color": "gray", "text":"#{options[:as]} whispers to you: #{message}" }
-      DONE
+      if !!(hover_text = options[:hover_text]) && hover_text.present?
+        execute <<-DONE
+          tellraw #{selector} [
+            { "color": "white", "gray": "[#{options[:as]}] "},
+            {
+              "color": "gray", "text": "#{message}",
+              "hoverEvent": {
+                "action": "show_text", "value": "#{hover_text}"
+              }
+            }
+          ]
+        DONE
+      else
+        execute <<-DONE
+          tellraw #{selector} { "color": "gray", "text":"#{options[:as]} whispers to you: #{message}" }
+        DONE
+      end
     end
 
     def tell_motd(selector)
@@ -278,6 +292,21 @@ module Tellable
       end
       
       results
+    end
+    
+    def tell_autotranslate(players, term)
+      players.map(&:autotranslate).uniq.each do |lang|
+        from = :auto
+        to = lang.to_sym
+        translator = GoogleTranslate.new
+        translation = translator.translate(from, to, term)
+        translted = escape(translation.first.first.first)
+
+        if term.strip.downcase != translated.strip.downcase
+          r = players.autotranslate(lang)
+          tell(t.to_selector, escape(translated), as: 'Google', hover_text: "Translation from: #{translation.third}")
+        end
+      end
     end
   end
 end

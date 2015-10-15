@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151001213704) do
+ActiveRecord::Schema.define(version: 20151015022251) do
 
   create_table "ips", force: :cascade do |t|
     t.string  "address",    null: false
@@ -94,6 +94,7 @@ ActiveRecord::Schema.define(version: 20151001213704) do
     t.integer  "time_since_death",   default: 0,     null: false
     t.integer  "player_kills",       default: 0,     null: false
     t.boolean  "shall_update_stats", default: false, null: false
+    t.string   "autotranslate"
   end
 
   create_table "preferences", force: :cascade do |t|
