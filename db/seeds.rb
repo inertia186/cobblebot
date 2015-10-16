@@ -73,7 +73,7 @@ ServerCallback::DeathAnnouncement.send method, name: 'Thorns', pattern: "/was ki
 ServerCallback::DeathAnnouncement.send method, name: 'Burnt', pattern: "/was burnt to a crisp/", command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"\ndetect_pvp \"%message%\"", system: 't'
 ServerCallback::DeathAnnouncement.send method, name: 'Lava Swim', pattern: "/tried to swim in lava/", command: "play_sound \"@a\", \"loz_die\"\ndetect_pvp \"%message%\"", system: 't'
 ServerCallback::DeathAnnouncement.send method, name: 'Sploded to Death', pattern: "/was blown up by/", command: "play_sound \"@a\", \"sadtrombone\"\ndetect_pvp \"%message%\"", system: 't'
-ServerCallback::DeathAnnouncement.send method, name: 'Pricked', pattern: "/pricked/", command: "play_sound \"@a\", \"loz_shield\"\ndetect_pvp \"%message%\"", system: 'f'
+ServerCallback::DeathAnnouncement.send method, name: 'Pricked', pattern: "/pricked|cactus/", command: "play_sound \"@a\", \"loz_shield\"\ndetect_pvp \"%message%\"", system: 'f'
 ServerCallback::PlayerChat.send method, name: 'Last PVP', pattern: "/^@server lastpvp(.*)/i", command: "say_last_pvp(\"@a\", \"%1%\")", help_doc_key: 'lastpvp', help_doc: "Usage: @server lastpvp [victim]\n\nGet the last PVP message.  The results may include a multiplier which indicates total PVP.  If the victim is slain last, then multiplier only counts slayings.  If the victim is shot last, then the multiplier only counts shots.", system: 't'
 
 # Player initialted sounds ...
@@ -108,7 +108,7 @@ ServerCallback::DeathAnnouncement.send method, name: 'Bat Death?', pattern: "/by
 ServerCallback::DeathAnnouncement.send method, name: 'Fireballed to Death', pattern: "/fireballed/", command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"", system: 'f'
 ServerCallback::DeathAnnouncement.send method, name: 'Just Died', pattern: "/died$/", command: "play_sound \"@a\", \"family_guy_bruce_what\"", system: 'f'
 ServerCallback::DeathAnnouncement.send method, name: 'Killer Bunny', pattern: "/was slain by The Killer Bunny$/", command: "play_sound \"@a\", \"cf_horn\"", system: 'f'
-ServerCallback::DeathAnnouncement.send method, name: 'Kinetic Energy', pattern: "/experienced kinetic energy$/", command: "play_sound \"@a\", \"cf_dangerzone\"", system: 'f'
+ServerCallback::DeathAnnouncement.send method, name: 'Kinetic Energy', pattern: "/experienced kinetic energy$/", command: "play_sound \"@a\", \"cf_dadgummit\"", system: 'f'
 
 # Server sounds ...
 ServerCallback::ServerEntry.send method, name: 'Flying Kick', pattern: "/was kicked for floating too long/", command: "play_sound \"@a\", \"smas_smb3_thud\"", system: 'f'

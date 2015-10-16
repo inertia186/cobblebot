@@ -52,6 +52,9 @@ class Message < ActiveRecord::Base
   scope :messages, -> { where(type: nil) }
   scope :latest, lambda { |latest = 10| order(:created_at).limit(latest) }
   scope :supplementary, lambda { |message| where.not(id: message).where(body: message.body) }
+  scope :matching_stop_words, -> {
+    where(Preference.stop_words.split(' ').map { |w| "LOWER(body) LIKE '%#{w.downcase}%'" }.join(" OR "))
+  }
 
   scope :has_parent, lambda { |has_parent = true|
     joins(:parent).uniq.tap do |r|
