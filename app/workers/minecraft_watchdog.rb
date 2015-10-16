@@ -3,6 +3,7 @@ class MinecraftWatchdog
 
   WATCHDOG_TICK = 300
   DEFERRED_OPERATIONS = %(update_player_quotes update_player_last_ip update_player_last_location)
+  DEFERRED_MAX_RETRY = 5
   
   def self.before_perform_log_job(*args)
     Rails.logger.info "About to perform #{self} with #{args.inspect}"
@@ -56,9 +57,14 @@ private
 
   def self._retry(options = {})
     retry_count = options['retry_count'].to_i + 1
-    sleep 5 * retry_count
-    options['retry_count'] = retry_count
-    Resque.enqueue(MinecraftWatchdog, options) unless Rails.env == 'test'
+    
+    if retry_count < DEFERRED_MAX_RETRY
+      sleep 5 + retry_count
+      options['retry_count'] = retry_count
+      Resque.enqueue(MinecraftWatchdog, options) unless Rails.env == 'test'
+    else
+      Rails.logger.warn "Gave up: #{options.inspect}"
+    end
   end
 
   def self.check_resque
