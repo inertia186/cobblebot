@@ -8,9 +8,16 @@ class Admin::CallbacksController < Admin::AdminController
     @sort_field = params[:sort_field].present? ? params[:sort_field] : 'ran_at'
     @callbacks = ServerCallback.all
 
+    adapter_type = ActiveRecord::Base.connection.adapter_name.downcase.to_sym
+    status_select = case adapter_type
+    when :sqlite then 'datetime(server_callbacks.ran_at, server_callbacks.cooldown) AS status'
+    when :postgresql then 'server_callbacks.ran_at + (server_callbacks.cooldown::interval) AS status'
+    else raise NotImplementedError, "Unknown adapter type '#{adapter_type}'"
+    end
+
     @callbacks = @callbacks.select <<-DONE
       server_callbacks.*,
-      datetime(server_callbacks.ran_at, server_callbacks.cooldown) AS status
+      #{status_select}
     DONE
 
     system

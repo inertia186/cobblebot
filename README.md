@@ -155,7 +155,7 @@ $ rvm install 2.1.5
 
 ## Updating CobbleBot
 
-Normally, migrations are simple.  If you have trouble, use the rake export commands to save your records and drop the database.  The simple way, if you don't get any errors is, make sure the rails server is stopped.  Also stop the resque scheduler and workers.  Once everything has been stopped:
+Normally, migrations are simple.  The simple rake db:migrate should work but make sure the rails server is stopped.  Also stop the resque scheduler and workers.  Once everything has been stopped:
 
     $ cd cobblebot
     $ git pull
@@ -164,14 +164,15 @@ Normally, migrations are simple.  If you have trouble, use the rake export comma
 
 Now you can start rails and resque.
 
-If you see errors during migration, what follows is a more expanded method of migrating the database.
+Note, if you have trouble with the simple migrate, use the rake export commands to save your records and drop the database and import.  If do you see errors during migration, what follows is a more expanded method of migrating the database.
 
-In early stages of development, migrations were non-cumulative.  This meant that early migrations required you to drop the database and start from scratch.  To mitigate this, CobbleBot can export data to CSV for re-import after the database is recreated.  As development progresses toward beta, migrations should become cumulative so that export/import is not required during update.
+In early stages of development, migrations were non-cumulative.  This meant that early migrations required you to drop the database and start from scratch.  To mitigate this, CobbleBot can export data to CSV for re-import after the database is recreated.  As development progressed toward beta, migrations became cumulative so that export/import is not required during update.
 
-To update CobbleBot, make sure the rails server is stopped.  Also stop the resque scheduler and workers.  Once everything has been stopped:
+## Export/Import
+
+To export CobbleBot's database, make sure the rails server is stopped.  Also stop the resque scheduler and workers.  Once everything has been stopped:
 
     $ cd cobblebot
-    $ git pull
     $ rake cobblebot:export:preferences > preferences.csv
     $ rake cobblebot:export:players > players.csv
     $ rake cobblebot:export:links > links.csv
@@ -182,10 +183,10 @@ To update CobbleBot, make sure the rails server is stopped.  Also stop the resqu
     $ rake cobblebot:export:reputations > reputations.csv
     $ rake db:migrate
     $ rake db:seed
+
+You can import your data as follows:
     
-If migrations fail, you can now re-import your data as follows:
-    
-    $ rake db:drop # only do this if migrations fail
+    $ rake db:drop # only needed if previous migrations fail
     $ rake db:migrate
     $ cat preferences.csv | rake cobblebot:import:preferences
     $ cat players.csv | rake cobblebot:import:players
@@ -198,6 +199,43 @@ If migrations fail, you can now re-import your data as follows:
     $ rake db:seed
     
 Now you can start rails and resque.
+
+## Switching DBMS
+
+The default DBMS for CobbleBot is SQLite3.  If you are getting IO errors or busy timeouts, this is due to the fact that CobbleBot is running multiple processes and SQLite3 isn't the right fit.  For light traffic servers, these errors are mitigated but not totally eliminated.
+
+To avoid the problems associated with SQLite3, you should consider Postgres or MySQL.
+
+Before you switch away from SQLite3, make sure you export your current database to CSV (see export steps above).
+
+To enable Postgres, you need to change the following in database.yml (as diff):
+
+    development:
+    -  <<: *default
+    -  database: db/development.sqlite3
+    +  adapter: postgresql
+    +  encoding: unicode
+    +  database: cobblebot_development
+    +  pool: 15
+    +  username: cobblebot
+    +  password:
+
+Next, you need to create the postgres user and databases (assuming you've already installed Postgres):
+
+    $ createuser -d -s cobblebot
+    $ createdb -O cobblebot cobblebot_development
+    $ createdb -O cobblebot cobblebot_test
+
+Now, you can import the CSV data into Postgres (see import steps above).
+
+Note, on Postgres, if you're attempting to drop the database and recreate it, you may need to close all existing connections first, e.g.:
+
+    $ psql cobblebot_development -c "\
+        SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity\
+        WHERE pg_stat_activity.datname = 'cobblebot_development'\
+        AND pid <> pg_backend_pid();"
+    $ rake db:drop
+    $ createdb -O cobblebot cobblebot_development
 
 ## Advantages
 

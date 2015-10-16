@@ -36,7 +36,14 @@ class ServerCallback < ActiveRecord::Base
   scope :server_entry, -> { type('ServerCallback::ServerEntry') }
   scope :enabled, lambda { |enabled = true| where(enabled: enabled) }
   scope :ready, lambda { |ready = true|
-    enabled.where('server_callbacks.ran_at IS NULL OR datetime(server_callbacks.ran_at, server_callbacks.cooldown) <= ?', Time.now).tap do |r|
+    adapter_type = ActiveRecord::Base.connection.adapter_name.downcase.to_sym
+    clause = case adapter_type
+    when :sqlite then 'server_callbacks.ran_at IS NULL OR datetime(server_callbacks.ran_at, server_callbacks.cooldown) <= ?'
+    when :postgresql then 'server_callbacks.ran_at IS NULL OR server_callbacks.ran_at + (server_callbacks.cooldown::interval) <= ?'
+    else raise NotImplementedError, "Unknown adapter type '#{adapter_type}'"
+    end
+        
+    enabled.where(clause, Time.now).tap do |r|
       return ready ? r : where.not(id: r)
     end
   }
