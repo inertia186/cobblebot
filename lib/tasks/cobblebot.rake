@@ -284,6 +284,9 @@ namespace :cobblebot do
 
         Player.create(player_params)
       end
+      
+      # Otherwise, this will bog down the worker.
+      Player.update_all("shall_update_stats = 'f'")
     end
 
     desc 'pump in links from csv'
