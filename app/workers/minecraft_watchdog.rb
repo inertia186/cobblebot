@@ -170,11 +170,14 @@ private
     end
   end
   
-  def self.update_player_stats
+  def self.update_player_stats(deadline = 0.25)
+    start = Time.now.to_f
+    
     [].tap do |a|
       begin
         ActiveRecord::Base.transaction do
           Player.shall_update_stats.find_each do |player|
+            break if Time.now.to_f - start > deadline
             a << {player_id: player.id, stats_updated: player.update_stats!}
           end
         end
