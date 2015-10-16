@@ -4,7 +4,7 @@ class PlayersController < ApplicationController
     @players_today = Player.with_pvp_counts.logged_in_today.where.not(id: @players.except(:select))
     
     if params[:after].present?
-      head 204 and return if params[:after] != 'undefined'
+      head 204 and return if params[:after] == 'undefined'
       
       after = Time.at(params[:after].to_i + 1)
       p = @players.except(:select)
