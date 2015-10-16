@@ -196,8 +196,10 @@ module Tellable
     
     def tell_topic(selector)
       results = []
+      latest_topic = Message::Topic.latest_topics.limit(1)
+      topic = latest_topic.last
       
-      if (topic = Message::Topic.deleted(false).last).nil?
+      if topic.nil?
         results << execute(
         <<-DONE
           tellraw #{selector} { "text": "There is no topic.", "color": "green" }
