@@ -8,12 +8,14 @@ class PlayersController < ApplicationController
       after = Time.at(params[:after].to_i + 1)
       p = @players.except(:select)
       
+      head 204 and return if p.activity_after(after).none?
+
       @new_chat = p.last_chat_after(after).
         order('updated_at DESC').map do |p|
           {p.nick => p.last_chat}
         end.reverse
         
-      head 204 if p.activity_after(after).none? && @new_chat.empty?
+      head 204 @new_chat.empty?
     end
 
     @players_today = Player.with_pvp_counts.logged_in_today.where.not(id: @players.except(:select))
