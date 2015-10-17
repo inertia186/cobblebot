@@ -152,7 +152,7 @@ class ServerCallback < ActiveRecord::Base
   end
   
   def execute_command(nick, message, options = {})
-    update_column(:error_flag_at, nil) # no AR callbacks
+    update_column(:error_flag_at, nil) unless error_flag_at.nil? # no AR callbacks
     
     if player_input?(message)
       begin
@@ -201,15 +201,9 @@ class ServerCallback < ActiveRecord::Base
       error_flag!
     end
     
-    ran!
-    update_column(:last_command_output, result.inspect) # no AR callbacks
+    update_columns(ran_at: Time.now, last_command_output: result.inspect) # no AR callbacks
   end
   
-  def ran!
-    self.ran_at = Time.now
-    save
-  end
-
   def ran?
     ran_at.present?
   end
