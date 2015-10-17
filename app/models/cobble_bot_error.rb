@@ -1,14 +1,16 @@
 class CobbleBotError < StandardError
-  def initialize(cause)
-    super
-    @cause = cause
+  def initialize(options = {})
+    super(@message = options[:message])
+    @cause = options[:cause]
   end
   
   def local_backtrace
-    trace = @cause.backtrace.select do |line|
-      line =~ /cobblebot/i
-    end.join("\n")
+    trace = if @cause
+      @cause.backtrace.select do |line|
+        line.include?(Rails.root.to_s)
+      end.join("\n")
+    end
     
-    "#{@cause.inspect}\n#{trace}".strip
+    "#{@message}\n#{@cause.inspect}\n#{trace}".strip
   end
 end

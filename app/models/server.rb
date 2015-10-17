@@ -199,7 +199,7 @@ class Server
   end
   
   def self.file_path(file_name)
-    raise StandardError.new("Server Path not set.") if ServerProperties.path_to_server.nil?
+    raise CobbleBotError.new(message: "Server Path not set.") if ServerProperties.path_to_server.nil?
     
     @file_paths ||= {}
     @file_paths[file_name.to_sym] ||= "#{ServerProperties.path_to_server}/#{file_name}"

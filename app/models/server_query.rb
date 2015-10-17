@@ -32,7 +32,7 @@ class ServerQuery
       break
     end
 
-    raise StandardError.new("Minecraft Server not started? #{query}") if query.class != Hash
+    raise CobbleBotError.new(message: "Minecraft Server not started? #{query}") if query.class != Hash
 
     query
   end

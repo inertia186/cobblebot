@@ -503,7 +503,7 @@ module Sayable
           execute('debug start')
           sleep 10
         rescue => e
-          Rails.logger.error "Failed to start gametick: #{e.inspect}"
+          raise CobbleBotError.new(message: "Failed to start gametick.", cause: e)
         ensure
           execute('debug stop', try_max: 20)
           Preference.latest_gametick_in_progress = false

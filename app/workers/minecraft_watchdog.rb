@@ -32,7 +32,7 @@ class MinecraftWatchdog
       end
     rescue Errno::ENOENT => e
       Rails.logger.error "Need to finish setup: #{e.inspect}"
-      WATCHDOG_TICK 300 * 4
+      sleep WATCHDOG_TICK * 4
     end while Resque.size(@queue) < 4
   rescue Resque::TermException => e
     Rails.logger.info "Detected ^C"
@@ -47,7 +47,7 @@ private
           MinecraftWatchdog.send(op, options)
         end
       rescue => e
-        options[:last_exception] = CobbleBotError.new(e).local_backtrace
+        options[:last_exception] = CobbleBotError.new(message: "Unable to execute deferred operation.", cause: e).local_backtrace
         _retry(options)
       end
     else

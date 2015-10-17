@@ -411,7 +411,7 @@ class Player < ActiveRecord::Base
   end
 
   def stats_file_path
-    raise StandardError.new("Level name is incorrect.") if ServerProperties.path_to_server.nil?
+    raise CobbleBotError.new(message: "Level name is incorrect.") if ServerProperties.path_to_server.nil?
     
     @stats_file_path ||= "#{ServerProperties.path_to_server}/#{ServerProperties.level_name}/stats/#{uuid}.json"
   end

@@ -196,7 +196,7 @@ class ServerCallback < ActiveRecord::Base
       result = ServerCommand.eval_command(cmd, to_param, options)
       # TODO clear the error flag
     rescue StandardError => e
-      Rails.logger.error result = CobbleBotError.new(e).local_backtrace
+      Rails.logger.error(result = CobbleBotError.new(message: "Unable to evaluate command: #{[cmd, to_param, options].inspect}", cause: e).local_backtrace)
       error_flag!
     end
     

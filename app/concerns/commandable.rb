@@ -28,15 +28,15 @@ module Commandable
   
     def command_scheme
       return @command_scheme unless @command_scheme.nil?
-      raise StandardError.new("Preference.command_scheme not initialized properly") if Preference.command_scheme.nil?
+      raise CobbleBotError.new(message: "Preference.command_scheme not initialized properly") if Preference.command_scheme.nil?
     
       @command_scheme ||= Preference.command_scheme
     end
   
     def rcon
-      raise StandardError.new("RCON port not set.  To set, please modify server.properties and change rcon.port=25575") unless ServerProperties.rcon_port
-      raise StandardError.new("RCON password not set.  To set, please modify server.properties and change rcon.password=") unless ServerProperties.rcon_password
-      raise StandardError.new("RCON is disabled.  To enable rcon, please modify server.properties and change enable-rcon=false to enable-rcon=true and restart server.") unless ServerProperties.enable_rcon == 'true'
+      raise CobbleBotError.new(message: "RCON port not set.  To set, please modify server.properties and change rcon.port=25575") unless ServerProperties.rcon_port
+      raise CobbleBotError.new(message: "RCON password not set.  To set, please modify server.properties and change rcon.password=") unless ServerProperties.rcon_password
+      raise CobbleBotError.new(message: "RCON is disabled.  To enable rcon, please modify server.properties and change enable-rcon=false to enable-rcon=true and restart server.") unless ServerProperties.enable_rcon == 'true'
 
       try_max.times do
 
@@ -74,17 +74,18 @@ module Commandable
         begin
           case command_scheme
           when 'rcon'
+            raise CobbleBotError.new(message: "Cannot get instance of RCON.") if rcon.nil?
             return rcon.command(command)
           when 'multiplexor'
             # TODO Something like: `bash -c "screen -p 0 -S minecraft -X eval 'stuff \"#{command}\"\015'"`
-            return
+            raise CobbleBotError.new(message: "Multiplexor not currently supported.")
           else
-            raise StandardError.new("Preference.command_scheme not recognized")
+            raise CobbleBotError.new(message: "Preference.command_scheme not recognized")
           end
         
           break
-        rescue StandardError, Errno::ECONNRESET, TypeError => e
-          Rails.logger.error CobbleBotError.new(e).local_backtrace
+        rescue => e
+          Rails.logger.error CobbleBotError.new(message: "Unable to execute command.", cause: e).local_backtrace
           sleep retry_sleep
           ServerProperties.reset_vars
           reset_vars

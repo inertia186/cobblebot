@@ -11,8 +11,8 @@ class ServerProperties
     return @path_to_server unless @path_to_server.nil?
     
     path_to_server = Preference.path_to_server
-    raise StandardError.new("Preference.path_to_server not initialized properly") if path_to_server.nil?
-    raise StandardError.new("Expected valid path to server: #{path_to_server}") if !File.directory?(path_to_server)
+    raise CobbleBotError.new(message: "Preference.path_to_server not initialized properly") if path_to_server.nil?
+    raise CobbleBotError.new(message: "Expected valid path to server: #{path_to_server}") if !File.directory?(path_to_server)
 
     @path_to_server ||= path_to_server
   end
