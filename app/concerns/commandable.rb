@@ -187,7 +187,7 @@ module Commandable
     # c: @a[r=1000,name=!inertia186]
     #
     def merge_selectors(a, b)
-      raise "Cannot merge unlike selectors: @#{a[1]} .. @#{b[1]}" if a[1] != b[1]
+      raise CobbleBotError.new(message: "Cannot merge unlike selectors: @#{a[1]} .. @#{b[1]}") if a[1] != b[1]
       _a, _b = a.split('[')[1], b.split('[')[1]
       _a = _a.split(']')[0] if _a
       _b = _b.split(']')[0] if _b

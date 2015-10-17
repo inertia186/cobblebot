@@ -104,7 +104,7 @@ class ActiveSupport::TestCase
     else
       callback
     end
-    raise "Unknown callback: #{callback}" if c.nil?
+    raise CobbleBotError.new(message: "Unknown callback: #{callback}") if c.nil?
     
     ran_at = c.ran_at
     yield block
@@ -425,5 +425,5 @@ end
 if Server.up?
   # TODO Eventually, this warning should only warn and not actually raise an
   # exception.  For now, we're just trying to be safe.
-  raise "Warning, you are running a live minecraft server which tests are trying to fiddle with."
+  raise CobbleBotError.new(message: "Warning, you are running a live minecraft server which tests are trying to fiddle with.")
 end

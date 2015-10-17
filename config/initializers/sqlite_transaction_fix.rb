@@ -22,7 +22,7 @@ module SqliteTransactionFix
           sleep (@sleep = @sleep * 2)
         end
       end
-      raise "Gave up.  Retries: #{tries}, last sleep: #{@sleep}, write timeout: #{write_timeout}, latest cause: #{latest_cause.inspect}" unless success
+      raise CobbleBotError.new(message: "Gave up.  Retries: #{tries}, last sleep: #{@sleep}, write timeout: #{write_timeout}, latest cause: #{latest_cause.inspect}") unless success
     end
   end
 end

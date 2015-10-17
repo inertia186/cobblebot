@@ -68,7 +68,7 @@ module Detectable
         20
       end
     
-      regexp = player_input_regexp(nick, message)
+      regexp = player_input_regexp(nick, message, col)
       all = []
 
       lines.each do |line|
@@ -171,9 +171,16 @@ module Detectable
       winner.pvp_wins.create(body: message, recipient: loser)
     end
   private
-    def player_input_regexp(nick, message)
-      chat_regex = %r(: \<#{nick}\> .*#{message[0..[message.size - 1, 7].min]}.*)i
-      emote_regex = %r(: \* #{nick} .*#{message[0..[message.size - 1, 7].min]}.*)i
+    def player_input_regexp(nick, message, col)
+      %w( [ ] \\ ^ $ . | ? * + \( \)).each do |c|
+        message.gsub!(c, "\\#{c}")
+      end
+
+      # FIXME If last character of message substring is a regex escape character, include the next character.
+      s = message[0..[message.size - 1, col].min]
+  
+      chat_regex = %r(: \<#{nick}\> .*#{s}.*)i
+      emote_regex = %r(: \* #{nick} .*#{s}.*)i
       Regexp.union([chat_regex, emote_regex])
     end
     

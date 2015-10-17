@@ -75,7 +75,7 @@ class ServerCallback < ActiveRecord::Base
   }
   
   def self.for_handling(line)
-    raise "Cannot handle undefine callback type for: #{line}"
+    raise CobbleBotError.new(message: "Cannot handle undefine callback type for: #{line}")
   end
 
   def self.handle(line, options = {})
@@ -191,9 +191,6 @@ class ServerCallback < ActiveRecord::Base
 
     # Remove matched vars.
     cmd.gsub!(/%[^%]*%/, '')
-    # Clean input
-    cmd.gsub!(/\(/, '\(')
-    cmd.gsub!(/\)/, '\)')
 
     begin
       result = ServerCommand.eval_command(cmd, to_param, options)
