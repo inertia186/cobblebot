@@ -579,6 +579,10 @@ class Player < ActiveRecord::Base
 
     !!(pvp = pvp_wins.last) && quotes.where('messages.created_at BETWEEN ? AND ?', pvp.created_at, at).any?
   end
+  
+  def mail
+    messages.read(false).deleted(false).muted(false)
+  end
 private  
   def update_last_nick
     return unless !!id

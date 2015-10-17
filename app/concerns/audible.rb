@@ -15,22 +15,22 @@ module Audible
     def check_mail(nick)
       player = Player.find_by_nick nick
       return if player.nil?
+      count = player.mail.count
+      return unless count > 0
 
       run do
         # Slight delay here to make sure resource packs have loaded.
         sleep(5)
       
-        if (messages = player.messages.read(false).deleted(false).muted(false)).any?
-          execute <<-DONE
-            tellraw #{nick} {"color": "green", "text": "You have ", "extra": [
-              {"text": "#{pluralize(messages.count, 'unread message')}", "color": "dark_purple", "underlined": "true", "clickEvent": {
-                "action": "run_command", "value": "@server mail"}, "hoverEvent":  {"action": "show_text", "value": "Type: @server mail"
-              }}
-            ]}
-          DONE
-        
-          play_sound(nick, 'mailsound')
-        end
+        execute <<-DONE
+          tellraw #{nick} {"color": "green", "text": "You have ", "extra": [
+            {"text": "#{pluralize(count, 'unread message')}", "color": "dark_purple", "underlined": "true", "clickEvent": {
+              "action": "run_command", "value": "@server mail"}, "hoverEvent":  {"action": "show_text", "value": "Type: @server mail"
+            }}
+          ]}
+        DONE
+      
+        play_sound(nick, 'mailsound')
       end
     end
   private
