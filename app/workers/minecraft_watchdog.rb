@@ -47,7 +47,7 @@ private
           MinecraftWatchdog.send(op, options)
         end
       rescue => e
-        options[:last_exception] = "#{e.inspect}\n#{e.backtrace.join("\n")}"
+        options[:last_exception] = CobbleBotError.new(e).local_backtrace
         _retry(options)
       end
     else
@@ -181,8 +181,10 @@ private
             a << {player_id: player.id, stats_updated: player.update_stats!}
           end
         end
+      rescue ActiveRecord::StatementInvalid => e
+        Rails.logger.warn "#{e.inspect} (can retry later)"
       rescue => e
-        Rails.logger.warn "#{e.inspect}\n#{e.backtrace.join("\n")}"
+        Rails.logger.warn CobblebotError.new(e).local_backtrace
       end
     end
   end

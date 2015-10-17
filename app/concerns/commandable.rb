@@ -84,8 +84,7 @@ module Commandable
         
           break
         rescue StandardError, Errno::ECONNRESET, TypeError => e
-          Rails.logger.error e.inspect
-          e.backtrace.each { |line| Rails.logger.error line }
+          Rails.logger.error CobbleBotError.new(e).local_backtrace
           sleep retry_sleep
           ServerProperties.reset_vars
           reset_vars
