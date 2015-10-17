@@ -15,7 +15,7 @@ class PlayersController < ApplicationController
           {p.nick => p.last_chat}
         end.reverse
         
-      head 204 @new_chat.empty?
+      head 204 if @new_chat.empty?
     end
 
     @players_today = Player.with_pvp_counts.logged_in_today.where.not(id: @players.except(:select))
