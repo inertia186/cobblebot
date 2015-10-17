@@ -1,7 +1,7 @@
 module SqliteTransactionFix
   MAX_SLEEP = 30
   
-  def begin_db_transaction(write_timeout = 5000) #:nodoc:
+  def begin_db_transaction(write_timeout = 10000) #:nodoc:
     @sleep ||= 0.001
     @sleep = 0.001 if @sleep >= MAX_SLEEP
     
