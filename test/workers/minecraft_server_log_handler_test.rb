@@ -361,6 +361,24 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     # Make sure the "pretend" option reaches the callback for simulated chat.
     assert_equal '@server slap', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server slap'
   end
+
+  def test_spam_detect_special_characters
+    def Server.player_nicks(selector = nil)
+      ['GracieBoo', 'xXPlayerXx'] # need at least two players for spam detection to work
+    end
+    
+    def ServerQuery.numplayers
+      "2"
+    end
+
+    assert_callback_ran 'Spammy' do
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <GracieBoo> test', debug: true)
+    end
+
+    assert_callback_ran 'Spammy' do
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <GracieBoo> =(', debug: true)
+    end
+  end
   
   def test_spam_detect
     MinecraftServerLogHandler.handle '[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848'

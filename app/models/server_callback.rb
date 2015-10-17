@@ -191,6 +191,9 @@ class ServerCallback < ActiveRecord::Base
 
     # Remove matched vars.
     cmd.gsub!(/%[^%]*%/, '')
+    # Clean input
+    cmd.gsub!(/\(/, '\(')
+    cmd.gsub!(/\)/, '\)')
 
     begin
       result = ServerCommand.eval_command(cmd, to_param, options)
