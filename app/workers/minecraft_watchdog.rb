@@ -202,6 +202,8 @@ private
     _retry(options) and return if player.nil?
     
     address = options['address']
+    return if player.last_ip == address
+
     player.update_attribute(:last_ip, address) # no AR callbacks
     player.ips.create(address: address)
   end

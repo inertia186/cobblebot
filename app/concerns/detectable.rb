@@ -85,7 +85,9 @@ module Detectable
       handle_spam(nick, ratio)
 
       if !!player
-        player.update_column(:spam_ratio, ratio) # no AR callbacks
+        unless player.spam_ratio == ratio
+          player.update_column(:spam_ratio, ratio) # no AR callbacks
+        end
       
         return player
       end
