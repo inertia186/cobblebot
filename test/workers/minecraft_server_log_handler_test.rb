@@ -1008,6 +1008,14 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       MinecraftServerLogHandler.handle(non_log_event, debug: true)
     end
   end
+
+  def test_ignore_moved_too_quickly_warning
+    moved_too_quickly_warning = '[20:35:30] [Server thread/WARN]: Dinnerbone moved too quickly! -10.384319517739641,-0.01250004768370161,0.37003998965519713'
+    refute MinecraftServerLogHandler.ignore?(moved_too_quickly_warning, debug: true), 'did not expect handler to ignore moved too quickly warning'
+    refute_callback_ran do
+      MinecraftServerLogHandler.handle(keeping_entity_warning, debug: true)
+    end
+  end
   
   def test_ignore_vehicle_warning
     vehicle_warning = '[04:34:21] [Server thread/WARN]: Boat (vehicle of Dinnerbone) moved too quickly! -8.011919811659027,-0.01862379291560501,7.374947875718135'
