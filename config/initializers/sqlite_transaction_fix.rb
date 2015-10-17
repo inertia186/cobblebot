@@ -8,13 +8,16 @@ module SqliteTransactionFix
     if write_timeout.nil?
       @connection.transaction(:deferred) # Deferred is the default.
     else
-      deadline = Time.new + (write_timeout.to_f / 1000)
+      deadline = Time.now + (write_timeout.to_f / 1000)
       success = false
       tries = 0
       latest_cause = nil
-      while (!success and Time.new() < deadline) do
-        tries = tries + 1
+
+      while !success do
+        break if Time.now > deadline 
+
         begin
+          tries = tries + 1
           @connection.transaction(:immediate)
           success = true
         rescue => e
@@ -22,6 +25,7 @@ module SqliteTransactionFix
           sleep (@sleep = @sleep * 2)
         end
       end
+
       raise CobbleBotError.new(message: "Gave up.  Retries: #{tries}, last sleep: #{@sleep}, write timeout: #{write_timeout}, latest cause: #{latest_cause.inspect}") unless success
     end
   end
