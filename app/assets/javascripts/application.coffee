@@ -26,6 +26,10 @@ $ ->
       chat = $('#chat')
       chat.slideToggle 'slow'
       return
+    $('body').on 'click', '#chat_size', (e) ->
+      chat = $('#chat')
+      chat.toggleClass('chat_full_screen')
+      return
   return
 
 $ ->

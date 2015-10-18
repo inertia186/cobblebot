@@ -127,7 +127,7 @@ a.tip:hover:after, .jqhover-point {
   left:1em;
 }
 
-#chat {
+.chat_bottom_only {
   position: fixed;
   left: 0;
   bottom: 0;
@@ -144,10 +144,44 @@ a.tip:hover:after, .jqhover-point {
   font-size: 14px;
 }
 
+.chat_full_screen {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid;
+  padding: 0 0 4px 0;
+  overflow: auto;
+  margin: 0;
+  background: none repeat scroll 0% 0% #333;
+  z-index: 9999;
+  color: #FFF;
+  font-family: monospace;
+  font-size: 14px;
+}
+
 #chat_controls {
   position: fixed;
   right: 0;
   bottom: 0;
+  width: 22px;
+  height: 22px;
+  border: 1px solid;
+  padding: 0 0 4px 0;
+  overflow: auto;
+  margin: 0;
+  background: none repeat scroll 0% 0% #333;
+  z-index: 9999;
+  color: #FFF;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+#chat_size {
+  position: fixed;
+  right: 0;
+  top: 1;
   width: 22px;
   height: 22px;
   border: 1px solid;
