@@ -28,6 +28,7 @@ $ ->
       return
     $('body').on 'click', '#chat_size', (e) ->
       chat = $('#chat')
+      this.innerText = if this.innerText == '+' then '-' else '+' 
       chat.toggleClass('chat_full_screen')
       return
   return
