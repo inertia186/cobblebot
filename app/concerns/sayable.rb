@@ -481,52 +481,54 @@ module Sayable
     end
     
     def say_gametick(selector)
-      latest_gametick = Preference.latest_gametick
-      latest_gametick_population = Preference.latest_gametick_population.to_i
-      latest_gametick_timestamp = Preference.latest_gametick_timestamp
-      latest_gametick_at = Time.at(latest_gametick_timestamp.to_i) unless latest_gametick_timestamp.nil?
-      ago = distance_of_time_in_words_to_now(latest_gametick_at) unless latest_gametick_at.nil?
+      ActiveRecord::Base.transaction do
+        latest_gametick = Preference.latest_gametick
+        latest_gametick_population = Preference.latest_gametick_population.to_i
+        latest_gametick_timestamp = Preference.latest_gametick_timestamp
+        latest_gametick_at = Time.at(latest_gametick_timestamp.to_i) unless latest_gametick_timestamp.nil?
+        ago = distance_of_time_in_words_to_now(latest_gametick_at) unless latest_gametick_at.nil?
       
-      if Preference.latest_gametick_in_progress?
-        if 10.seconds.ago > latest_gametick_at
-          execute('debug stop')
-          Preference.latest_gametick_in_progress = false
-          say(selector, "Gave up checking ...")
-        else
-          say(selector, "Still checking ...")
-        end
-      elsif latest_gametick_timestamp.nil? || (latest_gametick_at < 10.minutes.ago)
-        say(selector, "Checking ...")
-        begin
-          Preference.latest_gametick_timestamp = Time.now.to_i
-          Preference.latest_gametick_in_progress = true
-          execute('debug start')
-          sleep 10
-        rescue => e
-          raise CobbleBotError.new(message: "Failed to start gametick.", cause: e)
-        ensure
-          execute('debug stop', try_max: 20)
-          Preference.latest_gametick_in_progress = false
-        end
-        
-        if !!(report = Server.latest_debug_report)
-          gametick = report.split("\n")[5].split(" ")[4]
-          gametick_population = Server.player_nicks.size
-          
-          if latest_gametick_at.nil?
-            say(selector, "Latest gametick: #{gametick} with #{pluralize(gametick_population, 'player')}; ideal gametick: 20.0")
+        if Preference.latest_gametick_in_progress?
+          if 10.seconds.ago > latest_gametick_at
+            execute('debug stop')
+            Preference.latest_gametick_in_progress = false
+            say(selector, "Gave up checking ...")
           else
-            say(selector, "Gametick from #{ago} ago was: #{latest_gametick} with #{pluralize(latest_gametick_population, 'player')}; latest: #{gametick} with #{pluralize(gametick_population, 'player')}; ideal gametick: 20.0")
+            say(selector, "Still checking ...")
           end
+        elsif latest_gametick_timestamp.nil? || (latest_gametick_at < 10.minutes.ago)
+          say(selector, "Checking ...")
+          begin
+            Preference.latest_gametick_timestamp = Time.now.to_i
+            Preference.latest_gametick_in_progress = true
+            execute('debug start')
+            sleep 10
+          rescue => e
+            raise CobbleBotError.new(message: "Failed to start gametick.", cause: e)
+          ensure
+            execute('debug stop', try_max: 20)
+            Preference.latest_gametick_in_progress = false
+          end
+        
+          if !!(report = Server.latest_debug_report)
+            gametick = report.split("\n")[5].split(" ")[4]
+            gametick_population = Server.player_nicks.size
           
-          Preference.latest_gametick = gametick
-          Preference.latest_gametick_population = gametick_population
+            if latest_gametick_at.nil?
+              say(selector, "Latest gametick: #{gametick} with #{pluralize(gametick_population, 'player')}; ideal gametick: 20.0")
+            else
+              say(selector, "Gametick from #{ago} ago was: #{latest_gametick} with #{pluralize(latest_gametick_population, 'player')}; latest: #{gametick} with #{pluralize(gametick_population, 'player')}; ideal gametick: 20.0")
+            end
+          
+            Preference.latest_gametick = gametick
+            Preference.latest_gametick_population = gametick_population
+          end
+        else
+          say(selector, "Gametick from #{ago} ago was: #{latest_gametick} with #{pluralize(latest_gametick_population, 'player')}; ideal gametick: 20.0")
         end
-      else
-        say(selector, "Gametick from #{ago} ago was: #{latest_gametick} with #{pluralize(latest_gametick_population, 'player')}; ideal gametick: 20.0")
-      end
       
-      gametick || Preference.latest_gametick
+        gametick || Preference.latest_gametick
+      end
     end  
   end
 end
