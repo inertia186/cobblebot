@@ -1,12 +1,16 @@
 class ServerCallback::AnyPlayerEntry < ServerCallback
   def self.for_handling(line)
-    line =~ REGEX_PLAYER_CHAT_OR_EMOTE
+    line =~ REGEX_PLAYER_CHAT_OR_EMOTE || line =~ REGEX_PLAYER_COMMAND
   end
 
   def self.handle(line, options = {})
     return unless for_handling(line)
     any_result = nil
-    types = [ServerCallback::PlayerChat, ServerCallback::PlayerEmote]
+    types = [
+      ServerCallback::PlayerChat,
+      ServerCallback::PlayerCommand,
+      ServerCallback::PlayerEmote
+    ]
 
     types.each do |c|
       result = c.handle(line, options)

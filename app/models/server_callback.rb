@@ -1,15 +1,17 @@
 class ServerCallback < ActiveRecord::Base
   ALL_TYPES = %w(ServerCallback::AnyEntry ServerCallback::PlayerChat
-    ServerCallback::PlayerEmote ServerCallback::AnyPlayerEntry
-    ServerCallback::ServerEntry ServerCallback::AchievementAnnouncement
-    ServerCallback::DeathAnnouncement ServerCallback::RunningBehind
-    ServerCallback::PlayerAuthenticated)
-  PLAYER_ENTRY_TYPES = %(ServerCallback::AnyEntry ServerCallback::PlayerChat
-    ServerCallback::PlayerEmote ServerCallback::AnyPlayerEntry)
+    ServerCallback::PlayerCommand ServerCallback::PlayerEmote
+    ServerCallback::AnyPlayerEntry ServerCallback::ServerEntry
+    ServerCallback::AchievementAnnouncement ServerCallback::DeathAnnouncement
+    ServerCallback::RunningBehind ServerCallback::PlayerAuthenticated)
+  PLAYER_ENTRY_TYPES = %w(ServerCallback::AnyEntry ServerCallback::PlayerChat
+    ServerCallback::PlayerCommand ServerCallback::PlayerEmote
+    ServerCallback::AnyPlayerEntry)
 
   REGEX_ANY = %r{^\[\d{2}:\d{2}:\d{2}\] .*$}
   REGEX_PLAYER_CHAT = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: <[^<]+> .*$}
   REGEX_PLAYER_EMOTE = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: \* [^<]+ .*$}
+  REGEX_PLAYER_COMMAND = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: <[^<]+> @server .+$}i
   REGEX_PLAYER_CHAT_OR_EMOTE = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: [\* ]*[ ]*[<]*[^<]+[>]* .*$}
   REGEX_USER_AUTHENTICATOR = %r{^\[\d{2}:\d{2}:\d{2}\] \[User Authenticator #\d+/INFO\]: .*$}
   REGEX_ACHIEVEMENT_ANNOUNCEMENT = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread/INFO\]: .* has just earned the achievement.*$}
@@ -31,6 +33,7 @@ class ServerCallback < ActiveRecord::Base
   scope :type, lambda { |type = ALL_TYPES| where(type: type) }
   scope :any_entry, -> { type('ServerCallback::AnyEntry') }
   scope :player_chat, -> { type('ServerCallback::PlayerChat') }
+  scope :player_command, -> { type('ServerCallback::PlayerCommand') }
   scope :player_emote, -> { type('ServerCallback::PlayerEmote') }
   scope :any_player_entry, -> { type('ServerCallback::AnyPlayerEntry') }
   scope :server_entry, -> { type('ServerCallback::ServerEntry') }
@@ -68,6 +71,15 @@ class ServerCallback < ActiveRecord::Base
     DONE
     where(clause, query, query, query, query, query)
   }
+  scope :responding_callbacks, lambda { |message|
+    result = []
+    
+    find_each do |c|
+      result << c if c.class.for_handling(message) && message =~ ServerCommand.eval_pattern(c.pattern, c.to_param)
+    end
+    
+    where(id: result)
+  }
   scope :has_help_docs, lambda { |has_help_docs = true|
     where.not(help_doc_key: [nil, '']).tap do |r|
       return has_help_docs ? r : where.not(id: r)
@@ -90,6 +102,10 @@ class ServerCallback < ActiveRecord::Base
     any_result
   end
 
+  def other_responding_callbacks(message)
+    ServerCallback.responding_callbacks(message).where.not(id: self)
+  end
+
   def to_param
     "#{id}-#{name.parameterize}"
   end
@@ -104,8 +120,14 @@ class ServerCallback < ActiveRecord::Base
 
   def valid_command
     eval_check(:command)
+    allowed_types = %w(
+      ServerCallback::PlayerChat
+      ServerCallback::PlayerCommand
+      ServerCallback::PlayerEmote
+      ServerCallback::AnyPlayerEntry
+    )
     
-    unless ['ServerCallback::PlayerChat', 'ServerCallback::PlayerEmote', 'ServerCallback::AnyPlayerEntry'].include? type
+    unless allowed_types.include? type
       if command =~ /%nick%/
         errors[:command] << "cannot reference %nick% in a #{type.titleize} callback.  Try %1% if you intend to capture the nick yourself."
       end

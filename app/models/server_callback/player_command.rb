@@ -1,6 +1,6 @@
-class ServerCallback::PlayerChat < ServerCallback
+class ServerCallback::PlayerCommand < ServerCallback::PlayerChat
   def self.for_handling(line)
-    line =~ REGEX_PLAYER_CHAT && !(line =~ REGEX_PLAYER_COMMAND)
+    line =~ REGEX_PLAYER_COMMAND
   end
 
   def self.entry(line, options)

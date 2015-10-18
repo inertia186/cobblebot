@@ -16,9 +16,23 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       to_return(status: 200)
   end
 
+  def test_handled
+    version = ServerCallback.find_by_name 'Check Version'
+    player_check = ServerCallback.find_by_name 'Player Check'
+    
+    assert_equal 2, version.other_responding_callbacks('[15:17:25] [Server thread/INFO]: <inertia186> @server version').count
+    assert_equal 2, player_check.other_responding_callbacks('[15:17:25] [Server thread/INFO]: <inertia186> @server version').count
+  end
+
   def test_check_version
     assert_callback_ran 'Check Version' do
-      ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server version', debug: true)
+      ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server version', debug: true)
+    end
+  end
+
+  def test_gametick
+    assert_callback_ran 'Gametick' do
+      ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server gametick', debug: true)
     end
   end
 
@@ -30,7 +44,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
 
   def test_playercheck
     assert_callback_ran 'Player Check' do
-      ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> @server playercheck inertia186', debug: true)
+      ServerCallback::PlayerCommand.handle('[08:23:03] [Server thread/INFO]: <inertia186> @server playercheck inertia186', debug: true)
     end
   end
 
@@ -126,7 +140,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   
   def test_message_of_the_day
     assert_callback_ran 'Message of the Day' do
-      ServerCallback::ServerEntry.handle('[08:57:14] [Server thread/INFO]: inertia186 joined the game', debug: true)
+      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player inertia186 is d6edf996-6182-4d58-ac1b-4ca0321fb748', debug: true)
     end
   end
 
@@ -329,7 +343,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   def test_add_tip
     assert_difference -> { Message::Tip.count }, 1, 'expect new tip' do
       assert_callback_ran 'Add Tip' do
-        ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server addtip This is a tip.', debug: true)
+        ServerCallback::PlayerCommand.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server addtip This is a tip.', debug: true)
       end
     end
   end
@@ -338,7 +352,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { Link.count }, 1, 'expect new link' do
       assert_difference -> { Message::Tip.count }, 1, 'expect new tip' do
         assert_callback_ran 'Add Tip' do
-          ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server addtip https://www.youtube.com/watch?v=GVgMzKMgNxw', debug: true)
+          ServerCallback::PlayerCommand.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server addtip https://www.youtube.com/watch?v=GVgMzKMgNxw', debug: true)
         end
       end
     end
@@ -634,7 +648,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     callback = ServerCallback.find_by_name('Sound Check')
 
     assert_callback_ran callback do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server soundcheck', debug: true)
+      ServerCallback::PlayerCommand.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server soundcheck', debug: true)
     end
 
     def Server.player_nicks(selector = nil)
@@ -644,7 +658,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     Player.find_by_nick('inertia186').update_attribute(:play_sounds, false)
     
     assert_callback_ran callback do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server soundcheck', debug: true)
+      ServerCallback::PlayerCommand.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server soundcheck', debug: true)
     end
   end
   
@@ -662,7 +676,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute_nil callback.help_doc, 'expect help doc for callback'
     
     assert_callback_ran callback do
-      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help', debug: true)
+      result = ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help', debug: true)
       assert_equal 2, ServerCommand.commands_executed.keys.join.split(callback.help_doc.strip).size, 'expect help doc in command executed'
     end
   end
@@ -673,7 +687,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute_nil callback.help_doc, 'expect help doc for callback'
     
     assert_callback_ran 'Help ...' do
-      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help help', debug: true)
+      result = ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help help', debug: true)
       assert_equal 2, ServerCommand.commands_executed.keys.join.split(callback.help_doc.strip).size, 'expect help doc in command executed'
     end
   end
@@ -685,7 +699,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       refute_nil callback.help_doc, 'expect help doc for callback'
     
       assert_callback_ran 'Help ...' do
-        result = ServerCallback::PlayerChat.handle("[15:17:25] [Server thread/INFO]: <inertia186> @server help #{callback.help_doc_key}")
+        result = ServerCallback::PlayerCommand.handle("[15:17:25] [Server thread/INFO]: <inertia186> @server help #{callback.help_doc_key}")
         # Maybe this should use .include? instead of a funky join.
         assert (help_doc = ServerCommand.commands_executed.keys.join.downcase.split(callback.help_doc.split("\n")[0].downcase)).size > 1, "expect help doc in command executed, got: #{help_doc}"
       end
@@ -703,7 +717,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute player.registered?, 'did not expect player to be registered'
     
     assert_callback_ran callback do
-      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server register', debug: true)
+      result = ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server register', debug: true)
     end
     
     assert player.reload.registered?, 'expect player to be registered'
@@ -717,7 +731,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute player.registered?, 'did not expect player to be registered'
     
     assert_callback_ran callback do
-      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server register', debug: true)
+      result = ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server register', debug: true)
     end
     
     assert player.reload.registered?, 'did not expect player to be registered (did not explore enough, but not enough samples either)'
@@ -732,7 +746,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert player.registered?, 'expect player to be registered'
     
     assert_callback_ran callback do
-      result = ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server unregister', debug: true)
+      result = ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server unregister', debug: true)
     end
     
     assert player.reload.registered?, 'for now, still expect player to be registered (unregister not supported yet)'
@@ -743,7 +757,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     player = Player.find_by_nick('inertia186')
 
     assert_callback_ran callback do
-      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server origin inertia186', debug: true)
+      ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server origin inertia186', debug: true)
     end
   end
 
@@ -763,41 +777,41 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     callback = ServerCallback.find_by_name('Read Mail')
     assert_difference -> { inertia186.messages.read.count }, 2, 'expected read' do
       assert_callback_ran callback do
-        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail', debug: true)
+        ServerCallback::PlayerCommand.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail', debug: true)
       end
     end
 
     callback = ServerCallback.find_by_name('Read Mail')
     assert_difference -> { inertia186.messages.read.count }, 0, 'expected fewer messages' do
       assert_callback_ran callback do
-        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail clear', debug: true)
+        ServerCallback::PlayerCommand.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail clear', debug: true)
       end
     end
 
     assert_difference -> { inertia186.messages.read.muted(false).count }, -2, 'expected fewer messages' do
       assert_difference -> { inertia186.muted_players.count }, 1, 'expected muted player' do
-        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail mute dinnerbone', debug: true)
+        ServerCallback::PlayerCommand.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail mute dinnerbone', debug: true)
       end
     end
 
     assert_difference -> { inertia186.muted_players.count }, 0, 'did not expect muted player (already muted)' do
-      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail mute dinnerbone', debug: true)
+      ServerCallback::PlayerCommand.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail mute dinnerbone', debug: true)
     end
     
     assert_difference -> { inertia186.messages.read.muted(false).count }, 2, 'expected read' do
       assert_difference -> { inertia186.muted_players.count }, -1, 'expected unmuted player' do
-        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail unmute dinnerbone', debug: true)
+        ServerCallback::PlayerCommand.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail unmute dinnerbone', debug: true)
       end
     end
 
     assert_difference -> { inertia186.muted_players.count }, 0, 'did not expect unmuted player (already unmuted)' do
-      ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail unmute dinnerbone', debug: true)
+      ServerCallback::PlayerCommand.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail unmute dinnerbone', debug: true)
     end
 
     callback = ServerCallback.find_by_name('Read Mail')
     assert_difference -> { inertia186.messages.read.count }, 0, 'expected fewer messages' do
       assert_callback_ran callback do
-        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail clear', debug: true)
+        ServerCallback::PlayerCommand.handle('[15:04:50] [Server thread/INFO]: <inertia186> @server mail clear', debug: true)
       end
     end
   end
@@ -830,13 +844,13 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
 
   def test_topic
     assert_callback_ran "Topic" do
-      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server topic', debug: true)
+      ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server topic', debug: true)
     end
   end
 
   def test_set_topic
     assert_callback_ran "Set Topic" do
-      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server topic test', debug: true)
+      ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server topic test', debug: true)
     end
   end
   
@@ -866,11 +880,11 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     end
 
     assert_callback_ran "Latest Player Chat" do
-      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> Darn.', debug: true)
+      ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> Darn.', debug: true)
     end
 
     assert_callback_ran "Latest Player Chat" do
-      ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <Dinnerbone> Yeah!', debug: true)
+      ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <Dinnerbone> Yeah!', debug: true)
     end
     
     pvp = Message::Pvp.last
