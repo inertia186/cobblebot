@@ -24,12 +24,26 @@ $ ->
     document.updatePublicPlayersTimerId = setTimeout updatePublicPlayers, 5000
     $('body').on 'click', '#chat_controls', (e) ->
       chat = $('#chat')
-      chat.slideToggle 'slow'
+      chat_size = $('#chat_size')[0]
+      
+      if chat.hasClass('chat_full_screen')
+        chat.toggleClass('chat_full_screen chat_hidden')
+        chat_size.innerText = '-'
+      else
+        chat.toggleClass('chat_bottom_only chat_hidden')
+        chat_size.innerText = '+'
+          
       return
+      
     $('body').on 'click', '#chat_size', (e) ->
       chat = $('#chat')
-      this.innerText = if this.innerText == '+' then '-' else '+' 
-      chat.toggleClass('chat_full_screen')
+      chat.toggleClass('chat_full_screen chat_bottom_only')
+
+      if this.innerText == '+'
+        this.innerText = '-'
+      else
+        this.innerText = '+'
+        
       return
   return
 

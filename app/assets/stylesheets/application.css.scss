@@ -127,6 +127,25 @@ a.tip:hover:after, .jqhover-point {
   left:1em;
 }
 
+.chat_hidden {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 0%;
+  border: 1px solid;
+  padding: 0 0 4px 0;
+  overflow: auto;
+  margin: 0;
+  background: none repeat scroll 0% 0% #333;
+  z-index: 9999;
+  color: #FFF;
+  font-family: monospace;
+  font-size: 14px;
+    
+  transition: all 1s;
+}
+
 .chat_bottom_only {
   position: fixed;
   left: 0;
@@ -142,6 +161,8 @@ a.tip:hover:after, .jqhover-point {
   color: #FFF;
   font-family: monospace;
   font-size: 14px;
+  
+  transition: all 1s;
 }
 
 .chat_full_screen {
@@ -159,6 +180,8 @@ a.tip:hover:after, .jqhover-point {
   color: #FFF;
   font-family: monospace;
   font-size: 14px;
+
+  transition: all 1s;
 }
 
 #chat_controls {
