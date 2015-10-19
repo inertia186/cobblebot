@@ -26,28 +26,27 @@ $ ->
       chat = $('#chat')
       chat_size = $('#chat_size')[0]
       
-      if !chat.is(':visible')
-        chat.slideToggle 'slow'
-      else if chat.hasClass('chat_full_screen')
-        chat.toggleClass('chat_full_screen chat_hidden')
-        chat_size.innerText = '-'
+      if chat.hasClass('chat_full_screen')
+        chat.toggleClass('chat_full_screen chat_hidden').promise().done ->
+          chat_size.innerText = '-'
+          chat.scrollTop(chat.height() * 100)
       else
-        chat.toggleClass('chat_bottom_only chat_hidden')
-        chat_size.innerText = '+'
+        chat.toggleClass('chat_bottom_only chat_hidden').promise().done ->
+          chat_size.innerText = '+'
+          chat.scrollTop(chat.height() * 100)
           
-      chat.scrollTop(chat.height() * 100)
-
       return
       
     $('body').on 'click', '#chat_size', (e) ->
       chat = $('#chat')
-      chat.toggleClass('chat_full_screen chat_bottom_only')
+      chat_size = $('#chat_size')[0]
 
-      if this.innerText == '+'
-        this.innerText = '-'
+      chat.toggleClass('chat_full_screen chat_bottom_only').promise().done ->
+        if chat_size.innerText == '+'
+          chat_size.innerText = '-'
+        else
+          chat_size.innerText = '+'
         chat.scrollTop(chat.height() * 100)
-      else
-        this.innerText = '+'
         
       return
   return

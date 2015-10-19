@@ -10,8 +10,12 @@ no_tags_text = '<%= raw escape_javascript(no_tags_text) %>'
 text = '<%= raw escape_javascript(text) %>'
 e.attr('data-title', no_tags_text)
 chat = $("#chat")
-if !chat.is(':visible')
-  chat.slideDown('slow')
+if chat.hasClass('chat_hidden')
+  chat.toggleClass('chat_bottom_only').promise().done ->
+    chat_size.innerText = '+'
+    chat.scrollTop(chat.height() * 100)
+else
+  chat.scrollTop(chat.height() * 100)
 if ( chat.text().indexOf(text) == -1 )
   chat.append("&lt;<%= nick %>&gt; " + text + "<br />")
   chat.scrollTop(chat.height() * 100)
