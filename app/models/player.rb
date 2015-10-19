@@ -105,6 +105,9 @@ class Player < ActiveRecord::Base
   scope :last_chat_after, lambda { |after|
     where.not(last_chat: nil).where("last_chat_at > ?", after)
   }
+  scope :last_chat_before, lambda { |before|
+    where.not(last_chat: nil).where("last_chat_at <= ?", before)
+  }
   scope :activity_before, lambda { |before|
     clause = <<-DONE
       players.last_chat_at < ? OR
