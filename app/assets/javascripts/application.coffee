@@ -29,9 +29,11 @@ $ ->
       if chat.hasClass('chat_full_screen')
         chat.toggleClass('chat_full_screen chat_hidden')
         chat_size.innerText = '-'
-      else
+      else if chat.hasClass('chat_bottom_only')
         chat.toggleClass('chat_bottom_only chat_hidden')
         chat_size.innerText = '+'
+      else 
+        chat.slideToggle 'slow'
           
       chat.scrollTop(chat.height() * 100)
 
