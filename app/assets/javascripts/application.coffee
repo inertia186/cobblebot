@@ -33,6 +33,8 @@ $ ->
         chat.toggleClass('chat_bottom_only chat_hidden')
         chat_size.innerText = '+'
           
+      chat.scrollTop(chat.height() * 100)
+
       return
       
     $('body').on 'click', '#chat_size', (e) ->
@@ -41,6 +43,7 @@ $ ->
 
       if this.innerText == '+'
         this.innerText = '-'
+        chat.scrollTop(chat.height() * 100)
       else
         this.innerText = '+'
         
