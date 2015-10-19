@@ -26,14 +26,14 @@ $ ->
       chat = $('#chat')
       chat_size = $('#chat_size')[0]
       
-      if chat.hasClass('chat_full_screen')
+      if !chat.is(':visible')
+        chat.slideToggle 'slow'
+      else if chat.hasClass('chat_full_screen')
         chat.toggleClass('chat_full_screen chat_hidden')
         chat_size.innerText = '-'
-      else if chat.hasClass('chat_bottom_only')
+      else
         chat.toggleClass('chat_bottom_only chat_hidden')
         chat_size.innerText = '+'
-      else 
-        chat.slideToggle 'slow'
           
       chat.scrollTop(chat.height() * 100)
 
