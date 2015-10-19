@@ -8,8 +8,8 @@ class PlayersController < ApplicationController
       
       after = Time.at(@after.to_i + 1)
       
-      if @players.none? && Player.activity_after(after).any?
-        # Last player logged out, so we should allow one update to the page.
+      if Player.activity_after(after).any?
+        # Player logged out, so we should allow one update to the page.
         @new_chat = []
       else
         p = @players.except(:select)
