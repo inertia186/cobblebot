@@ -1,6 +1,6 @@
 %tr
   %td{align: :right}
-    %a.tip{id: "player_nick_#{player.nick}", data: { title: player.last_chat, 'last-chat-at' => player.updated_at.to_i }}
+    %a.tip{id: "player_nick_#{player.nick}", data: { title: player.last_chat, 'last-activity-at' => player.last_activity_at.to_i }}
       = image_tag player_images_path(id: player.nick, size: 16, format: 'png'), width: 16, height: 16, alt: player.nick
   %td= player.nick
   -if !!player

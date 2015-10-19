@@ -14,6 +14,7 @@ if chat.hasClass('chat_hidden')
   chat.toggleClass('chat_bottom_only').promise().done ->
     chat_size.innerText = '+'
     chat.scrollTop(chat.height() * 100)
+  chat.removeClass('chat_hidden')
 else
   chat.scrollTop(chat.height() * 100)
 if ( chat.text().indexOf(text) == -1 )

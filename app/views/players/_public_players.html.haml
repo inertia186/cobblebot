@@ -20,4 +20,4 @@
     %tr
       %th{colspan: 4} Logged in Today (#{@players_today.except(:select).count})
       = render partial: 'player', collection: @players_today
-#last_chat{data: {'last-chat-at' => @players.map(&:updated_at).map(&:to_i).max || Time.now.to_i}}
+#last_activity{data: {'last-activity-at' => @activity || @players.map(&:last_activity_at).map(&:to_i).max || Time.now.to_i}}
