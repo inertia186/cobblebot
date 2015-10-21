@@ -26,27 +26,33 @@ $ ->
       chat = $('#chat')
       chat_size = $('#chat_size')[0]
       
-      if chat.hasClass('chat_full_screen')
-        chat.toggleClass('chat_full_screen chat_hidden').promise().done ->
+      if chat.hasClass('chat_bottom_only') || chat.hasClass('chat_full_screen')
+        chat.toggleClass('chat_hidden', 250).promise().done ->
           chat_size.innerText = '-'
-          chat.scrollTop(chat.height() * 100)
+          chat.removeClass('chat_bottom_only')
+          chat.removeClass('chat_full_screen')
+          chat.animate({scrollTop: chat.offset().top}, 'slow')
       else
-        chat.toggleClass('chat_bottom_only chat_hidden').promise().done ->
+        chat.toggleClass('chat_bottom_only', 250).promise().done ->
           chat_size.innerText = '+'
-          chat.scrollTop(chat.height() * 100)
-          
+          chat.removeClass('chat_hidden')
+          chat.animate({scrollTop: chat.offset().top}, 'slow')
       return
       
     $('body').on 'click', '#chat_size', (e) ->
       chat = $('#chat')
       chat_size = $('#chat_size')[0]
-
-      chat.toggleClass('chat_full_screen chat_bottom_only').promise().done ->
-        if chat_size.innerText == '+'
+      
+      if chat.hasClass('chat_bottom_only')
+        chat.toggleClass('chat_full_screen', 250).promise().done ->
           chat_size.innerText = '-'
-        else
+          chat.removeClass('chat_bottom_only')
+          chat.animate({scrollTop: chat.offset().top}, 'slow')
+      else
+        chat.toggleClass('chat_bottom_only', 250).promise().done ->
           chat_size.innerText = '+'
-        chat.scrollTop(chat.height() * 100)
+          chat.removeClass('chat_full_screen')
+          chat.animate({scrollTop: chat.offset().top}, 'slow')
         
       return
   return

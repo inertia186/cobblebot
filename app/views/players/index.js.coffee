@@ -9,15 +9,17 @@ e = $("#player_nick_<%= nick %>")
 no_tags_text = '<%= raw escape_javascript(no_tags_text) %>'
 text = '<%= raw escape_javascript(text) %>'
 e.attr('data-title', no_tags_text)
-chat = $("#chat")
-if chat.hasClass('chat_hidden')
-  chat.toggleClass('chat_bottom_only').promise().done ->
-    chat_size.innerText = '+'
-    chat.scrollTop(chat.height() * 100)
-  chat.removeClass('chat_hidden')
-else
-  chat.scrollTop(chat.height() * 100)
-if ( chat.text().indexOf(text) == -1 )
+chat = $('#chat')
+
+if chat.text().indexOf(text) == -1
   chat.append("&lt;<%= nick %>&gt; " + text + "<br />")
-  chat.scrollTop(chat.height() * 100)
+
+if chat.hasClass('chat_hidden')
+  chat_size.innerText = '+'
+  chat.toggleClass('chat_bottom_only', 250).promise().done ->
+    chat.removeClass('chat_hidden')
+    chat.animate({scrollTop: chat.offset().top}, 'slow')
+else
+  chat.animate({scrollTop: chat.offset().top}, 'slow')
+
 <% end %>
