@@ -22,42 +22,41 @@ $ ->
     document.updatePublicPlayersTimerId = setTimeout updatePublicPlayers, 5000
     document.chat = chat = $.extend $('#chat'),
       toggleChat: ->
-        if @hasClass('chat_bottom_only') || @hasClass('chat_full_screen')
+        if @hasClass 'chat_bottom_only' || @hasClass 'chat_full_screen'
           @hideText()
         else
           @miniText()
       toggleSize: ->
-        if @hasClass('chat_bottom_only')
+        if @hasClass 'chat_bottom_only'
           @fullText()
         else
           @miniText()
       hideText: ->
         $('#chat_size')[0].innerText = '-'
         @toggleClass('chat_hidden', 250).promise().done ->
-          @removeClass('chat_bottom_only')
-          @removeClass('chat_full_screen')
-          @scrollToBottom(location.hash)
+          @removeClass 'chat_bottom_only'
+          @removeClass 'chat_full_screen'
+          @scrollToBottom()
       fullText: ->
         $('#chat_size')[0].innerText = '-'
         @toggleClass('chat_full_screen', 250).promise().done ->
-          @removeClass('chat_bottom_only')
-          @scrollToBottom(location.hash)
+          @removeClass 'chat_bottom_only'
+          @scrollToBottom()
       miniText: ->
         $('#chat_size')[0].innerText = '+'
         @toggleClass('chat_bottom_only', 250).promise().done ->
-          @removeClass('chat_hidden')
-          @removeClass('chat_full_screen')
-          @scrollToBottom(location.hash)
-      appendText: (nick, toAppend, hash) ->
-        if @text().indexOf(toAppend) == -1
-          @append("&lt;" + nick + "&gt; " + toAppend + "<br />")
-        if @hasClass('chat_hidden')
+          @removeClass 'chat_hidden'
+          @removeClass 'chat_full_screen'
+          @scrollToBottom()
+      appendText: (nick, toAppend) ->
+        if @text().indexOf toAppend == -1
+          @append "&lt;" + nick + "&gt; " + toAppend + "<br />"
+        if @hasClass 'chat_hidden'
           @miniText()
         else
-          @scrollToBottom(hash)
-      scrollToBottom: (hash) ->
-        @animate {scrollTop: @offset().top}, 2500, ->
-          location.hash = hash
+          @scrollToBottom
+      scrollToBottom: ->
+        @animate {scrollTop: @offset().top}, 2500
 
     $('body').on 'click', '#chat_controls', (e) -> chat.toggleChat()
     $('body').on 'click', '#chat_size', (e) -> chat.toggleSize()

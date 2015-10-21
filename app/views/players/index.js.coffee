@@ -9,8 +9,8 @@ e = $("#player_nick_<%= nick %>")
 no_tags_text = '<%= raw escape_javascript(no_tags_text) %>'
 after = '<%= @after %>'
 nick = '<%= nick %>'
-text = '<%= raw escape_javascript(text) %><a href="#" name="' + after + '"></a>'
+text = '<%= raw escape_javascript(text) %>'
 e.attr('data-title', no_tags_text)
-document.chat.appendText(nick, text, after)
+document.chat.appendText(nick, text)
 
 <% end %>
