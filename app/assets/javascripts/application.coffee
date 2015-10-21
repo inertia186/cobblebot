@@ -10,54 +10,58 @@ document.updateIrcCountTimerId = -1
 
 updatePublicPlayers = ->
   after = $('#last_activity').attr 'data-last-activity-at'
-  $.getScript '/players.js?after=' + after
-  document.updatePublicPlayersTimerId = setTimeout updatePublicPlayers, 5000
-  return
+  $.getScript('/players.js?after=' + after).done ->
+    document.updatePublicPlayersTimerId = setTimeout updatePublicPlayers, 5000
 
 updateIrcCount = ->
-  $.getScript '/irc.js'
-  document.updateIrcCountTimerId = setTimeout updateIrcCount, 60000
-  return
+  $.getScript('/irc.js').done ->
+    document.updateIrcCountTimerId = setTimeout updateIrcCount, 60000
 
 $ ->
   if $('#public-players').length > 0
     document.updatePublicPlayersTimerId = setTimeout updatePublicPlayers, 5000
-    $('body').on 'click', '#chat_controls', (e) ->
-      chat = $('#chat')
-      chat_size = $('#chat_size')[0]
-      
-      if chat.hasClass('chat_bottom_only') || chat.hasClass('chat_full_screen')
-        chat.toggleClass('chat_hidden', 250).promise().done ->
-          chat_size.innerText = '-'
-          chat.removeClass('chat_bottom_only')
-          chat.removeClass('chat_full_screen')
-          chat.animate({scrollTop: chat.offset().top}, 'slow')
-      else
-        chat.toggleClass('chat_bottom_only', 250).promise().done ->
-          chat_size.innerText = '+'
-          chat.removeClass('chat_hidden')
-          chat.animate({scrollTop: chat.offset().top}, 'slow')
-      return
-      
-    $('body').on 'click', '#chat_size', (e) ->
-      chat = $('#chat')
-      chat_size = $('#chat_size')[0]
-      
-      if chat.hasClass('chat_bottom_only')
-        chat.toggleClass('chat_full_screen', 250).promise().done ->
-          chat_size.innerText = '-'
-          chat.removeClass('chat_bottom_only')
-          chat.animate({scrollTop: chat.offset().top}, 'slow')
-      else
-        chat.toggleClass('chat_bottom_only', 250).promise().done ->
-          chat_size.innerText = '+'
-          chat.removeClass('chat_full_screen')
-          chat.animate({scrollTop: chat.offset().top}, 'slow')
-        
-      return
-  return
+    document.chat = chat = $.extend $('#chat'),
+      toggleChat: ->
+        if @hasClass('chat_bottom_only') || @hasClass('chat_full_screen')
+          @hideText()
+        else
+          @miniText()
+      toggleSize: ->
+        if @hasClass('chat_bottom_only')
+          @fullText()
+        else
+          @miniText()
+      hideText: ->
+        $('#chat_size')[0].innerText = '-'
+        @toggleClass('chat_hidden', 250).promise().done ->
+          @removeClass('chat_bottom_only')
+          @removeClass('chat_full_screen')
+          @scrollToBottom(location.hash)
+      fullText: ->
+        $('#chat_size')[0].innerText = '-'
+        @toggleClass('chat_full_screen', 250).promise().done ->
+          @removeClass('chat_bottom_only')
+          @scrollToBottom(location.hash)
+      miniText: ->
+        $('#chat_size')[0].innerText = '+'
+        @toggleClass('chat_bottom_only', 250).promise().done ->
+          @removeClass('chat_hidden')
+          @removeClass('chat_full_screen')
+          @scrollToBottom(location.hash)
+      appendText: (nick, toAppend, hash) ->
+        if @text().indexOf(toAppend) == -1
+          @append("&lt;" + nick + "&gt; " + toAppend + "<br />")
+        if @hasClass('chat_hidden')
+          @miniText()
+        else
+          @scrollToBottom(hash)
+      scrollToBottom: (hash) ->
+        @animate {scrollTop: @offset().top}, 2500, ->
+          location.hash = hash
+
+    $('body').on 'click', '#chat_controls', (e) -> chat.toggleChat()
+    $('body').on 'click', '#chat_size', (e) -> chat.toggleSize()
 
 $ ->
   if !!$('a#irc-link')
     document.updateIrcCountTimerId = setTimeout updateIrcCount, 60000
-  return
