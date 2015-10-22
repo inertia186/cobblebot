@@ -56,6 +56,14 @@ $ ->
         else
           @scrollToBottom()
       scrollToBottom: ->
+        h = @innerHTML
+        if h.length > 2096
+          tk = '&lt;'
+          i = h.indexOf(tk)
+          j = h.substring(i + tk.length).indexOf(tk)
+          k = i + j + tk.length
+          c = h.substring(0, i)
+          @innerHTML = c + h.substring(k)
         @animate {scrollTop: @offset().top}, 2500
 
     $('body').on 'click', '#chat_controls', (e) -> chat.toggleChat()
