@@ -56,7 +56,7 @@ $ ->
           j = h.substring(i + tk.length).indexOf tk
           k = i + j + tk.length
           c = h.substring 0, i
-          @replace(c + h.substring k)
+          @html(c + h.substring k)
 
         if h.indexOf(toAppend) == -1
           @append "&lt;" + nick + "&gt; " + toAppend + "<br />"
