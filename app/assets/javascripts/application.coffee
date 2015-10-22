@@ -54,7 +54,7 @@ $ ->
         if @hasClass 'chat_hidden'
           @miniText()
         else
-          @scrollToBottom
+          @scrollToBottom()
       scrollToBottom: ->
         @animate {scrollTop: @offset().top}, 2500
 
