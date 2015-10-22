@@ -50,7 +50,7 @@ $ ->
           @scrollToBottom()
       appendText: (nick, toAppend) ->
         h = @html()
-        if h.length > 2096
+        if h.length > 1024
           tk = '&lt;'
           i = h.indexOf tk
           j = h.substring(i + tk.length).indexOf tk
