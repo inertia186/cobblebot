@@ -49,14 +49,14 @@ $ ->
           @removeClass 'chat_full_screen'
           @scrollToBottom()
       appendText: (nick, toAppend) ->
-        h = @innerHTML
+        h = @html()
         if h.length > 2096
           tk = '&lt;'
           i = h.indexOf tk
           j = h.substring(i + tk.length).indexOf tk
           k = i + j + tk.length
           c = h.substring 0, i
-          @innerHTML = c + h.substring k
+          @replace(c + h.substring k)
 
         if h.indexOf(toAppend) == -1
           @append "&lt;" + nick + "&gt; " + toAppend + "<br />"
