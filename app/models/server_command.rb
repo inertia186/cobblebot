@@ -16,11 +16,19 @@ class ServerCommand
   include Trustable
 
   def self.eval_pattern(pattern, name = nil, options = {})
-    eval(pattern, Proc.new {}.binding, name)
+    begin
+      eval(pattern, Proc.new {}.binding, name)
+    rescue => e
+      raise CobbleBotError(message: "pattern: #{pattern}, name: #{name}, options: #{options}", cause: e)
+    end
   end
   
   def self.eval_command(command, name = nil, options = {})
-    eval(command, Proc.new{}.binding, name)
+    begin
+      eval(command, Proc.new{}.binding, name)
+    rescue => e
+      raise CobbleBotError(message: "command: #{command}, name: #{name}, options: #{options}", cause: e)
+    end
   end
   
   def self.player_authenticated(nick, uuid)

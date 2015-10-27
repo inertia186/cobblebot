@@ -94,6 +94,7 @@ Rails.application.routes.draw do
       resource :session, only: %w(create update destroy)
       resources :players, only: %w(index show)
       resources :messages, only: %w(index show)
+      resources :reputations, only: %w(index show)
     end
   end
 end

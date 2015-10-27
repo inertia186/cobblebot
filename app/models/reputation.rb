@@ -1,6 +1,11 @@
 class Reputation < ActiveRecord::Base
   belongs_to :truster, class_name: 'Player'
   belongs_to :trustee, class_name: 'Player'
+
+  scope :with_trustables, -> {
+    joins('LEFT OUTER JOIN players trusters ON trusters.id = reputations.truster_id LEFT OUTER JOIN players trustees ON trusters.id = reputations.trustee_id').
+      select('reputations.*, trusters.uuid AS trusters_uuid, trusters.nick AS trusters_nick, trustees.uuid AS trustees_uuid, trustees.nick AS trustees_nick')
+  }
   
   validates :truster_id, presence: true
   validates :trustee_id, presence: true
