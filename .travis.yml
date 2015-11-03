@@ -10,3 +10,4 @@ addons:
 notifications:
   email: false
   irc: "chat.freenode.net#galacticaactual"
+  slack: galacticaactual:rhAXgZ68aoikbxBBA05xIUVC
