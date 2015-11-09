@@ -131,4 +131,8 @@ class ServerCommand
       end
     end
   end
+  
+  def self.slack_bot
+    @slack_bot ||= SlackBot.new
+  end
 end

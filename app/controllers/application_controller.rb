@@ -11,6 +11,8 @@ class ApplicationController < ActionController::Base
   helper_method :admin_signed_in?
   helper_method :show_irc_web_chat?
 
+  helper_method :slack_bot, :slack_groups_list
+
   before_filter :check_server_status, unless: Proc.new {
     [Admin, Api::V1].include? self.class.parent
   }
@@ -32,6 +34,16 @@ class ApplicationController < ActionController::Base
       authenticate_or_request_with_http_basic("Feed Administration") do |user, password|
         password == Preference.web_admin_password
       end
+    end
+  end
+  
+  def slack_bot
+    ServerCommand.slack_bot
+  end
+  
+  def slack_groups_list
+    @slack_groups_list = slack_bot.groups_list["groups"].map do |group|
+      [group["name"], group["id"]]
     end
   end
 private

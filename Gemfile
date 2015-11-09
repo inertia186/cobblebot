@@ -47,6 +47,9 @@ gem 'file-tail'
 # CobbleBot uses mechanize to get the HTML Title when displaying a link to players.
 gem 'mechanize'
 
+# CobbleBot uses slack-api to communicate with slack.com for servers that would like such integration.  Get an API token here: http://slack.com/
+gem 'slack-api'
+
 # Can be used by callbacks.
 gem 'mc-slap', git: 'git://gist.github.com/5002463.git'
 # Used to translate in-game chat.
