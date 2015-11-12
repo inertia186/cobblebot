@@ -22,8 +22,12 @@ class SlackBot < Slack::Client
     @group ||= Preference.slack_group
   end
 
-  def say(message)
-    chat_postMessage(channel: group, as_user: true, text: message)
+  def say(text)
+    chat_postMessage(channel: group, as_user: true, text: text)
+  end
+
+  def topic(text)
+    groups_setTopic(channel: group, topic: text)
   end
 end
 
