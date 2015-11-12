@@ -24,6 +24,7 @@ class MinecraftWatchdog
       prettify_callbacks
       update_ip_cc
       update_player_stats
+      start_slack_bot_rtm
 
       break if !!options[:debug]      
       if Resque.size(@queue) < 6
@@ -218,5 +219,59 @@ private
     y = options['y']
     z = options['z']
     player.update_attribute(:last_location, "x=#{x.to_i},y=#{y.to_i},z=#{z.to_i}") # no AR callbacks
+  end
+  
+  def self.start_slack_bot_rtm
+    @slack_bot_thread = nil unless !!@slack_bot_thread && @slack_bot_thread.alive?
+    
+    @slack_bot_thread ||= Thread.start do
+      @slack_bot = SlackBot.new
+      client = @slack_bot.realtime
+
+      client.on :hello do
+        Rails.logger.info "SlackBot realtime client started."
+      end
+      
+      client.on :message do |data|
+        begin
+          Rails.logger.info data.inspect
+          
+          channel = data['channel']
+          return unless channel == Preference.slack_group
+          
+          message = data['text']
+          return if message.nil?
+          
+          at, command = message.split(' ')
+          return unless at == '@cobblebot' || at == '@cb' || at == '@server'
+        
+          Rails.logger.info command
+        
+          case command
+          when /^list$/
+            msg = ServerCommand.execute('list') || ''
+            msg = msg.strip
+            msg = msg.gsub(/:/, ': ')
+
+            @slack_bot.say msg
+          when /^say$/
+            words = message.split(' ')
+            if words.size > 2
+              msg = words[2..-1].join(' ').gsub(/['`"]/, "\'")
+              user_info = @slack_bot.users_info user: data['user']
+              if !!user_info
+                ServerCommand.say "@a", msg, as: user_info['user']['name'], color: 'white'
+              end
+            end
+          else
+            @slack_bot.say "Sorry <@#{data['user']}>, what?"
+          end
+        rescue => e
+          Rails.logger.error e.inspect
+        end
+      end
+      
+      client.start
+    end
   end
 end
