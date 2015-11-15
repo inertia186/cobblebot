@@ -19,7 +19,7 @@ class ServerCommand
     begin
       eval(pattern, Proc.new {}.binding, name)
     rescue => e
-      raise CobbleBotError(message: "pattern: #{pattern}, name: #{name}, options: #{options}", cause: e)
+      raise CobbleBotError.new(message: "pattern: #{pattern}, name: #{name}, options: #{options}", cause: e)
     end
   end
   
@@ -27,7 +27,7 @@ class ServerCommand
     begin
       eval(command, Proc.new{}.binding, name)
     rescue => e
-      raise CobbleBotError(message: "command: #{command}, name: #{name}, options: #{options}", cause: e)
+      raise CobbleBotError.new(message: "command: #{command}, name: #{name}, options: #{options}", cause: e)
     end
   end
   
