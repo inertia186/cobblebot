@@ -239,7 +239,7 @@ private
           channel = data['channel']
           return unless channel == Preference.slack_group
           
-          message = data['text']
+          message = data['text'].force_encoding('US-ASCII')
           return if message.nil?
           
           at, command = message.split(' ')
