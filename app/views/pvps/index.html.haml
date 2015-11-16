@@ -1,31 +1,42 @@
 = content_for :head, auto_discovery_link_tag(:atom, "http://#{pvps_url(format: :atom).split('://')[1]}")
 
 .row
-  %h3
-    PVPs (#{@pvps.count})
-    %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_pvps'}} ?
-  .modal.fade#explain_pvps{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_messages_label', 'aria-hidden' => true}
-    .modal-dialog
-      .modal-content
-        .modal-header
-          %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-            %span{'aria-hidden' => true} &times;
-          %h4.modal-title#explain_pvps_label Explanation of PVPs
-        .modal-body
-          %p
-            To see pvps in-game ...
-          %p
-            %code= help_docs('lastpvp')
-
+  .col-sm-8
+    %h3
+      PVPs (#{@pvps.count})
+      %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_pvps'}} ?
+    .modal.fade#explain_pvps{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_messages_label', 'aria-hidden' => true}
+      .modal-dialog
+        .modal-content
+          .modal-header
+            %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+              %span{'aria-hidden' => true} &times;
+            %h4.modal-title#explain_pvps_label Explanation of PVPs
+          .modal-body
+            %p
+              To see pvps in-game ...
+            %p
+              %code= help_docs('lastpvp')
+            
+  .col-sm-4.pull-right
+    = form_tag url_for(action: controller.action_name), method: :get do
+      = hidden_field_tag :sort_field, @sort_field
+      = hidden_field_tag :sort_order, @sort_order
+      = hidden_field_tag :filter, @filter
+      = text_field_tag :query, @query, placeholder: 'Query Text'
+      = submit_tag 'Search', class: 'btn btn-info btn-xs'
+    
 .row
-  %table.table
-    %thead
-      %tr
-        %th PVP
-        %th Loser
-        %th Winner
-        %th Created
-    %tbody
-    %tr=render partial: 'pvp', collection: @pvps
-
-%p= will_paginate @pvps
+  .col-sm-12
+    %table.table
+      %thead
+        %tr
+          %th PVP
+          %th Loser
+          %th Winner
+          %th Created
+      %tbody
+      %tr=render partial: 'pvp', collection: @pvps
+.row
+  .col-sm-12
+    %p= will_paginate @pvps

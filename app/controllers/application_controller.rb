@@ -13,6 +13,8 @@ class ApplicationController < ActionController::Base
 
   helper_method :slack_bot, :slack_groups_list
 
+  helper_method :setup_params
+
   before_filter :check_server_status, unless: Proc.new {
     [Admin, Api::V1].include? self.class.parent
   }
@@ -53,5 +55,12 @@ private
   
   def show_irc_web_chat?
     Preference.where(key: ['irc_enabled', 'irc_web_chat_enabled']).where(value: '1').count == 2
+  end
+
+  def setup_params
+    @filter = params[:filter].present? ? params[:filter] : 'all'
+    @query = params[:query]
+    @sort_field = params[:sort_field].present? ? params[:sort_field] : 'created_at'
+    @sort_order = params[:sort_order] == 'asc' ? 'asc' : 'desc'
   end
 end
