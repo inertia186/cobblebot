@@ -44,7 +44,11 @@ class ApplicationController < ActionController::Base
   end
   
   def slack_groups_list
-    @slack_groups_list = slack_bot.groups_list["groups"].map do |group|
+    # TODO Find a way to get AngularJS to refresh this correctly if a new API Key is provided.
+    return [] unless !!slack_bot.auth_test
+    groups = slack_bot.groups_list["groups"]
+    
+    @slack_groups_list = groups.map do |group|
       [group["name"], group["id"]]
     end
   end

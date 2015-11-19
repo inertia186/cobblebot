@@ -2,20 +2,35 @@ source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.2.4'
+
 # Use sqlite3 as the database for Active Record
-gem 'sqlite3', require: false
+gem 'sqlite3', require: false, platforms: :ruby
+
 # Use postgresql if you're tired of SQLite errors.
-# gem 'pg'
+# gem 'pg', platforms: :jruby, git: 'git://github.com/headius/jruby-pg.git', :branch => :master
+
+# Enables sqlite3 on jruby
+gem 'jruby-openssl', platform: :jruby
+gem 'activerecord-jdbcsqlite3-adapter', platform: :jruby
+
 # Use SCSS for stylesheets
 gem 'sass-rails'
+
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier'
+
 # Use CoffeeScript for .coffee assets and views
 gem 'coffee-rails'
+
+# A great Javascript framework.
+gem 'angularjs-rails'
+
 # See https://github.com/sstephenson/execjs#readme for more supported runtimes
 # gem 'therubyracer', platforms: :ruby, require: false
+
 # Used to make HMTL select tags nicer.
 gem 'chosen-rails'
+
 # Required by chosen-rails
 gem 'sprockets', '2.12.3'
 gem 'compass-rails', '~> 2.0.4'
@@ -82,13 +97,13 @@ gem 'will_paginate'
 
 group :development do
   # Access an IRB console on exception pages or by using <%= console %> in views
-  gem 'web-console', '~> 2.0'
+  gem 'web-console', '~> 2.0', platforms: :ruby
 
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
 #  gem 'spring'
 
-  gem 'better_errors', require: false
-  gem 'binding_of_caller', require: false
+  gem 'better_errors', require: false, platforms: :ruby
+  gem 'binding_of_caller', require: false, platforms: :ruby
   gem 'rack-mini-profiler', require: false
 end
 
@@ -103,8 +118,9 @@ end
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
-  gem 'byebug'
+  gem 'byebug', platforms: :ruby
 
   gem 'pry-rails'
   gem 'malp', github: 'inertia186/malp', require: false
 end
+

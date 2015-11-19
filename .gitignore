@@ -18,3 +18,5 @@ coverage/*
 test/models/coverage/*
 todo.*
 public/assets
+.idea
+

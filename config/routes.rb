@@ -57,7 +57,7 @@ Rails.application.routes.draw do
   #   resources :photos, concerns: :toggleable
 
   namespace :admin do
-    resources :preferences
+    resources :preferences, only: [:index, :update]
     resources :callbacks, as: :server_callbacks, controller: :callbacks do
       collection do
         patch :reset_all_cooldown

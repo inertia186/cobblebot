@@ -1,5 +1,7 @@
 #= require jquery
 #= require jquery_ujs
+#= require angular
+#= require angular-resource
 #= require turbolinks
 #= require bootstrap.min
 #= require chosen-jquery
@@ -8,6 +10,11 @@
 document.updatePublicPlayersTimerId = -1
 document.updateIrcCountTimerId = -1
 
+if ( document.app == undefined )
+  document.app = angular.module("CobbleBot", ["ngResource"]).config(["$httpProvider", ($httpProvider) ->
+      $httpProvider.defaults.headers.common['X-CSRF-Token'] = $('meta[name=csrf-token]').attr('content')
+    ])
+  
 updatePublicPlayers = ->
   after = $('#last_activity').attr 'data-last-activity-at'
   $.getScript('/players.js?after=' + after).done ->
