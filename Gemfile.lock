@@ -166,6 +166,8 @@ GEM
     minecraft-query (1.0.0)
     mini_portile (0.6.2)
     minitest (5.8.0)
+    momentjs-rails (2.10.2)
+      railties (>= 3.1)
     mono_logger (1.1.0)
     multi_json (1.11.2)
     multipart-post (2.0.0)
@@ -346,6 +348,7 @@ DEPENDENCIES
   mechanize
   memory_test_fix
   minecraft-query
+  momentjs-rails
   pry-rails
   rack-mini-profiler
   rails (= 4.2.4)
