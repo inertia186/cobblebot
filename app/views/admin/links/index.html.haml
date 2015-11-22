@@ -1,21 +1,14 @@
 = content_for :head, auto_discovery_link_tag(:atom, "http://admin:#{Preference.web_admin_password}@#{admin_links_url(format: :atom).split('://')[1]}")
 
 .row
-  %h3
-    Links
-    - if @player
-      by
-      = link_to @player.nick, admin_player_path(@player)
-    %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_links'}} ?
-  .modal.fade#explain_links{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_links_label', 'aria-hidden' => true}
-    .modal-dialog
-      .modal-content
-        .modal-header
-          %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-            %span{'aria-hidden' => true} &times;
-          %h4.modal-title#explain_links_label Explanation of Links
-        .modal-body
-          %p If a player types a url in chat, a link is created to store the title and other meta information so that these links are clickable in chat if the Autolink Server Callback is enabled.  Message of the Day may also include links.  Any link that is rendered with ServerCommand.say_link will be stored in the Links table.  Before the link is shown in chat, the title is requested from the web site and stored in the same record.  The title is cached for an hour or however long the particular web server recommends.
+  .col-sm-3
+    %h3
+      Links
+      - if @player
+        by
+        = link_to @player.nick, admin_player_path(@player)
+  .col-sm-9
+    %suggestion{module: 'admin', group: 'links', key: 'main', verbose: 'false'}
 
 %div{style: 'float: right'}
   = form_tag url_for(action: controller.action_name), method: :get do

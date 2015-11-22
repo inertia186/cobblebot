@@ -1,8 +1,11 @@
 .row
   %h3 Preferences
 
-.row{'ng-controller' => 'PreferenceCtrl'}
-  .alert.alert-danger{'data-ng-show' => 'errorMode'}
+:javascript
+  window.preloadedPreferences = #{raw @preloadedPreferences.to_json};
+
+.row{ng_controller: 'PreferenceCtrl'}
+  .alert.alert-danger{data_ng_show: 'errorMode'}
     {{errorMessage}}
   %table.table
     %thead
@@ -11,37 +14,19 @@
         %th{width: '66%'} Value
         %th
     %tbody
-      %tr{'ng-repeat' => 'preference in preferences'}
-        %td {{preference.displayKey()}}
-        %td{'data-ng-click' => 'editMode = true; edit(preference)'}
-          %span{'data-ng-hide' => 'editMode'} {{preference.displayValue()}}
-          %span{'data-ng-show' => 'editMode', 'ng-keydown' => "$event.which === 27 && !(editMode = false) && cancel(preference)"}
-            %span{'data-ng-show' => 'preference.slack_group()'}
-              - if slack_groups_list.empty?
-                Please configure Slack and restart CobbleBot.
-              - else
-                %select{name: "preference.value", 'data-ng-model' => 'preference.value'}
-                  = options_for_select(slack_groups_list)
-            %span{'data-ng-show' => 'preference.command_scheme()'}
-              %select{name: "preference.value", 'data-ng-model' => 'preference.value'}
-                %option{value: "rcon"} RCON
-                %option{value: "multiplexor"} Multiplexor
-            %span{'data-ng-hide' => 'preference.slack_group()'}
-              %span{'data-ng-hide' => 'preference.command_scheme()'}
-                %span{'data-ng-hide' => 'preference.truthy()'}
-                  %span{'data-ng-hide' => 'preference.verbose()'}
-                    %input{'data-ng-show' => 'preference.secure()', type: 'password', 'data-ng-model' => 'preference.value', size: 80}
-                    %input{'data-ng-hide' => 'preference.secure()', type: 'text', 'data-ng-model' => 'preference.value', size: 80, 'ng-keydown' => "$event.which === 13 && !(editMode = false) && save(preference)"}
-                %span{'data-ng-show' => 'preference.verbose()'}
-                  .alert.alert-warning{'data-ng-show' => 'preference.json()'} Please note, this preference allows multiple JSON segments where each line is treated separately.
-                  %textarea{cols: 80, rows: 15, 'data-ng-model' => 'preference.value'}
-                %select{'data-ng-show' => "preference.truthy()", name: "preference.value", 'data-ng-model' => 'preference.value'}
-                  %option{value: "0"} False
-                  %option{value: "1"} True
+      %tr{ng_repeat: 'preference in preferences', ng_keydown: "$event.which === 27 && !(editMode = false) && cancel(preference)", id: '{{preference.key}}'}
         %td
-          .row
-            .col-sm-12.pull-right
-              %a.btn.btn-info.btn-xs{'data-ng-hide' => 'editMode', 'data-ng-click' => 'editMode = true; edit(preference)'} Edit
-            .col-sm-12.pull-right
-              %a.btn.btn-info.btn-xs{'data-ng-show' => 'editMode', 'data-ng-click' => 'editMode = false; save(preference)'} Save
-              %a.btn.btn-info.btn-xs{'data-ng-show' => 'editMode', 'data-ng-click' => 'editMode = false; cancel(preference)'} Cancel
+          {{preference.displayKey()}}
+          .error_message
+        %td{data_ng_click: 'editMode = true; edit(preference)'}
+          %span{data_ng_hide: 'editMode'} {{preference.displayValue()}}
+          %edit-cell
+        %td{width: '15%'}
+          .row{data_ng_hide: 'editMode'}
+            .col-sm-12
+              %a.btn.btn-info.btn-sm{data_ng_click: 'editMode = true; edit(preference)'} Edit
+          .row{data_ng_show: 'editMode'}
+            .col-sm-6
+              %a.btn.btn-info.btn-sm{data_ng_click: 'editMode = false; save(preference)'} Save
+            .col-sm-6
+              %a.btn.btn-info.btn-sm{data_ng_click: 'editMode = false; cancel(preference)'} Cancel

@@ -21,163 +21,32 @@
       = f.label :pattern
       %br
       = f.text_field :pattern, size: 80, placeholder: '/^@server say hello$/i'
-      %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_pattern'}} ?
-      .modal.fade{id: :explain_pattern, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_pattern_label', 'aria-hidden' => true}
-        .modal-dialog
-          .modal-content
-            .modal-header
-              %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-                %span{'aria-hidden' => true} &times;
-              %h4.modal-title#explain_pattern_label Explanation of Pattern
-            .modal-body
-              %p Regex match on a log entry.
+      %suggestion{module: 'admin', group: 'callbacks', key: 'pattern', verbose: 'false'}
     .input-group
       = f.label :type
       %br
       = f.select :type, ServerCallback::ALL_TYPES.map { |option| [option.split('::')[1..-1].join(' ').titleize, option] }
-      %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_type'}} ?
-      .modal.fade{id: :explain_type, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_type_label', 'aria-hidden' => true}
-        .modal-dialog
-          .modal-content
-            .modal-header
-              %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-                %span{'aria-hidden' => true} &times;
-              %h4.modal-title#explain_type_label Explanation of Type
-            .modal-body
-              %p This option defines which log event will cause the callback to fire.
-              %p One of the purposes of the type is to keep players from being able to initiate certain patterns.  For example, we do not want players to see the Message of the Day if they manually type "joined the game" into chat.  But we would like the server to trigger this event.  If we arbitrarily look for "joined the game" without looking at the context, players could trigger the message.
-              %p On the other hand, we also do not want the server to initiate certain commands that are intended for the player only.  Theoretically, the server could generate a log entry which contains the text '@server help' (players could achieve this by naming a sword '@server help' then killing another player).  Choosing the correct type helps to avoid this.
-              %p Setting this will cause CobbleBot to selectively apply a pattern as:
-              %table.table
-                %tbody
-                %tr
-                  %th AnyEntry
-                  %td
-                    any log entry that occurs, e.g.:
-                    .well.well-sm
-                      %code
-                        %strong [10:54:50] [Server thread/INFO]: Starting minecraft server version 1.8.3
-                %tr
-                  %th PlayerChat
-                  %td
-                    only player chat, e.g.:
-                    .well.well-sm
-                      %code
-                        [09:42:50] [Server thread/INFO]: &lt;inertia186&gt;
-                        %strong Look, I'm in a small well!
-                %tr
-                  %th PlayerEmote
-                  %td
-                    only player emotes (/me)
-                    .well.well-sm
-                      %code
-                        [13:14:37] [Server thread/INFO]: * inertia186
-                        %b pretends to work really hard on something
-                %tr
-                  %th AnyPlayerEntry
-                  %td
-                    either player chat or player emotes
-                %tr
-                  %th ServerEntry
-                  %td
-                    only messages that are none of the above
-                    .well.well-sm
-                      %code
-                        %strong [10:29:29] [Server thread/WARN]: Time ran backwards! Did the system time change?
+      %suggestion{module: 'admin', group: 'callbacks', key: 'type', verbose: 'false'}
     .input-group
       = f.label :command
       %br
       = f.text_area :command, cols: 70, rows: 15, placeholder: 'say "@a", "Hello World"'
-      %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_command'}} ?
-      .modal.fade{id: :explain_command, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_command_label', 'aria-hidden' => true}
-        .modal-dialog.modal-lg
-          .modal-content
-            .modal-header
-              %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-                %span{'aria-hidden' => true} &times;
-              %h4.modal-title#explain_command_label Explanation of Command
-            .modal-body
-              %p Commands tell CobbleBot what to do when a pattern match is made.  They can be an entire program with variables and conditions.  Any valid ruby program will be executed each time a pattern match is made.
-              %table.table
-                %tbody
-                %tr
-                  %th{nowrap: :nowrap}
-                    %code say "@a", "Hello World"
-                  %td causes the server to output a message to all players
-                %tr
-                  %th{nowrap: :nowrap}
-                    %code say_link "@a", "http://www.mojang.com/"
-                    %br
-                    %code say_link "@r", "http://www.cnn.com/"
-                  %td causes the server to output a link
-                %tr
-                  %th
-                    %code %nick%
-                  %td
-                    %p substitutes player name, if applicable
-                    %p For example, this would cause the server to use the name of the player who initiated the pattern, only to that player.
-                    %code say "%nick%", "Hello, %nick%!"
-                %tr
-                  %th
-                    %code %message%
-                  %td substitutes the message that was received (e.g., what the player typed in chat)
-                %tr
-                  %th
-                    %code %1%
-                  %td
-                    %p substitutes the first regex group match (1-9 supported)
-                    %p
-                      For example, if the callback pattern is
-                      %code /slap (.*)/i
-                      then this var becomes the part of the message matched within the parentheses.
-                    %p A command using this pattern might be:
-                    %code say "%1%", "Hey, be nice to %1%!"
-                    
+      %suggestion{module: 'admin', group: 'callbacks', key: 'command', verbose: 'false'}
     .input-group
       = f.label :cooldown
       %br
       = f.text_field :cooldown, placeholder: '300'
-      %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_cooldown'}} ?
-      .modal.fade{id: :explain_cooldown, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_cooldown_label', 'aria-hidden' => true}
-        .modal-dialog
-          .modal-content
-            .modal-header
-              %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-                %span{'aria-hidden' => true} &times;
-              %h4.modal-title#explain_cooldown_label Explanation of Cooldown
-            .modal-body
-              %p An expression for the minimum number of seconds that must pass before this callback will fire again.  Typically, this is for player chat or emotes.
+      %suggestion{module: 'admin', group: 'callbacks', key: 'cooldown', verbose: 'false'}
     .input-group
       = f.label :help_doc_key
       %br
       = f.text_field :help_doc_key
-      %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_help_doc_key'}} ?
-      .modal.fade{id: :explain_help_doc_key, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_help_doc_key_label', 'aria-hidden' => true}
-        .modal-dialog
-          .modal-content
-            .modal-header
-              %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-                %span{'aria-hidden' => true} &times;
-              %h4.modal-title#explain_help_doc_key_label Explanation of Help doc key
-            .modal-body
-              %p
-                The
-                %code @server help
-                callback uses this field to display which other callbacks have help.
+      %suggestion{module: 'admin', group: 'callbacks', key: 'help_doc_key', verbose: 'false'}
     .input-group
       = f.label :help_doc
       %br
       = f.text_area :help_doc, cols: 70, rows: 15, placeholder: 'Usage @server this'
-      %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_help_doc'}} ?
-      .modal.fade{id: :explain_help_doc, tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_help_doc_label', 'aria-hidden' => true}
-        .modal-dialog
-          .modal-content
-            .modal-header
-              %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-                %span{'aria-hidden' => true} &times;
-              %h4.modal-title#explain_help_doc_label Explanation of Help doc
-            .modal-body
-              %p Put something helpful here.
+      %suggestion{module: 'admin', group: 'callbacks', key: 'help_doc', verbose: 'false'}
     .input-group
       = f.label :enabled do
         = f.check_box :enabled
@@ -185,4 +54,4 @@
     .input-group
       = f.submit class: 'btn btn-primary'
     .input-group
-      = link_to 'Back', admin_server_callbacks_path, class: 'btn btn-info btn-xs'
+      = link_to 'Back', admin_server_callbacks_path, class: 'btn btn-info btn-sm'

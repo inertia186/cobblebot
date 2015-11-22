@@ -1,0 +1,6 @@
+%span{data_ng_show: 'preference.isSlackGroup()'}
+  - if slack_groups_list.empty?
+    Please configure Slack and restart CobbleBot.
+  - else
+    %select{name: "preference.value", data_ng_model: 'preference.value'}
+      = options_for_select(slack_groups_list)

@@ -1,42 +1,47 @@
 = content_for :head, auto_discovery_link_tag(:atom, "http://#{pvps_url(format: :atom).split('://')[1]}")
 
-.row
-  .col-sm-8
+/ It would be nice to preload the inital request, but the json takes too long to render due to the deep structure.  Specifically, pvp.loser.quote and pvp.winner.quote have to be queried individually for each pvp message.  So it's better to just display the "Searching ..." text while this data loads asynchronisly.
+/ %div{data_preload_resource: '/pvps.json'}
+/   =raw render template: '/pvps/index.json', collection: @pvps
+
+.row{ng_controller: 'PvpCtrl'}
+  .col-sm-2
     %h3
-      PVPs (#{@pvps.count})
-      %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_pvps'}} ?
-    .modal.fade#explain_pvps{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_messages_label', 'aria-hidden' => true}
-      .modal-dialog
-        .modal-content
-          .modal-header
-            %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-              %span{'aria-hidden' => true} &times;
-            %h4.modal-title#explain_pvps_label Explanation of PVPs
-          .modal-body
-            %p
-              To see pvps in-game ...
-            %p
-              %code= help_docs('lastpvp')
-            
+      PVPs
+      %span{ng_if: 'filteredPvps.length > 0 && showCount'}
+        = surround '(', ')' do
+          %count-up{count_to: '{{filteredPvps.length}}', count_from: '{{countFrom || 0}}', interval: '1'}
+  .col-sm-6
+    %suggestion{group: 'pvps', key: 'main', verbose: 'false'}
+  
   .col-sm-4.pull-right
     = form_tag url_for(action: controller.action_name), method: :get do
       = hidden_field_tag :sort_field, @sort_field
       = hidden_field_tag :sort_order, @sort_order
       = hidden_field_tag :filter, @filter
-      = text_field_tag :query, @query, placeholder: 'Query Text'
-      = submit_tag 'Search', class: 'btn btn-info btn-xs'
+      = text_field_tag :query, @query, placeholder: 'Query Text', 'ng-model' => 'searchString', 'ng-change' => 'didSearch()', autofocus: true
     
-.row
-  .col-sm-12
-    %table.table
-      %thead
-        %tr
-          %th PVP
-          %th Loser
-          %th Winner
-          %th Created
-      %tbody
-      %tr=render partial: 'pvp', collection: @pvps
-.row
-  .col-sm-12
-    %p= will_paginate @pvps
+  .row
+    .col-sm-12
+      %table.table
+        %thead
+          %tr
+            %th PVP
+            %th Loser
+            %th Winner
+            %th Created
+        %tbody.animate-container
+          %tr.animate-repeat{ng_if: 'pvps.length == 0'}
+            %td{cell_span: 4} Searching ...
+          %tr.animate-repeat{ng_repeat: 'pvp in (filteredPvps = ( pvps | searchFor:searchString | filter:query ) )', repeat_complete: 'repeatComplete()'}
+            %td {{pvp.body}}
+            %td
+              %a.tip{data: { title: "{{pvp.loser.quote}}" }}
+                %img{ng_src: "/player_images/{{pvp.loser.nick}}.png", width: 16, height: 16, alt: '{{pvp.loser.nick}}'}
+              {{pvp.loser.nick}}
+            %td
+              %a.tip{data: { title: "{{pvp.winner.quote}}" }}
+                %img{ng_src: "/player_images/{{pvp.winner.nick}}.png", width: 16, height: 16, alt: '{{pvp.winner.nick}}'}
+              {{pvp.winner.nick}}
+            %td{data: {title: '{{pvp.created_at}}'}}
+              {{pvp.createdAgo()}}

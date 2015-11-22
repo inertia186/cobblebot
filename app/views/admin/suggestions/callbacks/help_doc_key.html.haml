@@ -1,0 +1,13 @@
+= render partial: 'button'
+.modal.fade{id: "explain_#{@group}_#{@key}", tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_help_doc_key_label', 'aria-hidden' => true}
+  .modal-dialog
+    .modal-content
+      .modal-header
+        %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+          %span{'aria-hidden' => true} &times;
+        %h4.modal-title#explain_help_doc_key_label Explanation of Help doc key
+      .modal-body
+        %p
+          The
+          %code @server help
+          callback uses this field to display which other callbacks have help.

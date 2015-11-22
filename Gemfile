@@ -25,6 +25,9 @@ gem 'coffee-rails'
 # A great Javascript framework.
 gem 'angularjs-rails'
 
+# Parse, validate, manipulate, and display dates in JavaScript.
+gem 'momentjs-rails'
+
 # See https://github.com/sstephenson/execjs#readme for more supported runtimes
 # gem 'therubyracer', platforms: :ruby, require: false
 

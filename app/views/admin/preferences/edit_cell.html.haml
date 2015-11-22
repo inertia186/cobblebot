@@ -1,0 +1,17 @@
+%span{data_ng_show: 'editMode'}
+  %slack-group-element
+  %select{data_ng_show: 'preference.isCommandScheme()', name: "preference.value", data_ng_model: 'preference.value'}
+    %option{value: "rcon"} RCON
+    %option{value: "multiplexor"} Multiplexor
+  %span{data_ng_show: 'preference.isVerbose()'}
+    .alert.alert-warning{data_ng_show: 'preference.isJson()'} Please note, this preference allows multiple JSON segments where each line is treated separately.
+    %textarea{cols: 80, rows: 15, data_ng_model: 'preference.value'}
+  %select{data_ng_show: "preference.isTruthy()", name: "preference.value", data_ng_model: 'preference.value'}
+    %option{value: "0"} False
+    %option{value: "1"} True
+  %span{data_ng_show: 'preference.isTextField()', ng_keydown: "$event.which === 13 && !(editMode = false) && save(preference)"}
+    %span{data_ng_show: 'preference.isSecure()', "ng:class" => "strength"}
+      Strength: {{strength}}
+      %br
+      %input{type: 'password', data_ng_model: 'preference.value', size: 80, ng_keyup: "checkStrength(preference)"}
+    %input{data_ng_hide: 'preference.isSecure()', type: 'text', data_ng_model: 'preference.value', size: 80}

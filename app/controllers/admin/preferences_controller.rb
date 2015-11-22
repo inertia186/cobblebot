@@ -4,10 +4,24 @@ class Admin::PreferencesController < Admin::AdminController
   respond_to :json
 
   def index
-    respond_to do |format|
-      format.html { }
-      format.json { respond_with Preference.find_or_create_all(false) }
+    preferences = if params[:system] == 'true'
+      Preference.system
+    else
+      Preference.find_or_create_all(false)
     end
+    
+    respond_to do |format|
+      format.html { @preloadedPreferences = preferences.map { |p| {p.key => p.value} }.reduce(Hash.new, :merge) }
+      format.json { respond_with preferences }
+    end
+  end
+  
+  def edit_cell
+    render 'edit_cell', layout: nil
+  end
+
+  def slack_group_element
+    render 'slack_group_element', layout: nil
   end
   
   def update

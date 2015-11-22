@@ -1,0 +1,12 @@
+= render partial: 'button'
+.modal.fade{id: "explain_#{@group}_#{@key}", tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_command_label', 'aria-hidden' => true}
+  .modal-dialog
+    .modal-content
+      .modal-header
+        %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+          %span{'aria-hidden' => true} &times;
+        %h4.modal-title#explain_command_label Online Mode
+      .modal-body
+        %p It's a really bad idea to run SMP in offline mode.
+        %p Suggestion:
+        %code online-mode=true

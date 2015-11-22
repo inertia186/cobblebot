@@ -4,7 +4,7 @@ require File.expand_path('../application', __FILE__)
 # Initialize the Rails application.
 Rails.application.initialize!
 
-COBBLEBOT_VERSION = '0.0.1'
+COBBLEBOT_VERSION = '0.0.2'
 
 ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
   if html_tag =~ /<(label)/

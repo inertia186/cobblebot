@@ -5,15 +5,93 @@
 #= require turbolinks
 #= require bootstrap.min
 #= require chosen-jquery
+#= require moment
 #= require_tree .
 
 document.updatePublicPlayersTimerId = -1
 document.updateIrcCountTimerId = -1
 
-if ( document.app == undefined )
-  document.app = angular.module("CobbleBot", ["ngResource"]).config(["$httpProvider", ($httpProvider) ->
-      $httpProvider.defaults.headers.common['X-CSRF-Token'] = $('meta[name=csrf-token]').attr('content')
-    ])
+if document.app == undefined
+  document.app = angular.module("CobbleBot", ["ngResource"])
+
+document.app.config(["$httpProvider", ($httpProvider) ->
+  # This deals with ActionController::InvalidAuthenticityToken:
+  $httpProvider.defaults.headers.common['X-CSRF-Token'] = $('meta[name=csrf-token]').attr('content')
+]).
+directive('suggestion', -> {
+  restrict: 'E',
+  templateUrl: (e, attr) ->
+    module = if attr.module == undefined
+      ''
+    else
+      '/' + attr.module
+      
+    verbose = if attr.verbose == undefined
+      true
+    else
+      attr.verbose == 'true'
+      
+    module + '/suggestion/' + attr.group + '/' + attr.key + "?verbose=" + verbose
+}).
+directive('repeatComplete', ['$rootScope', ($rootScope) ->
+  uuid = 0
+  {
+    compile: (tElement, tAttributes) ->
+      id = ++uuid
+      tElement.attr("repeat-complete-id", id)
+      tElement.removeAttr("repeat-complete")
+    
+      completeExpression = tAttributes.repeatComplete
+      parent = tElement.parent()
+      parentScope = (parent.scope() || $rootScope)
+      unbindWatcher = parentScope.$watch ->
+        lastItem = parent.children("*[ repeat-complete-id = '" + id + "' ]:last")
+        return if !lastItem.length
+      
+        itemScope = lastItem.scope()
+      
+        if itemScope.$last
+          unbindWatcher();
+          itemScope.$eval(completeExpression);
+      
+      true
+    priority: 1001,
+    restrict: "A"
+  }
+]).
+directive('countUp', ['$compile', '$timeout', ($compile, $timeout) ->
+  priority: -9001
+  restrict: 'E'
+  replace: false
+  scope:
+    countFrom: '@countFrom'
+    countTo: '@countTo'
+    interval: '=interval'
+    listenFor: '=listen_for'
+  controller: ['$scope', '$element', '$attrs', '$timeout', '$rootScope', ($scope, $element, $attrs, $timeout, $rootScope) ->
+    i = $scope.millis = $scope.countFrom || 0
+    if $element.html().trim().length == 0
+      $element.append($compile('<span>{{millis}}</span>')($scope))
+    else
+      $element.append($compile($element.contents())($scope));
+      
+    timeloop = ->
+      setTimeout ->
+        $scope.millis++
+        $scope.$digest()
+        i++
+        timeloop() if i < $scope.countTo
+      , $scope.interval
+    
+    if !!$attrs.listenFor
+      $scope.$on $attrs.listenFor, (event, data) ->
+        timeloop()
+    else
+      timeloop()
+  ]
+])
+
+$(document).on 'ready page:load', -> angular.bootstrap 'body', ['CobbleBot']
   
 updatePublicPlayers = ->
   after = $('#last_activity').attr 'data-last-activity-at'

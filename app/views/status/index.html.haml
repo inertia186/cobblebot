@@ -1,14 +1,11 @@
 .row
-  - if !!ServerQuery.query && ServerQuery.query.class != Errno::ECONNREFUSED
-    %table.table
-      %tbody
-        - ServerQuery.full_query.each do |pair|
-          %tr
-          %th{align: :right}= pair[0].to_s.titleize
-          %td
-            - if pair[1].respond_to?(:join)
-              = pair[1].join(', ')
-            - else
-              = pair[1]
-  - else
-    Cannot query server.
+
+:javascript
+  window.preloadedStatus = #{raw @preloadedStatus.to_json};
+
+.row{ng_controller: 'StatCtrl'}
+  %table.table
+    %tbody
+      %tr{ng_repeat: 'stat in status'}
+        %th{align: :right} {{stat.displayKey()}}
+        %td {{stat.displayValue()}}

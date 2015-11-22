@@ -1,33 +1,26 @@
 .row
-  %h3
-    = pluralize(@players.count, 'Player')
-    - if @origin
-      - if @origin.class == Array
-        from
-        = pluralize(@origin.size, 'origin')
-        = @origin.join(', ')
-      - else
-        from origin
-        = @origin
-    - if @cc
-      in
-      - if @cc.class == Array
-        - @cc.each do |cc|
-          = image_tag "flag/16/#{cc.downcase}.png" if flag_exists(cc)
-          = cc
-      - else
-        = image_tag "flag/16/#{@cc.downcase}.png" if flag_exists(@cc)
-        = @cc
-    %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_players'}} ?
-  .modal.fade#explain_players{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_players_label', 'aria-hidden' => true}
-    .modal-dialog
-      .modal-content
-        .modal-header
-          %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-            %span{'aria-hidden' => true} &times;
-          %h4.modal-title#explain_players_label Explanation of Links
-        .modal-body
-          %p Players who have been recorded to database by callback, if enabled.
+  .col-sm-3
+    %h3
+      = pluralize(@players.count, 'Player')
+      - if @origin
+        - if @origin.class == Array
+          from
+          = pluralize(@origin.size, 'origin')
+          = @origin.join(', ')
+        - else
+          from origin
+          = @origin
+      - if @cc
+        in
+        - if @cc.class == Array
+          - @cc.each do |cc|
+            = image_tag "flag/16/#{cc.downcase}.png" if flag_exists(cc)
+            = cc
+        - else
+          = image_tag "flag/16/#{@cc.downcase}.png" if flag_exists(@cc)
+          = @cc
+  .col-sm-9
+    %suggestion{module: 'admin', group: 'players', key: 'main', verbose: 'false'}
 
 %div{style: 'float: right'}
   = form_tag url_for(action: controller.action_name), method: :get do

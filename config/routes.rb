@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   resources :donations, only: :index
   resources :irc, only: :index
   get 'server-icon.png' => 'resources#server_icon', as: :server_icon
+  get 'suggestion/:group/:key' => 'suggestions#show'
 
   # Example resource route with options:
   #   resources :products do
@@ -57,7 +58,12 @@ Rails.application.routes.draw do
   #   resources :photos, concerns: :toggleable
 
   namespace :admin do
-    resources :preferences, only: [:index, :update]
+    resources :preferences, only: [:index, :update] do
+      collection do
+        get :edit_cell
+        get :slack_group_element
+      end
+    end
     resources :callbacks, as: :server_callbacks, controller: :callbacks do
       collection do
         patch :reset_all_cooldown
@@ -80,6 +86,7 @@ Rails.application.routes.draw do
       resources :links, except: [:new, :create, :edit, :update]
       resources :messages, except: [:new, :create, :edit, :update]
     end
+    get 'suggestion/:group/:key' => 'suggestions#show'
     
     resources :sessions, only: [:new, :create]
     delete 'session' => 'sessions#destroy', as: :destroy_session

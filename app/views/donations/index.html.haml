@@ -1,21 +1,10 @@
 = content_for :head, auto_discovery_link_tag(:atom, "http://#{donations_url(format: :atom).split('://')[1]}")
 
 .row
-  %h3
-    Donations (#{@donations.count})
-    %button.btn.btn-info.badge{type: :button, data: { toggle: :modal, target: '#explain_donations'}} ?
-  .modal.fade#explain_donations{tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_messages_label', 'aria-hidden' => true}
-    .modal-dialog
-      .modal-content
-        .modal-header
-          %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-            %span{'aria-hidden' => true} &times;
-          %h4.modal-title#explain_donations_label Explanation of Donations
-        .modal-body
-          %p
-            To see donations in-game ...
-          %p
-            %code= help_docs('donations')
+  .col-sm-3
+    %h3 Donations (#{@donations.count})
+  .col-sm-9
+    %suggestion{group: 'donations', key: 'main', verbose: 'false'}
 
 .row
   %table.table

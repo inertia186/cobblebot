@@ -1,0 +1,10 @@
+= render partial: 'button'
+.modal.fade{id: "explain_#{@group}_#{@key}", tabindex: -1, role: :dialog, 'aria-labelledby' => 'explain_cooldown_label', 'aria-hidden' => true}
+  .modal-dialog
+    .modal-content
+      .modal-header
+        %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+          %span{'aria-hidden' => true} &times;
+        %h4.modal-title#explain_cooldown_label Explanation of Cooldown
+      .modal-body
+        %p An expression for the minimum number of seconds that must pass before this callback will fire again.  Typically, this is for player chat or emotes.
