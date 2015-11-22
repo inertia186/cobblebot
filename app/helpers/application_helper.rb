@@ -1,13 +1,12 @@
 module ApplicationHelper
   def active_nav(nav)
-    return :active if controller_name == nav
-    return :active if controller_path.split('/')[0] == nav
+    return 'nav-link active' if controller_name == nav
+    return 'nav-link active' if controller_path.split('/')[0] == nav
+    return 'nav-link'
   end
 
   def version
-    content_tag(:pre, class: "version", style: "float: right;") do
-      ("CobbleBot version: #{COBBLEBOT_VERSION}").html_safe
-    end
+    ("CobbleBot version: #{COBBLEBOT_VERSION}").html_safe
   end
   
   def sortable_header_link(name, field)
@@ -49,7 +48,7 @@ module ApplicationHelper
   end
 private
   def nav_link(path, id, target, accesskey, prefix, suffix)
-    link_to(path, id: id, class: 'btn btn-default', accesskey: accesskey, data: { remote: true, target: target}) do
+    link_to(path, id: id, class: 'btn btn-primary', accesskey: accesskey, data: { remote: true, target: target}) do
       content_tag(:u) { prefix } + suffix
     end
   end

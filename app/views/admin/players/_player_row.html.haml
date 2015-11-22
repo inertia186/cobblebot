@@ -18,7 +18,7 @@
   %td= relative_time(player.created_at)
   %td
     %span{style: 'float: right'}
-      = link_to 'Show', admin_player_path(player), class: 'btn btn-info btn-xs', data: { remote: true, toggle: :modal, target: '#show_player'}
+      = link_to 'Show', admin_player_path(player), class: 'btn btn-info btn-sm', data: { remote: true, toggle: :modal, target: '#show_player'}
       .modal.fade{id: :show_player, tabindex: -1, role: :dialog, 'aria-labelledby' => 'show_player_label', 'aria-hidden' => true}
         .modal-dialog.modal-lg
           .modal-content
@@ -29,4 +29,4 @@
             .modal-body{id: 'show_player_body'}
               %center
                 %img{src: '/images/large_spinner.gif'}
-      = link_remote_delete(admin_player_path(player), class: 'btn btn-danger btn-xs', confirm: 'Are you sure?  Deleting a player record only deletes the database row for that player.  If they log in again, a new row will then be created.')
+      = link_remote_delete(admin_player_path(player), class: 'btn btn-danger btn-sm', confirm: 'Are you sure?  Deleting a player record only deletes the database row for that player.  If they log in again, a new row will then be created.')

@@ -22,7 +22,7 @@
             ~ callback.pretty_command.html_safe
           - else
             %pre{style: 'overflow: auto; white-space: pre-wrap;'}>~ callback.command
-        .media-right= callback_run_link(callback, class: 'btn btn-success btn-xs')
+        .media-right= callback_run_link(callback, class: 'btn btn-success btn-sm')
   %tr
     %th Cooldown
     %td=callback.cooldown
@@ -33,7 +33,7 @@
         .media-body{id: "callback_ran_at_#{callback.id}"}
           =callback_ran(callback)
         .media-right
-          = callback_reset_link(callback, class: 'btn btn-warning btn-xs')
+          = callback_reset_link(callback, class: 'btn btn-warning btn-sm')
   %tr
     %th Status
     %td{id: "callback_status_#{callback.id}"}=callback_status(callback)
@@ -54,7 +54,7 @@
   %span{style: 'float: right;'}
     - if defined? modal
       = modal_nav_links(admin_server_callbacks_path, "callback")
-      %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close
+      %button.btn.btn-primary{type: "button", data: { dismiss: :modal } } Close
     - else
-      = link_to 'Close', admin_server_callbacks_path, class: 'btn btn-default'
+      = link_to 'Close', admin_server_callbacks_path, class: 'btn btn-primary'
   

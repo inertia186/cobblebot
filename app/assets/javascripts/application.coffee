@@ -1,9 +1,9 @@
-#= require jquery
+#= require jquery2
 #= require jquery_ujs
 #= require angular
 #= require angular-resource
 #= require turbolinks
-#= require bootstrap.min
+#= require bootstrap
 #= require chosen-jquery
 #= require moment
 #= require_tree .

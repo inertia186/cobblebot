@@ -21,6 +21,6 @@
   %span{style: 'float: right;'}
     - if defined? modal
       = modal_nav_links(admin_messages_path, "message")
-      %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close
+      %button.btn.btn-primary{type: "button", data: { dismiss: :modal } } Close
     - else
-      = link_to 'Close', admin_messages_path, class: 'btn btn-default'
+      = link_to 'Close', admin_messages_path, class: 'btn btn-primary'

@@ -29,18 +29,18 @@
     = hidden_field_tag :filter, @filter
     = hidden_field_tag :player_id, @player_id
     = text_field_tag :query, @query, placeholder: 'Query Text'
-    = submit_tag 'Search', class: 'btn btn-info btn-xs'
+    = submit_tag 'Search', class: 'btn btn-info btn-sm'
 
 %ul.nav.nav-tabs
-  %li{class: @filter == 'all' ? 'active' : ''}
+  %li.nav-item{class: @filter == 'all' ? 'active' : ''}
     = link_to 'All', admin_players_path(player_id: @player_id), 'aria-controls' => "all"
-  %li{class: @filter == 'only_registered' ? 'active' : ''}
+  %li.nav-item{class: @filter == 'only_registered' ? 'active' : ''}
     = link_to 'Registered', admin_players_path(player_id: @player_id, filter: 'only_registered'), 'aria-controls' => "non-system"
-  %li{class: @filter == 'only_new' ? 'active' : ''}
+  %li.nav-item{class: @filter == 'only_new' ? 'active' : ''}
     = link_to 'New', admin_players_path(player_id: @player_id, filter: 'only_new'), 'aria-controls' => "non-system"
-  %li{class: @filter == 'only_today' ? 'active' : ''}
+  %li.nav-item{class: @filter == 'only_today' ? 'active' : ''}
     = link_to 'Today', admin_players_path(player_id: @player_id, filter: 'only_today'), 'aria-controls' => "non-system"
-  %li{class: @filter == 'only_logged_in' ? 'active' : ''}
+  %li.nav-item{class: @filter == 'only_logged_in' ? 'active' : ''}
     = link_to 'Logged In', admin_players_path(player_id: @player_id, filter: 'only_logged_in'), 'aria-controls' => "non-system"
 
 .tab-contents

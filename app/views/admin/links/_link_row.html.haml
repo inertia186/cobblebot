@@ -10,7 +10,7 @@
   %td
     %span{style: 'float: right'}
       - if link.can_embed?
-        = link_to 'Show', admin_link_path(link), class: 'btn btn-info btn-xs', data: { remote: true, toggle: :modal, target: '#show_link'}
+        = link_to 'Show', admin_link_path(link), class: 'btn btn-info btn-sm', data: { remote: true, toggle: :modal, target: '#show_link'}
         .modal.fade{id: :show_link, tabindex: -1, role: :dialog, 'aria-labelledby' => 'show_link_label', 'aria-hidden' => true}
           .modal-dialog.modal-lg
             .modal-content
@@ -22,5 +22,5 @@
                 %center
                   %img{src: '/images/large_spinner.gif'}
       - else
-        = link_to 'Show', link.url, class: 'btn btn-info btn-xs', target: link.to_param
-      = link_remote_delete(admin_link_path(link), class: 'btn btn-danger btn-xs', confirm: 'Are you sure?')
+        = link_to 'Show', link.url, class: 'btn btn-info btn-sm', target: link.to_param
+      = link_remote_delete(admin_link_path(link), class: 'btn btn-danger btn-sm', confirm: 'Are you sure?')

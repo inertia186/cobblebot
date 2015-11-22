@@ -13,8 +13,13 @@ gem 'sqlite3', require: false, platforms: :ruby
 gem 'jruby-openssl', platform: :jruby
 gem 'activerecord-jdbcsqlite3-adapter', platform: :jruby
 
-# Use SCSS for stylesheets
+# HTML, CSS, and JS framework.
+gem 'bootstrap', '~> 4.0.0.alpha1'
 gem 'sass-rails'
+
+# source 'https://rails-assets.org' do
+#   gem 'rails-assets-tether', '>= 1.1.0'
+# end
 
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier'
@@ -33,10 +38,6 @@ gem 'momentjs-rails'
 
 # Used to make HMTL select tags nicer.
 gem 'chosen-rails'
-
-# Required by chosen-rails
-gem 'sprockets', '2.12.3'
-gem 'compass-rails', '~> 2.0.4'
 
 # Mainly to cache images.
 gem 'actionpack-action_caching'

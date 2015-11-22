@@ -26,12 +26,12 @@
     = label_tag :deleted
     = check_box_tag :muted, 'true', params[:muted] == 'true'
     = label_tag :muted
-    = submit_tag 'Search', class: 'btn btn-info btn-xs'
+    = submit_tag 'Search', class: 'btn btn-info btn-sm'
 
 %ul.nav.nav-tabs
-  %li{class: @filter == 'all' ? 'active' : ''}
+  %li.nav-item{class: @filter == 'all' ? 'active' : ''}
     = link_to 'All', admin_messages_path(author_id: @author_id), 'aria-controls' => "all"
-  %li{class: @filter == 'only_today' ? 'active' : ''}
+  %li.nav-item{class: @filter == 'only_today' ? 'active' : ''}
     = link_to 'Today', admin_messages_path(author_id: @author_id, filter: 'only_today'), 'aria-controls' => "non-system"
 
 .tab-contents

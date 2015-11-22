@@ -1,12 +1,12 @@
-%tr{class: callback_status_class(callback), id: "callback_tr_#{callback.id}", data: { id: callback.id } }
+%tr{scope: 'row', class: "table-#{callback_status_class(callback)}", id: "callback_tr_#{callback.id}", data: { id: callback.id } }
   %td.clickable-cell=callback.name
   %td.clickable-cell=callback.display_type
   %td.clickable-cell=callback_ran(callback)
   %td.clickable-cell=callback_status(callback)
   %td.clickable-cell=relative_time(callback.created_at)
   %td
-    %span{style: 'float: right'}
-      = link_to 'Show', admin_server_callback_path(callback), class: 'btn btn-info btn-xs', data: { remote: true, toggle: :modal, target: '#show_callback'}
+    .col-sm-8
+      = link_to 'Show', admin_server_callback_path(callback), class: 'btn btn-info btn-sm', data: { remote: true, toggle: :modal, target: '#show_callback'}
       .modal.fade{id: :show_callback, tabindex: -1, role: :dialog, 'aria-labelledby' => 'show_callback_label', 'aria-hidden' => true}
         .modal-dialog.modal-lg
           .modal-content
@@ -17,12 +17,17 @@
             .modal-body{id: 'show_callback_body'}
               %center
                 %img{src: '/images/large_spinner.gif'}
-      = callback_run_link(callback, class: 'btn btn-success btn-xs')
-      = callback_edit_link(callback, class: 'btn btn-info btn-xs')
-      %wbr
-      = callback_reset_link(callback, class: 'btn btn-warning btn-xs')
-      = callback_enable_link(callback, class: 'btn btn-info btn-xs')
-      = link_remote_delete(admin_server_callback_path(callback), class: 'btn btn-danger btn-xs', confirm: 'Are you sure?')
+      = callback_run_link(callback, class: 'btn btn-sm btn-success')
+      = callback_edit_link(callback, class: 'btn btn-sm btn-info')
+    .col-sm-4
+      .dropdown
+        %button.btn.btn-secondary.btn-sm.dropdown-toggle{data: { toggle: :dropdown }}
+          Other
+        .dropdown-menu
+          = callback_reset_link(callback, class: 'dropdown-item warning')
+          = callback_enable_link(callback, class: 'dropdown-item info')
+          .dropdown-divider
+          = link_remote_delete(admin_server_callback_path(callback), class: 'dropdown-item danger', confirm: 'Are you sure?')
 
     :javascript
       jQuery(document).ready(function($) {
