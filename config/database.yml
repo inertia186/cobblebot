@@ -7,22 +7,36 @@
 default: &default
   adapter: sqlite3
   pool: 15
-  timeout: 15000
+  timeout: 500
 
 development:
   <<: *default
   database: db/development.sqlite3
+  # adapter: postgresql
+  # encoding: unicode
+  # database: cobblebot_development
+  # pool: 15
+  # username: cobblebot
+  # password:
+  # adapter: mysql2
+  # encoding: utf8
+  # database: cobblebot_development
+  # pool: 15
+  # username: root
+  # password:
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  # database: db/test.sqlite3
-  database: ":memory:"
-  # migrate: true
-  pool: 1
-  timeout: -1
+  database: db/test.sqlite3
+  # adapter: postgresql
+  # encoding: unicode
+  # database: cobblebot_test
+  # pool: 1
+  # username: cobblebot
+  # password:
 
 production:
   <<: *default

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151015221402) do
+ActiveRecord::Schema.define(version: 20151029010856) do
 
   create_table "ips", force: :cascade do |t|
     t.string  "address",    null: false
@@ -96,6 +96,7 @@ ActiveRecord::Schema.define(version: 20151015221402) do
     t.integer  "time_since_death",   default: 0,     null: false
     t.integer  "player_kills",       default: 0,     null: false
     t.boolean  "shall_update_stats", default: false, null: false
+    t.datetime "muted_at"
   end
 
   create_table "preferences", force: :cascade do |t|

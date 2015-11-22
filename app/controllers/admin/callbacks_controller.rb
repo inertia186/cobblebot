@@ -10,13 +10,13 @@ class Admin::CallbacksController < Admin::AdminController
 
     adapter_type = ActiveRecord::Base.connection.adapter_name.downcase.to_sym
     status_select = case adapter_type
-    when :sqlite then 'datetime(server_callbacks.ran_at, server_callbacks.cooldown) AS status'
-    when :postgresql then 'server_callbacks.ran_at + (server_callbacks.cooldown::interval) AS status'
+    when :sqlite then "datetime(#{ServerCallback::TABLE_NAME}.ran_at, #{ServerCallback::TABLE_NAME}.cooldown) AS status"
+    when :postgresql then "#{ServerCallback::TABLE_NAME}.ran_at + (#{ServerCallback::TABLE_NAME}.cooldown::interval) AS status"
     else raise NotImplementedError, "Unknown adapter type '#{adapter_type}'"
     end
 
     @callbacks = @callbacks.select <<-DONE
-      server_callbacks.*,
+      #{ServerCallback::TABLE_NAME}.*,
       #{status_select}
     DONE
 

@@ -147,6 +147,7 @@ class SummerBot < Summer::Connection
   def channel_message sender, channel, message
     response 'NAMES' unless Preference.active_in_irc.to_i > 0
     
+    # TODO Send to SlackBot
     log "#{sender.inspect} :: #{channel.inspect} :: #{message}"
     at, command = message.split(' ')
 

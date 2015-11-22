@@ -1,4 +1,6 @@
 class ServerCallback < ActiveRecord::Base
+  TABLE_NAME = 'server_callbacks'.freeze
+  
   ALL_TYPES = %w(ServerCallback::AnyEntry ServerCallback::PlayerChat
     ServerCallback::PlayerCommand ServerCallback::PlayerEmote
     ServerCallback::AnyPlayerEntry ServerCallback::ServerEntry
@@ -41,8 +43,8 @@ class ServerCallback < ActiveRecord::Base
   scope :ready, lambda { |ready = true|
     adapter_type = ActiveRecord::Base.connection.adapter_name.downcase.to_sym
     clause = case adapter_type
-    when :sqlite then 'server_callbacks.ran_at IS NULL OR datetime(server_callbacks.ran_at, server_callbacks.cooldown) <= ?'
-    when :postgresql then 'server_callbacks.ran_at IS NULL OR server_callbacks.ran_at + (server_callbacks.cooldown::interval) <= ?'
+    when :sqlite then "#{TABLE_NAME}.ran_at IS NULL OR datetime(#{TABLE_NAME}.ran_at, #{TABLE_NAME}.cooldown) <= ?"
+    when :postgresql then "#{TABLE_NAME}.ran_at IS NULL OR #{TABLE_NAME}.ran_at + (#{TABLE_NAME}.cooldown::interval) <= ?"
     else raise NotImplementedError, "Unknown adapter type '#{adapter_type}'"
     end
         
@@ -51,23 +53,23 @@ class ServerCallback < ActiveRecord::Base
     end
   }
   scope :error_flagged, lambda { |error_flagged = true|
-    where('server_callbacks.error_flag_at IS NOT NULL').tap do |r|
+    where("#{TABLE_NAME}.error_flag_at IS NOT NULL").tap do |r|
       return error_flagged ? r : where.not(id: r)
     end
   }
-  scope :dirty, -> { where("server_callbacks.last_match IS NOT NULL OR server_callbacks.last_command_output IS NOT NULL OR server_callbacks.ran_at IS NOT NULL") }
+  scope :dirty, -> { where("#{TABLE_NAME}.last_match IS NOT NULL OR #{TABLE_NAME}.last_command_output IS NOT NULL OR #{TABLE_NAME}.ran_at IS NOT NULL") }
   scope :needs_prettification, lambda { |needs_prettification = true|
-    where('server_callbacks.pretty_pattern IS NULL OR server_callbacks.pretty_command IS NULL').tap do |r|
+    where("#{TABLE_NAME}.pretty_pattern IS NULL OR #{TABLE_NAME}.pretty_command IS NULL").tap do |r|
       return needs_prettification ? r : where.not(id: r)
     end
   }
   scope :query, lambda { |query|
     clause = <<-DONE
-      server_callbacks.name LIKE ? OR
-      server_callbacks.pattern LIKE ? OR
-      server_callbacks.last_match LIKE ? OR
-      server_callbacks.last_command_output LIKE ? OR
-      server_callbacks.command LIKE ?
+      #{TABLE_NAME}.name LIKE ? OR
+      #{TABLE_NAME}.pattern LIKE ? OR
+      #{TABLE_NAME}.last_match LIKE ? OR
+      #{TABLE_NAME}.last_command_output LIKE ? OR
+      #{TABLE_NAME}.command LIKE ?
     DONE
     where(clause, query, query, query, query, query)
   }

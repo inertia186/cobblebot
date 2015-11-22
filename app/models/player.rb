@@ -77,6 +77,9 @@ class Player < ActiveRecord::Base
       return spammers ? r : where.not(id: r)
     end
   }
+  scope :muted, lambda { |muted = true|
+    where.not(muted_at: nil).where('muted_at >= ?', 15.minutes.ago).tap { |r| return muted ? r : where.not(id: r) }
+  }
   scope :cc, lambda { |cc, inclusive = true|
     where(id: Ip.where(cc: cc).select(:player_id)).tap do |r|
       return inclusive ? r : where.not(id: r)
