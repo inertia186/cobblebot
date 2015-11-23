@@ -82,23 +82,7 @@
 .container.theme-showcase{role: :main}
   .starter-template
 
-    - flash.each do |type, msg|
-      - case type
-        - when 'notice'
-          .alert.alert-success{role: :alert}
-            %strong= msg
-        - when 'info'
-          .alert.alert-info{role: :alert}
-            %strong= msg
-        - when 'alert'
-          .alert.alert-warning{role: :alert}
-            %strong= msg
-        - when 'error'
-          .alert.alert-danger{role: :alert}
-            %strong= msg
-        - else
-          .alert.alert-info{role: :alert, data: {'flash-type' => type}}
-            %strong= msg
+    %flash{data: {messages: flash.to_json}}
 
     = yield
 
