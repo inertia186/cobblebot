@@ -10,6 +10,14 @@ GIT
   specs:
     malp (0.0.1)
 
+GIT
+  remote: git://github.com/rails/turbolinks.git
+  revision: 75115a3c217f54b447b780061ae0279abae1f146
+  branch: master
+  specs:
+    turbolinks (3.0.0)
+      coffee-rails
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -291,8 +299,6 @@ GEM
     thread_safe (0.3.5-java)
     tilt (1.4.1)
     tins (1.6.0)
-    turbolinks (2.5.3)
-      coffee-rails
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
     uglifier (2.7.2)
@@ -365,7 +371,7 @@ DEPENDENCIES
   sprockets (= 2.12.3)
   sqlite3
   summer
-  turbolinks
+  turbolinks!
   uglifier
   web-console (~> 2.0)
   webmock
