@@ -62,7 +62,10 @@
     
 .modal-footer
   %span{style: 'float: left;'}
-    = link_remote_delete(admin_player_path(player))
+    - if defined? modal
+      = link_remote_delete(admin_player_path(player))
+    - else
+      = link_delete(admin_player_path(player))
     = link_remote_toggle_autolink(player)
   %span{style: 'float: right;'}
     - if defined? modal

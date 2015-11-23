@@ -8,7 +8,7 @@ private
     instance_variable_set "@#{assign}", object
 
     respond_to do |format|
-      format.html { redirect_to return_to }
+      format.html { redirect_to return_to, notice: "#{clazz} deleted." }
       format.js { render js_template }
     end
   end
