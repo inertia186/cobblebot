@@ -7,6 +7,8 @@ class StatusController < ApplicationController
     query = query.map do |q|
       if q[1].class == Time
         {q[0] => q[1].to_i}
+      elsif q[1].class == String
+        {q[0] => q[1].force_encoding('US-ASCII')}
       else
         {q[0] => q[1]}
       end
