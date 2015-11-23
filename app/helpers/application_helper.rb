@@ -30,7 +30,11 @@ module ApplicationHelper
   end
   
   def link_remote_delete(action, options = {class: 'btn btn-danger', confirm: 'Are you sure?'})
-    link_to 'Delete', action, class: options[:class], data: { confirm: options[:confirm], remote: true, method: :delete }
+    link_delete(action, options.merge(remote: true))
+  end
+  
+  def link_delete(action, options = {remote: false, class: 'btn btn-danger', confirm: 'Are you sure?'})
+    link_to 'Delete', action, class: options[:class], data: { confirm: options[:confirm], remote: options[:remote], method: :delete }
   end
   
   def flag_exists(cc)

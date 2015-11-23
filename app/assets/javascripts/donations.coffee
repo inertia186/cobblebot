@@ -2,17 +2,17 @@ if document.app == undefined
   document.app = angular.module("CobbleBot", ["ngResource"])
 
 document.app.
-  factory('Pvp', ['$resource', 'resourceCache', ($resource, resourceCache) ->
-    Pvp = $resource "/pvps/:id.json",
+  factory('Donation', ['$resource', 'resourceCache', ($resource, resourceCache) ->
+    Donation = $resource "/donations/:id.json",
     {id: "@id"},
     {query: {cache: resourceCache, isArray: true}}
-    decoratePvpType angular, Pvp
+    decorateDonationType angular, Donation
     
-    Pvp
+    Donation
   ]).
-  controller('PvpCtrl', ['$scope', 'Pvp', ($scope, Pvp) ->
+  controller('DonationCtrl', ['$scope', 'Donation', ($scope, Donation) ->
     $scope.showCount = false
-    $scope.pvps = Pvp.query()
+    $scope.donations = Donation.query()
     $scope.didSearch = ->
       $scope.showCount = false
       $scope.countFrom = 0
@@ -21,22 +21,21 @@ document.app.
       $scope.lastSearchId = setTimeout(apply, 250)
     $scope.repeatComplete = ->
       $scope.showCount = true
-      $scope.countFrom = Math.round($scope.filteredPvps.length / 1.01)
+      $scope.countFrom = Math.round($scope.filteredDonations.length / 1.01)
   ]).
-  filter('searchFor', ['$rootScope', ($rootScope) -> (pvps, searchString) ->
-    return pvps if !searchString
+  filter('searchFor', ['$rootScope', ($rootScope) -> (donations, searchString) ->
+    return donations if !searchString
     
     result = []
     searchString = searchString.toLowerCase()
-    angular.forEach pvps, (item) ->
+    angular.forEach donations, (item) ->
       text = item.body.toLowerCase()
-      text += item.loser.quote if !!item.loser
-      text += item.winner.quote if !!item.winner
+      text += item.author.quote if !!item.author
       result.push(item) if text.indexOf(searchString) != -1
     
     result
   ])
   
-decoratePvpType = (angular, type) ->
+decorateDonationType = (angular, type) ->
   angular.extend type.prototype,
     createdAgo: -> moment(@created_at).fromNow()

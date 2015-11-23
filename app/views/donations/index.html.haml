@@ -1,19 +1,35 @@
 = content_for :head, auto_discovery_link_tag(:atom, "http://#{donations_url(format: :atom).split('://')[1]}")
 
-.row
+%div{data: {preload_resource: '/donations.json', data: (render template: '/donations/index.json')}}
+
+.row{ng_controller: 'DonationCtrl'}
   .col-sm-3
-    %h3 Donations (#{@donations.count})
+    %h3
+      Donations
+      %span{ng_if: 'filteredDonations.length > 0 && showCount'}
+        = surround '(', ')' do
+          %count-up{count_to: '{{filteredDonations.length}}', count_from: '{{countFrom || 0}}', interval: '1'}
   .col-sm-9
     %suggestion{group: 'donations', key: 'main', verbose: 'false'}
 
-.row
-  %table.table
-    %thead
-      %tr
-        %th Donation
-        %th Donor
-        %th Created
-    %tbody
-    %tr= render partial: 'donation', collection: @donations
-
-%p= will_paginate @donations
+  .col-sm-4.pull-right
+    = text_field_tag :query, @query, placeholder: 'Query Text', 'ng-model' => 'searchString', 'ng-change' => 'didSearch()', autofocus: true
+    
+  .row
+    %table.table
+      %thead
+        %tr
+          %th Donation
+          %th Donor
+          %th Created
+      %tbody.animate-container
+        %tr.animate-repeat{ng_if: 'donations.length == 0'}
+          %td{cell_span: 4} Searching ...
+        %tr.animate-repeat{ng_repeat: 'donation in (filteredDonations = ( donations | searchFor:searchString | filter:query ) )', repeat_complete: 'repeatComplete()'}
+          %td {{donation.body}}
+          %td
+            %a.tip{data: { title: "{{donation.author.quote}}" }}
+              %img{ng_src: "/player_images/{{donation.author.nick}}.png", width: 16, height: 16, alt: '{{donation.author.nick}}'}
+            {{donation.author.nick}}
+          %td{data: {title: '{{donation.created_at}}'}}
+            {{donation.createdAgo()}}

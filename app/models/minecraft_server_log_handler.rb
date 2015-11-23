@@ -5,10 +5,11 @@ class MinecraftServerLogHandler
   REGEX_DUPLICATE_UUID_WARNING = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/WARN\]: Tried to add entity [^ ]+ with pending removal and duplicate UUID [0-9a-fA-F\-]+$}
   REGEX_VEHICLE_WARNING = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/WARN\]: [^ ]+ \(vehicle of [^ ]+\) moved too quickly! [\-0-9\.]+,[\-0-9\.]+,[\-0-9\.]+$}
   REGEX_KEEPING_ENTITY_WARNING = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/WARN\]: Keeping entity [^ ]+ that already exists with UUID [0-9a-fA-F\-]+$}
+  REGEX_TOO_MANY_MOVE_PACKETS = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/WARN\]: [^ ]+ is sending move packets too frequently}
   ALL_REGEX_IGNORE = [
     REGEX_RCON_LISTENER, REGEX_RCON_CLIENT, REGEX_NON_LOG_EVENT,
     REGEX_DUPLICATE_UUID_WARNING, REGEX_VEHICLE_WARNING,
-    REGEX_KEEPING_ENTITY_WARNING
+    REGEX_KEEPING_ENTITY_WARNING, REGEX_TOO_MANY_MOVE_PACKETS
   ]
   
   def self.ignore?(line, options = {})

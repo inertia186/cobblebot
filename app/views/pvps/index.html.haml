@@ -1,8 +1,7 @@
 = content_for :head, auto_discovery_link_tag(:atom, "http://#{pvps_url(format: :atom).split('://')[1]}")
 
 / It would be nice to preload the inital request, but the json takes too long to render due to the deep structure.  Specifically, pvp.loser.quote and pvp.winner.quote have to be queried individually for each pvp message.  So it's better to just display the "Searching ..." text while this data loads asynchronisly.
-/ %div{data_preload_resource: '/pvps.json'}
-/   =raw render template: '/pvps/index.json', collection: @pvps
+/ %div{data: {preload_resource: '/pvps.json', data: (render template: '/pvps/index.json')}}
 
 .row{ng_controller: 'PvpCtrl'}
   .col-sm-2
