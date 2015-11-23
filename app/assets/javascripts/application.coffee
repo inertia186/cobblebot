@@ -18,6 +18,15 @@ document.app.config(["$httpProvider", ($httpProvider) ->
   # This deals with ActionController::InvalidAuthenticityToken:
   $httpProvider.defaults.headers.common['X-CSRF-Token'] = $('meta[name=csrf-token]').attr('content')
 ]).
+factory("resourceCache", ["$cacheFactory", ($cacheFactory) ->
+  $cacheFactory("resourceCache")
+]).
+directive("preloadResource", ["resourceCache", (resourceCache) ->
+  link: (scope, element, attrs) ->
+    element.hide()
+    console.log "Preloading:", attrs.preloadResource
+    resourceCache.put(attrs.preloadResource, element.html())
+]).
 directive('suggestion', -> {
   restrict: 'E',
   templateUrl: (e, attr) ->

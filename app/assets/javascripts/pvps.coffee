@@ -2,15 +2,6 @@ if document.app == undefined
   document.app = angular.module("CobbleBot", ["ngResource"])
 
 document.app.
-  factory("resourceCache", ["$cacheFactory", ($cacheFactory) ->
-    $cacheFactory("resourceCache")
-  ]).
-  directive("preloadResource", ["resourceCache", (resourceCache) ->
-    link: (scope, element, attrs) ->
-      element.hide()
-      console.log "Preloading:", attrs.preloadResource
-      resourceCache.put(attrs.preloadResource, element.html())
-  ]).
   factory('Pvp', ['$resource', 'resourceCache', ($resource, resourceCache) ->
     Pvp = $resource "/pvps/:id.json",
     {id: "@id"},
