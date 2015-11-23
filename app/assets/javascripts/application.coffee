@@ -23,9 +23,28 @@ factory("resourceCache", ["$cacheFactory", ($cacheFactory) ->
 ]).
 directive("preloadResource", ["resourceCache", (resourceCache) ->
   link: (scope, element, attrs) ->
-    element.hide()
-    console.log "Preloading:", attrs.preloadResource
-    resourceCache.put(attrs.preloadResource, element.html())
+    resourceCache.put(attrs.preloadResource, attrs.data)
+]).
+directive('flash', ['$compile', ($compile) ->
+  restrict: 'E'
+  scope:
+    messages: '=messages'
+  controller: ['$scope', '$element', '$attrs', ($scope, $element, $attrs) ->
+    angular.forEach $scope.messages, (f) ->
+      $scope.message = f[1]
+      $scope.alertType = switch f[0]
+        when 'notice' then 'success'
+        when 'info' then 'info'
+        when 'alert' then 'warning'
+        when 'error' then 'danger'
+        else f[0]
+      template = '''
+        <strong role="alert" class="center-block alert alert-{{alertType}}">
+          {{message}}
+        </strong>
+      '''
+      $element.append $compile(template)($scope)
+  ]
 ]).
 directive('suggestion', -> {
   restrict: 'E',
@@ -45,13 +64,13 @@ directive('suggestion', -> {
 directive('repeatComplete', ['$rootScope', ($rootScope) ->
   uuid = 0
   {
-    compile: (tElement, tAttributes) ->
+    compile: (element, attr) ->
       id = ++uuid
-      tElement.attr("repeat-complete-id", id)
-      tElement.removeAttr("repeat-complete")
+      element.attr("repeat-complete-id", id)
+      element.removeAttr("repeat-complete")
     
-      completeExpression = tAttributes.repeatComplete
-      parent = tElement.parent()
+      completeExpression = attr.repeatComplete
+      parent = element.parent()
       parentScope = (parent.scope() || $rootScope)
       unbindWatcher = parentScope.$watch ->
         lastItem = parent.children("*[ repeat-complete-id = '" + id + "' ]:last")
@@ -76,8 +95,7 @@ directive('countUp', ['$compile', '$timeout', ($compile, $timeout) ->
     countFrom: '@countFrom'
     countTo: '@countTo'
     interval: '=interval'
-    listenFor: '=listen_for'
-  controller: ['$scope', '$element', '$attrs', '$timeout', '$rootScope', ($scope, $element, $attrs, $timeout, $rootScope) ->
+  controller: ['$scope', '$element', '$attrs', '$timeout', ($scope, $element, $attrs, $timeout) ->
     i = $scope.millis = $scope.countFrom || 0
     if $element.html().trim().length == 0
       $element.append($compile('<span>{{millis}}</span>')($scope))
@@ -85,18 +103,14 @@ directive('countUp', ['$compile', '$timeout', ($compile, $timeout) ->
       $element.append($compile($element.contents())($scope));
       
     timeloop = ->
-      setTimeout ->
+      tick = ->
         $scope.millis++
         $scope.$digest()
         i++
         timeloop() if i < $scope.countTo
-      , $scope.interval
+      setTimeout tick, $scope.interval
     
-    if !!$attrs.listenFor
-      $scope.$on $attrs.listenFor, (event, data) ->
-        timeloop()
-    else
-      timeloop()
+    timeloop()
   ]
 ])
 
