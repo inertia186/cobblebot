@@ -111,6 +111,9 @@ group :development do
 end
 
 group :test do
+  gem 'capybara'
+  gem 'poltergeist'
+  gem 'phantomjs', require: 'phantomjs/poltergeist'
   gem 'simplecov', require: false
   gem 'simplecov-csv', require: false
   gem 'webmock', require: false
