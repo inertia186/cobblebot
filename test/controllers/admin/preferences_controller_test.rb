@@ -28,7 +28,7 @@ class Admin::PreferencesControllerTest < ActionController::TestCase
 
     assert JSON.parse(response.body), 'expect valid json'
 
-    assert_template nil
+    assert_template :index
     assert_response :success
   end
 
