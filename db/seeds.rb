@@ -1,5 +1,6 @@
 method ||= :create # Switch to :create! if you want to test full validation.
 
+Preference.send method, key: Preference::TRY_MAX, value: '5', system: 'f'
 Preference.send method, key: Preference::WEB_ADMIN_PASSWORD, value: '123456', system: 'f'
 Preference.send method, key: Preference::PATH_TO_SERVER, value: '/path/to/minecraft/server', system: 'f'
 Preference.send method, key: Preference::COMMAND_SCHEME, value: 'rcon', system: 'f'
