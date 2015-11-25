@@ -30,6 +30,10 @@ Capybara.default_driver = :poltergeist
 
 class ActionDispatch::IntegrationTest
   include Capybara::DSL
+
+  def save_screenshot
+    page.save_screenshot "tmp/page.png", :full => true
+  end
 end
 
 class ActiveSupport::TestCase

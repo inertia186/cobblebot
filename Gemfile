@@ -7,6 +7,7 @@ gem 'rails', '4.2.4'
 gem 'sqlite3', require: false, platforms: :ruby
 
 # Use postgresql if you're tired of SQLite errors.
+gem 'pg', platforms: :ruby
 # gem 'pg', platforms: :jruby, git: 'git://github.com/headius/jruby-pg.git', :branch => :master
 
 # Enables sqlite3 on jruby

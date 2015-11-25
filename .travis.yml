@@ -5,9 +5,15 @@ rvm:
   - "2.2.1"
 script: bundle exec rake TESTOPTS="--verbose" test
 addons:
+  postgresql: "9.1"
   code_climate:
     repo_token: a87f794bdf9e3c4e90027ab6bbf5c798d60018183118cf858d971fd428af5771
+services:
+  - postgresql
 notifications:
   email: false
   irc: "chat.freenode.net#galacticaactual"
   slack: galacticaactual:rhAXgZ68aoikbxBBA05xIUVC
+before_script:
+  - cp config/database.yml.travis config/database.yml
+  - psql -c 'create database cobblebot_test;' -U postgres

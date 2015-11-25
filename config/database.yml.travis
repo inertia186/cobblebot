@@ -1,0 +1,4 @@
+test:
+  adapter: postgresql
+  database: cobblebot_test
+  username: postgres
