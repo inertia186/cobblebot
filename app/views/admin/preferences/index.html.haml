@@ -1,8 +1,7 @@
 .row
   %h3 Preferences
 
-:javascript
-  window.preloadedPreferences = #{raw @preloadedPreferences.to_json};
+%div{data: {preload_resource: '/admin/preferences.json', data: (render template: '/admin/preferences/index.json')}}
 
 .row{ng_controller: 'PreferenceCtrl'}
   .alert.alert-danger{data_ng_show: 'errorMode'}

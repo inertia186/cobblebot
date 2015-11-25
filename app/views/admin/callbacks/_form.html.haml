@@ -1,57 +1,58 @@
-= form_for [:admin, @callback.becomes(ServerCallback)], role: :form do |f|
-  - if @callback.errors.any?
-    .alert.alert-danger
-      %h4 #{pluralize((@callback.errors.keys - [:base]).size, "error")} prohibited this template from being saved:
-      %ul>
-      - @callback.errors.keys.each do |key|
-        - if key == :base
-          %pre.alert-warning>~ @callback.errors.messages[key].uniq.join(" ")
-        - else
-          %li>
-            = key.to_s.titleize
-            %span>:&nbsp;
-            = @callback.errors.messages[key].join(" and/or ")
+.row{ng_controller: 'CallbackCtrl'}
+  = form_for [:admin, @callback.becomes(ServerCallback)], role: :form do |f|
+    - if @callback.errors.any?
+      .alert.alert-danger
+        %h4 #{pluralize((@callback.errors.keys - [:base]).size, "error")} prohibited this template from being saved:
+        %ul>
+        - @callback.errors.keys.each do |key|
+          - if key == :base
+            %pre.alert-warning>~ @callback.errors.messages[key].uniq.join(" ")
+          - else
+            %li>
+              = key.to_s.titleize
+              %span>:&nbsp;
+              = @callback.errors.messages[key].join(" and/or ")
 
-  .row
-    .input-group
-      = f.label :name
-      %br
-      = f.text_field :name, placeholder: 'Hello Server'
-    .input-group
-      = f.label :pattern
-      %br
-      = f.text_field :pattern, size: 80, placeholder: '/^@server say hello$/i'
-      %suggestion{module: 'admin', group: 'callbacks', key: 'pattern', verbose: 'false'}
-    .input-group
-      = f.label :type
-      %br
-      = f.select :type, ServerCallback::ALL_TYPES.map { |option| [option.split('::')[1..-1].join(' ').titleize, option] }
-      %suggestion{module: 'admin', group: 'callbacks', key: 'type', verbose: 'false'}
-    .input-group
-      = f.label :command
-      %br
-      = f.text_area :command, cols: 70, rows: 15, placeholder: 'say "@a", "Hello World"'
-      %suggestion{module: 'admin', group: 'callbacks', key: 'command', verbose: 'false'}
-    .input-group
-      = f.label :cooldown
-      %br
-      = f.text_field :cooldown, placeholder: '300'
-      %suggestion{module: 'admin', group: 'callbacks', key: 'cooldown', verbose: 'false'}
-    .input-group
-      = f.label :help_doc_key
-      %br
-      = f.text_field :help_doc_key
-      %suggestion{module: 'admin', group: 'callbacks', key: 'help_doc_key', verbose: 'false'}
-    .input-group
-      = f.label :help_doc
-      %br
-      = f.text_area :help_doc, cols: 70, rows: 15, placeholder: 'Usage @server this'
-      %suggestion{module: 'admin', group: 'callbacks', key: 'help_doc', verbose: 'false'}
-    .input-group
-      = f.label :enabled do
-        = f.check_box :enabled
-        Enabled
-    .input-group
-      = f.submit class: 'btn btn-primary'
-    .input-group
-      = link_to 'Back', admin_server_callbacks_path, class: 'btn btn-info btn-sm'
+    .row
+      .input-group
+        = f.label :name
+        %br
+        = f.text_field :name, placeholder: 'Hello Server'
+      .input-group
+        = f.label :pattern
+        %br
+        = f.text_field :pattern, size: 80, placeholder: '/^@server say hello$/i'
+        %suggestion{module: 'admin', group: 'callbacks', key: 'pattern', verbose: 'false'}
+      .input-group
+        = f.label :type
+        %br
+        = f.select :type, ServerCallback::ALL_TYPES.map { |option| [option.split('::')[1..-1].join(' ').titleize, option] }, {}, data: {chosen: true}
+        %suggestion{module: 'admin', group: 'callbacks', key: 'type', verbose: 'false'}
+      .input-group
+        = f.label :command
+        %br
+        = f.text_area :command, cols: 70, rows: 15, placeholder: 'say "@a", "Hello World"'
+        %suggestion{module: 'admin', group: 'callbacks', key: 'command', verbose: 'false'}
+      .input-group
+        = f.label :cooldown
+        %br
+        = f.text_field :cooldown, placeholder: '300'
+        %suggestion{module: 'admin', group: 'callbacks', key: 'cooldown', verbose: 'false'}
+      .input-group
+        = f.label :help_doc_key
+        %br
+        = f.text_field :help_doc_key
+        %suggestion{module: 'admin', group: 'callbacks', key: 'help_doc_key', verbose: 'false'}
+      .input-group
+        = f.label :help_doc
+        %br
+        = f.text_area :help_doc, cols: 70, rows: 15, placeholder: 'Usage @server this'
+        %suggestion{module: 'admin', group: 'callbacks', key: 'help_doc', verbose: 'false'}
+      .input-group
+        = f.label :enabled do
+          = f.check_box :enabled
+          Enabled
+      .input-group
+        = f.submit class: 'btn btn-primary'
+      .input-group
+        = link_to 'Back', admin_server_callbacks_path, class: 'btn btn-info btn-sm'

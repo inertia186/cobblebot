@@ -4,15 +4,15 @@ class Admin::PreferencesController < Admin::AdminController
   respond_to :json
 
   def index
-    preferences = if params[:system] == 'true'
+    @preferences = if params[:system] == 'true'
       Preference.system
     else
       Preference.find_or_create_all(false)
     end
     
     respond_to do |format|
-      format.html { @preloadedPreferences = preferences.map { |p| {p.key => p.value} }.reduce(Hash.new, :merge) }
-      format.json { respond_with preferences }
+      format.html { }
+      format.json { }
     end
   end
   

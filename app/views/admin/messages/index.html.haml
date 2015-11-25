@@ -6,10 +6,15 @@
       Messages
       - if @author
         by
-        = link_to @author.nick, admin_player_path(@author)
-      - if @recipient
+        - [@author].flatten.each do |author|
+          = link_to author.nick, admin_player_path(author)
+      - if @recipient.present?
         for
-        = link_to @recipient.nick, admin_player_path(@recipient)
+        - if (rr = [@recipient].flatten).size > 3
+          various recipients
+        - else
+          - rr.each do |recipient|
+            = link_to recipient.nick, admin_player_path(recipient)
   .col-sm-9
     %suggestion{module: 'admin', group: 'messages', key: 'main', verbose: 'false'}
 
@@ -18,8 +23,11 @@
     = hidden_field_tag :sort_field, @sort_field
     = hidden_field_tag :sort_order, @sort_order
     = hidden_field_tag :filter, @filter
-    = hidden_field_tag :author_id, @author_id if @author_id.present?
+    = hidden_field_tag :author_id, @author_id
     = text_field_tag :query, @query, placeholder: 'Query Text'
+    = select_tag :recipient_id, options_from_collection_for_select(@recipient, 'id', 'nick', @recipient_id), multiple: true,
+      data: {select_player: '/admin/players.json?filter=only_with_mail&select=id,nick,last_nick&sort_field=nick&sort_order=asc',
+      chosen: true}
     = check_box_tag :read, 'true', params[:read] == 'true'
     = label_tag :read
     = check_box_tag :deleted, 'true', params[:deleted] == 'true'

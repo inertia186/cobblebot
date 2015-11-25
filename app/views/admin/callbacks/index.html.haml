@@ -1,43 +1,44 @@
-.row
-  .col-sm-2
-    %h3 Callbacks
-  .col-sm-10
-    %suggestion{module: 'admin', group: 'callbacks', key: 'main', verbose: 'false'}
-.row.pull-right
-  = form_tag url_for(action: controller.action_name), method: :get do
-    = hidden_field_tag :sort_field, @sort_field
-    = hidden_field_tag :sort_order, @sort_order
-    = hidden_field_tag :filter, @filter
-    = text_field_tag :query, @query, placeholder: 'Query Text'
-    = select_tag :status, callback_status_options_for_select(@status)
-    = select_tag :type, callback_type_options_for_select(@type)
-    = submit_tag 'Search', class: 'btn btn-info btn-xs'
-    = link_to 'Reset All', reset_all_cooldown_admin_server_callbacks_path, method: :patch, class: 'btn btn-warning btn-xs', data: { confirm: 'Are you sure?  This will attempt to reset ALL callbacks, including any debugging information.' }
+.row{ng_controller: 'CallbackCtrl'}
+  .row
+    .col-sm-2
+      %h3 Callbacks
+    .col-sm-10
+      %suggestion{module: 'admin', group: 'callbacks', key: 'main', verbose: 'false'}
+  .row.pull-right
+    = form_tag url_for(action: controller.action_name), method: :get do
+      = hidden_field_tag :sort_field, @sort_field
+      = hidden_field_tag :sort_order, @sort_order
+      = hidden_field_tag :filter, @filter
+      = text_field_tag :query, @query, placeholder: 'Query Text'
+      = select_tag :status, callback_status_options_for_select(@status), data: {chosen: true}
+      = select_tag :type, callback_type_options_for_select(@type), data: {chosen: true}
+      = submit_tag 'Search', class: 'btn btn-info btn-xs'
+      = link_to 'Reset All', reset_all_cooldown_admin_server_callbacks_path, method: :patch, class: 'btn btn-warning btn-xs', data: { confirm: 'Are you sure?  This will attempt to reset ALL callbacks, including any debugging information.' }
 
+  .row
+    %ul.nav.nav-tabs
+      %li{class: @filter == 'all' ? 'active' : ''}
+        = link_to 'All', admin_server_callbacks_path, 'aria-controls' => "all"
+      %li{class: @filter == 'exclude_system' ? 'active' : ''}
+        = link_to 'Non-system', admin_server_callbacks_path(filter: 'exclude_system'), 'aria-controls' => "non-system"
+      %li{class: @filter == 'only_system' ? 'active' : ''}
+        = link_to 'System', admin_server_callbacks_path(filter: 'only_system'), 'aria-controls' => "system"
 
-%ul.nav.nav-tabs
-  %li{class: @filter == 'all' ? 'active' : ''}
-    = link_to 'All', admin_server_callbacks_path, 'aria-controls' => "all"
-  %li{class: @filter == 'exclude_system' ? 'active' : ''}
-    = link_to 'Non-system', admin_server_callbacks_path(filter: 'exclude_system'), 'aria-controls' => "non-system"
-  %li{class: @filter == 'only_system' ? 'active' : ''}
-    = link_to 'System', admin_server_callbacks_path(filter: 'only_system'), 'aria-controls' => "system"
+    .tab-contents
+      .tab-panel.tab-pane.active
+        .row.table-responsive
+          %table.table
+            %thead
+              %tr
+                %th=sortable_header_link 'Name', 'lower(name)'
+                %th=sortable_header_link 'Type', 'type'
+                %th=sortable_header_link 'Ran', 'ran_at'
+                %th=sortable_header_link 'Status', 'status'
+                %th=sortable_header_link 'Created', 'created_at'
+                %th
+            %tbody
+              = render partial: 'callback_row', collection: @callbacks, as: :callback
 
-.tab-contents
-  .tab-panel.tab-pane.active
-    .row.table-responsive
-      %table.table
-        %thead
-          %tr
-            %th=sortable_header_link 'Name', 'lower(name)'
-            %th=sortable_header_link 'Type', 'type'
-            %th=sortable_header_link 'Ran', 'ran_at'
-            %th=sortable_header_link 'Status', 'status'
-            %th=sortable_header_link 'Created', 'created_at'
-            %th
-        %tbody
-          = render partial: 'callback_row', collection: @callbacks, as: :callback
+    = link_to 'New', new_admin_server_callback_path, class: 'btn btn-success'
 
-= link_to 'New', new_admin_server_callback_path, class: 'btn btn-success'
-
-%p= will_paginate @callbacks
+    %p= will_paginate @callbacks

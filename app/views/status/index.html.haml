@@ -1,7 +1,6 @@
 .row
 
-:javascript
-  window.preloadedStatus = #{raw @preloadedStatus.to_json};
+-#%div{data: {preload_resource: '/status.json', data: (render template: '/status/index.json')}}
 
 .row{ng_controller: 'StatCtrl'}
   %table.table

@@ -24,15 +24,16 @@ class Admin::MessagesController < Admin::AdminController
       @messages = @messages.muted(params[:muted] == 'true')
     end
     if @author_id.present? && @author_type == 'Player'
-      @author = Player.find @author_id
-      @messages = @messages.where(author_id: @author_id)
+      @recipient = Player.where(id: @author_id)
+      @messages = @messages.where(recipient_type: @author_type, author_id: @author_id)
     end
       
     if @recipient_id.present? && @recipient_type == 'Player'
-      @recipient = Player.find @recipient_id
-      @messages = @messages.where(recipient_id: @recipient_id)
+      @recipient = Player.where(id: @recipient_id)
+      @messages = @messages.where(recipient_type: @recipient_type, recipient_id: @recipient_id)
     end
 
+    @recipient ||= []
     @messages = @messages.preload(:author, :recipient)
 
     timeframe

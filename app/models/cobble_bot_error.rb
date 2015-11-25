@@ -5,7 +5,7 @@ class CobbleBotError < StandardError
   end
   
   def local_backtrace
-    trace = if @cause
+    trace = if @cause && defined? @cayse.backtrace
       @cause.backtrace.select do |line|
         line.include?(Rails.root.to_s)
       end.join("\n")

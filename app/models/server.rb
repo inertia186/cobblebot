@@ -5,7 +5,7 @@ class Server
   RETRY_SLEEP = 5
 
   def self.try_max
-    Rails.env == 'test' ? 1 : TRY_MAX
+    Rails.env == 'test' ? 1 : Preference.try_max.to_i || TRY_MAX
   end
   
   def self.retry_sleep
@@ -18,14 +18,16 @@ class Server
     try_max.times do
       begin
         query = Query::simpleQuery(ServerProperties.server_ip, ServerProperties.server_port)
+        unless query.class == Hash
+          raise CobbleBotError.new(message: 'Connection refused.', cause: query)
+        end
+        break
       rescue StandardError => e
         Rails.logger.warn e.inspect
         sleep retry_sleep
         ServerProperties.reset_vars
         @file_paths = nil
       end
-      
-      break
     end
     
     query.class == Hash

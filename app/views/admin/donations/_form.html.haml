@@ -18,7 +18,11 @@
     .input-group
       = f.label :author, 'Donor (leave blank if anonymous)'
       %br
-      = f.select :author_id, Player.order('LOWER(nick)').map {|p| ["#{p.nick}#{p.last_nick.present? ? " (aka #{p.last_nick})" : ''}", p.id]}, {prompt: ''}, {multiple: false}
+      = f.select :author_id,
+        [['', @donation.author_id]],
+        {prompt: 'Select a Player ... '},
+        data: {select_player: '/admin/players.json?select=id,nick,last_nick&sort_field=nick&sort_order=asc',
+        chosen: true}
     .input-group
       = f.label :body, 'Donation Details'
       %br

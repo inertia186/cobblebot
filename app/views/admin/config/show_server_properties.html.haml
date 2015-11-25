@@ -23,3 +23,5 @@
               %suggestion{module: 'admin', group: 'server_properties', key: key}
             - if key =~ /^enable-rcon$/i && ServerProperties.send(key) != 'true'
               %suggestion{module: 'admin', group: 'server_properties', key: key}
+            - if key =~ /^enable-query$/i && ServerProperties.send(key) != 'true'
+              %suggestion{module: 'admin', group: 'server_properties', key: key}
