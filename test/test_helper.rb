@@ -7,11 +7,30 @@ require 'simplecov'
 require 'webmock/minitest'
 require "codeclimate-test-reporter"
 require 'database_cleaner'
+require 'capybara/rails'
+require 'capybara/poltergeist'
 
 SimpleCov.start
 WebMock.disable_net_connect!(allow_localhost: true, allow: 'codeclimate.com:443')
 CodeClimate::TestReporter.start
 DatabaseCleaner[:active_record].strategy = :transaction
+
+Capybara.register_driver :poltergeist do |app|
+  Capybara::Poltergeist::Driver.new(app, {
+    :phantomjs => Phantomjs.path,
+    debug: false,
+    #timeout: 60,
+    js_errors: true,
+    #inspector: true,
+  })
+end
+
+Capybara.javascript_driver = :poltergeist
+Capybara.default_driver = :poltergeist
+
+class ActionDispatch::IntegrationTest
+  include Capybara::DSL
+end
 
 class ActiveSupport::TestCase
   self.use_transactional_fixtures = true
