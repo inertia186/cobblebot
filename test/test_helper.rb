@@ -34,6 +34,16 @@ class ActionDispatch::IntegrationTest
   def save_screenshot
     page.save_screenshot "tmp/page.png", :full => true
   end
+
+  def save_screenshot_and_skip(message = nil)
+    save_screenshot
+    
+    if !!message
+      skip "Skipped integration: #{message}"
+    else
+      skip 'Skipped integration.'
+    end
+  end
 end
 
 class ActiveSupport::TestCase

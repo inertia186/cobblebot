@@ -3,7 +3,17 @@ require 'rcon/rcon'
 class Server
   TRY_MAX = 5
   RETRY_SLEEP = 5
+  
+  @@mock_options = nil
 
+  def self.mock_mode(options = {}, &block)
+    raise "Mock mode should only be used in tests." unless Rails.env == 'test'
+    
+    @@mock_options = options
+    yield
+    @@mock_options = nil
+  end
+  
   def self.try_max
     Rails.env == 'test' ? 1 : Preference.try_max.to_i || TRY_MAX
   end
@@ -13,6 +23,8 @@ class Server
   end
   
   def self.up?
+    return @@mock_options[:up] if !!@@mock_options
+    
     query = nil
     
     try_max.times do
@@ -35,6 +47,7 @@ class Server
   
   def self.latest_log_entry_at
     return unless up?
+    return @@mock_options[:latest_log_entry_at] if !!@@mock_options
     
     server_log = "#{ServerProperties.path_to_server}/logs/latest.log"
     File.ctime(server_log)
@@ -49,7 +62,10 @@ class Server
   end
   
   def self.player_nicks(selector = nil)
+    return @@mock_options[:player_nicks] if !!@@mock_options
+    
     nicks = []
+    
     return nicks unless up?
     
     if !!selector

@@ -1,7 +1,17 @@
 class ServerQuery
   TRY_MAX = 5
   RETRY_SLEEP = 5
+  
+  @@mock_options = nil
 
+  def self.mock_mode(options = {}, &block)
+    raise "Mock mode should only be used in tests." unless Rails.env == 'test'
+    
+    @@mock_options = options
+    yield
+    @@mock_options = nil
+  end
+  
   def self.try_max
     Rails.env == 'test' ? 1 : TRY_MAX
   end
@@ -11,6 +21,9 @@ class ServerQuery
   end
   
   def self.query(method = :simpleQuery)
+    return @@mock_options[:query] if !!@@mock_options
+    return @@mock_options[:full_query] if !!@@mock_options
+    
     query = nil
   
     try_max.times do
@@ -42,7 +55,11 @@ class ServerQuery
   end
   
   def self.method_missing(m, *args, &block)
-    q = full_query
+    q = if !!@@mock_options && @@mock_options[:full_query]
+      @@mock_options[:full_query]
+    else
+      full_query
+    end
     
     super unless !!q
 

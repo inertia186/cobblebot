@@ -6,14 +6,10 @@ class PvpsTest < ActionDispatch::IntegrationTest
   end
   
   def test_basic_workflow
-    visit '/pvps'
-    fill_in 'query', with: 'dinnerbone'
-    save_screenshot
-  end
-end
-
-def Server
-  def self.up?
-    true
+    Server.mock_mode(up: true) do
+      visit '/pvps'
+      fill_in 'query', with: 'dinnerbone'
+      save_screenshot
+    end
   end
 end
