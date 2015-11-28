@@ -6,9 +6,6 @@ if ENV["HELL_ENABLED"]
   SimpleCov.merge_timeout 3600
 
   require 'database_cleaner'
-  # DatabaseCleaner.strategy = :transaction
-  DatabaseCleaner.strategy = :truncation, {only: %w[reputations mutes]}
-  # DatabaseCleaner.strategy = :truncation
 end
 
 require File.expand_path('../../config/environment', __FILE__)
@@ -40,7 +37,7 @@ Capybara.register_driver :poltergeist do |app|
     phantomjs: Phantomjs.path,
     phantomjs_logger: phantomjs_logger,
     debug: false,
-    #timeout: 60,
+    timeout: 15,
     js_errors: true,
     inspector: true,
     extensions: [
@@ -51,13 +48,14 @@ end
 
 Capybara.javascript_driver = :poltergeist
 Capybara.default_driver = :poltergeist
+Capybara.default_max_wait_time = 15
 
 Capybara::Screenshot.prune_strategy = { keep: 20 }
 
 Rails.application.load_seed
 
 module TestTools
-  def skip_until_pass(message = "This test is now passing, please revise.", &block)
+  def skip_until_pass(options = {when_passes: "This test is now passing, please revise."}, &block)
     begin
       yield block
     rescue Minitest::Assertion
@@ -66,7 +64,7 @@ module TestTools
       skip 'Skipped template error until fixed.'
     end
 
-    fail message
+    fail options[:when_passes]
   end
 end
 
@@ -76,11 +74,16 @@ class ActionDispatch::IntegrationTest
   include Capybara::Angular::DSL
   include Capybara::Screenshot::MiniTestPlugin
 
-  self.use_transactional_fixtures = true# unless defined? DatabaseCleaner
+  # Never use transactional fixtures with integration tests.
+  self.use_transactional_fixtures = false
+
   fixtures :all
 
   def before_setup
-    DatabaseCleaner.start if defined? DatabaseCleaner
+    if defined? DatabaseCleaner
+      DatabaseCleaner.strategy = :truncation
+      DatabaseCleaner.start
+    end
     super
   end
 
@@ -134,11 +137,20 @@ end
 class ActiveSupport::TestCase
   include TestTools
 
-  self.use_transactional_fixtures = true# unless defined? DatabaseCleaner
+  if defined? DatabaseCleaner
+    DatabaseCleaner.clean_with(:truncation)
+    self.use_transactional_fixtures = false
+  else
+    self.use_transactional_fixtures = true
+  end
+
   fixtures :all
 
   def before_setup
-    DatabaseCleaner.start if defined? DatabaseCleaner
+    if defined? DatabaseCleaner
+      DatabaseCleaner.strategy = :transaction
+      DatabaseCleaner.start
+    end
     super
   end
 

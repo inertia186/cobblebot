@@ -11,7 +11,7 @@ class Admin::CallbacksController < Admin::AdminController
     adapter_type = ActiveRecord::Base.connection.adapter_name.downcase.to_sym
     status_select = case adapter_type
     when :sqlite then 'datetime(server_callbacks.ran_at, server_callbacks.cooldown) AS status'
-    when :postgresql then 'server_callbacks.ran_at + (server_callbacks.cooldown::interval) AS status'
+    when :postgresql then "COALESCE(server_callbacks.ran_at, 'epoch'::timestamp) + (server_callbacks.cooldown::interval) AS status"
     else raise NotImplementedError, "Unknown adapter type '#{adapter_type}'"
     end
 

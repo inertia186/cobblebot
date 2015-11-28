@@ -1,6 +1,6 @@
 require "test_helper"
 
-class Admin::PlayersTest < ActionDispatch::IntegrationTest
+class Admin::CallbacksTest < ActionDispatch::IntegrationTest
   def setup
     preferences(:path_to_server).update_attribute(:value, "#{Rails.root}/tmp")
   end
@@ -11,9 +11,9 @@ class Admin::PlayersTest < ActionDispatch::IntegrationTest
         admin_sign_in
         find_link('Admin').click
         within(:css, '#cobblebot-navbar > ul:nth-child(1) > li.dropdown.open') do
-          find_link('Players').click
+          find_link('Callbacks').click
         end
-        assert page.has_content?('Players'), 'expect Players.  We should now be on the Players page.'
+        assert page.has_content?('Callbacks'), 'expect Callbacks.  We should now be on the Callbacks page.'
       end
     end
   end
@@ -25,16 +25,17 @@ class Admin::PlayersTest < ActionDispatch::IntegrationTest
     Server.mock_mode(up: true, player_nicks: []) do
       ServerQuery.mock_mode(full_query: {numplayers: "0", maxplayers: "20"}) do
         within(:css, results_container) do
-          assert page.has_content?('inertia186'), 'expect inertia186 in initial results'
-          assert page.has_content?('Dinnerbone'), 'expect Dinnerbone in initial results'
+          assert page.has_content?('Spammy'), 'expect Spammy in initial results'
+          assert page.has_content?('Read Mail'), 'expect Read Mail in initial results'
         end
 
-        fill_in('query', with: 'inertia')
+        save_screenshot
+        fill_in('query', with: 'spammy')
         click_on('Search')
 
         within(:css, results_container) do
-          assert page.has_content?('inertia186'), 'expect inertia186 in inertia results'
-          refute page.has_content?('Dinnerbone'), 'did not expect Dinnerbone in inertia results'
+          assert page.has_content?('Spammy'), 'expect Spammy in spammy results'
+          refute page.has_content?('Read Mail'), 'expect Read Mail in spammy results'
         end
       end
     end

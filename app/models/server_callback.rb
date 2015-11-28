@@ -62,22 +62,24 @@ class ServerCallback < ActiveRecord::Base
     end
   }
   scope :query, lambda { |query|
+    query = query.downcase
+
     clause = <<-DONE
-      server_callbacks.name LIKE ? OR
-      server_callbacks.pattern LIKE ? OR
-      server_callbacks.last_match LIKE ? OR
-      server_callbacks.last_command_output LIKE ? OR
-      server_callbacks.command LIKE ?
+      LOWER(server_callbacks.name) LIKE ? OR
+      LOWER(server_callbacks.pattern) LIKE ? OR
+      LOWER(server_callbacks.last_match) LIKE ? OR
+      LOWER(server_callbacks.last_command_output) LIKE ? OR
+      LOWER(server_callbacks.command) LIKE ?
     DONE
     where(clause, query, query, query, query, query)
   }
   scope :responding_callbacks, lambda { |message|
     result = []
-    
+
     find_each do |c|
       result << c if c.class.for_handling(message) && message =~ ServerCommand.eval_pattern(c.pattern, c.to_param)
     end
-    
+
     where(id: result)
   }
   scope :has_help_docs, lambda { |has_help_docs = true|

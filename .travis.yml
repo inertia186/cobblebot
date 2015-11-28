@@ -3,7 +3,7 @@ rvm:
 #  - "2.0.0"
 #  - "2.1.5"
   - "2.2.1"
-script: N=1 TESTOPTS="--verbose --seed 40788" bundle exec rake test
+script: TESTOPTS="--verbose" bundle exec rake test
 addons:
   postgresql: "9.1"
   code_climate:
