@@ -5,6 +5,8 @@ class ServerCallbackTest < ActiveSupport::TestCase
   # automatically tested.
   SKIP_CALLBACKS_NAMED = []
   
+  # Many of these tests require the true seeds, not fixtures.  These are marked with "IMPORTANT!"
+  
   def setup
     stub_request(:get, "https://gist.github.com/inertia186/5002463").
       to_return(status: 200)

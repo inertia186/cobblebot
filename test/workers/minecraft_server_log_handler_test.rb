@@ -3,7 +3,7 @@ require 'test_helper'
 class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   def setup
     Preference.path_to_server = "#{Rails.root}/tmp"
-
+    
     stub_request(:head, "https://gist.github.com/inertia186/5002463").
       to_return(status: 200)
     stub_request(:get, "https://gist.github.com/inertia186/5002463").
@@ -78,63 +78,59 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
 
   def test_player_authenticated
-    def Server.entity_data(options = {selector: "@e[c=1]", near_player: nil, radius: 0})
-      return ['Frozen Projectile']
-    end
+    Server.mock_mode(entity_data: ['Frozen Projectile']) do
+      ServerCommand.detectable_reset
 
-    ServerCommand.detectable_reset
+      refute Preference.is_junk_objective_timestamp, "did not expect is_junk_objective_timestamp, it was: #{Preference.is_junk_objective_timestamp}"
 
-    refute Preference.is_junk_objective_timestamp, "did not expect is_junk_objective_timestamp, it was: #{Preference.is_junk_objective_timestamp}"
+      assert_difference -> { Player.count }, 1, 'expect new player' do
+        assert_callback_ran 'Player Authenticated' do
+          ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848', debug: true)
+        end
+      end
 
-    assert_difference -> { Player.count }, 1, 'expect new player' do
-      assert_callback_ran 'Player Authenticated' do
+      assert Preference.is_junk_objective_timestamp, 'expect is_junk_objective_timestamp'
+
+      ServerCommand.detectable_reset
+
+      assert_no_difference -> { Player.count }, 'did not expect new player' do
         ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848', debug: true)
       end
+
+      player = Player.last
+      assert_nil player.last_nick, 'expect last_nick to be nil'
+
+      assert_no_difference -> { Player.count }, 'did not expect new player' do
+        ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player yYPlayerYy is f6ddf946-f162-8d48-a21b-ac00929fb848', debug: true)
+      end
+
+      player.reload
+      assert_equal player.nick, 'yYPlayerYy', 'expected nick to update to new nick'
+      refute_nil player.last_nick, 'expect last_nick to update'
+      refute_equal player.nick, player.last_nick, 'expect last_nick not to be equal to nick'
+
+      assert_no_difference -> { Player.count }, 'did not expect new player' do
+        ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player zZPlayerZz is f6ddf946-f162-8d48-a21b-ac00929fb848', debug: true)
+      end
+
+      player.reload
+      assert_equal player.nick, 'zZPlayerZz', 'expected nick to update to new nick'
+      assert_equal player.last_nick, 'yYPlayerYy', 'expect last_nick to update'
     end
-
-    assert Preference.is_junk_objective_timestamp, 'expect is_junk_objective_timestamp'
-
-    ServerCommand.detectable_reset
-
-    assert_no_difference -> { Player.count }, 'did not expect new player' do
-      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848', debug: true)
-    end
-
-    player = Player.last
-    assert_nil player.last_nick, 'expect last_nick to be nil'
-
-    assert_no_difference -> { Player.count }, 'did not expect new player' do
-      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player yYPlayerYy is f6ddf946-f162-8d48-a21b-ac00929fb848', debug: true)
-    end
-
-    player.reload
-    assert_equal player.nick, 'yYPlayerYy', 'expected nick to update to new nick'
-    refute_nil player.last_nick, 'expect last_nick to update'
-    refute_equal player.nick, player.last_nick, 'expect last_nick not to be equal to nick'
-
-    assert_no_difference -> { Player.count }, 'did not expect new player' do
-      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player zZPlayerZz is f6ddf946-f162-8d48-a21b-ac00929fb848', debug: true)
-    end
-
-    player.reload
-    assert_equal player.nick, 'zZPlayerZz', 'expected nick to update to new nick'
-    assert_equal player.last_nick, 'yYPlayerYy', 'expect last_nick to update'
   end
 
   def test_player_authenticated_is_junk_objective_timestamp
-    def Server.entity_data(options = {selector: "@e[c=1]", near_player: nil, radius: 0})
-      return ['Frozen Projectile']
-    end
+    Server.mock_mode(entity_data: ['Frozen Projectile']) do
+      ServerCommand.detectable_reset
 
-    ServerCommand.detectable_reset
-
-    refute Preference.is_junk_objective_timestamp, "did not expect is_junk_objective_timestamp, it was: #{Preference.is_junk_objective_timestamp}"
-    
-    ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848', debug: true)
-    assert Preference.is_junk_objective_timestamp, 'expect is_junk_objective_timestamp'
-    travel 2.days do
-      ServerCommand.send(:handle_frozen_projectiles)
       refute Preference.is_junk_objective_timestamp, "did not expect is_junk_objective_timestamp, it was: #{Preference.is_junk_objective_timestamp}"
+    
+      ServerCallback::ServerEntry.handle('[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848', debug: true)
+      assert Preference.is_junk_objective_timestamp, 'expect is_junk_objective_timestamp'
+      travel 2.days do
+        ServerCommand.send(:handle_frozen_projectiles)
+        refute Preference.is_junk_objective_timestamp, "did not expect is_junk_objective_timestamp, it was: #{Preference.is_junk_objective_timestamp}"
+      end
     end
   end
   
@@ -308,16 +304,17 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
   
   def test_random_tip_slap
-    def Server.player_nicks(selector = nil)
-      ['inertia186'] # in case the tip has a selector
-    end
+    # in case the tip has a selector
+    player_nicks = ['inertia186']
     
-    Message::Tip.where.not("body LIKE 'slap%'").update_all('read_at = CURRENT_TIMESTAMP')
-    assert_callback_ran 'Random Tip' do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip slap', debug: true)
+    Server.mock_mode(player_nicks: player_nicks) do
+      Message::Tip.where.not("body LIKE 'slap%'").update_all('read_at = CURRENT_TIMESTAMP')
+      assert_callback_ran 'Random Tip' do
+        ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server tip slap', debug: true)
+      end
+      # Make sure the "pretend" option reaches the callback for simulated chat.
+      assert_equal '@server tip slap', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip slap'
     end
-    # Make sure the "pretend" option reaches the callback for simulated chat.
-    assert_equal '@server tip slap', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server tip slap'
   end
   
   def test_random_tip_mfw
@@ -377,76 +374,74 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
 
   def test_spam_detect_special_characters
-    def Server.player_nicks(selector = nil)
-      ['GracieBoo', 'xXPlayerXx'] # need at least two players for spam detection to work
-    end
+    # need at least two players for spam detection to work
+    player_nicks = ['GracieBoo', 'xXPlayerXx']
     
-    def ServerQuery.numplayers
-      "2"
-    end
-
-    assert_callback_ran 'Spammy' do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <GracieBoo> test', debug: true)
-    end
-
-    assert_callback_ran 'Spammy' do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <GracieBoo> =(', debug: true)
+    Server.mock_mode(player_nicks: player_nicks) do
+      ServerQuery.mock_mode(full_query: {numplayers: player_nicks.size.to_s}) do
+        assert_callback_ran 'Spammy' do
+          ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <GracieBoo> test', debug: true)
+        end
+        
+        assert_callback_ran 'Spammy' do
+          ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <GracieBoo> =(', debug: true)
+        end
+      end
     end
   end
   
   def test_spam_detect
     MinecraftServerLogHandler.handle '[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848'
     MinecraftServerLogHandler.handle "[08:33:03] [User Authenticator #23/INFO]: UUID of player GracieBoo is a5077378-81eb-4215-96f9-16679e3401cb"
-
-    def Server.player_nicks(selector = nil)
-      ['GracieBoo', 'xXPlayerXx'] # need at least two players for spam detection to work
-    end
     
-    def ServerQuery.numplayers
-      "2"
-    end
-
-    spam_event = <<-DONE
-      [08:33:03] [Server thread/INFO]: GracieBoo[/127.0.0.1:54212] logged in with entity id 315010 at (5583.5, 40.0, -5573.5)
-      [08:33:03] [Server thread/INFO]: GracieBoo joined the game
-      [08:33:06] [Server thread/INFO]: <GracieBoo> hi
-      [08:33:10] [Server thread/INFO]: <GracieBoo> anybody here?
-      [08:33:11] [Server thread/INFO]: <GracieBoo> HELLO
-      [08:33:12] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:12] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:13] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:13] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:14] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:15] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:16] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:16] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:17] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:17] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:18] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:18] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:19] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:19] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:20] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:20] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:21] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
-    DONE
-
-    assert_callback_ran 'Spammy' do
-      assert_kicked 'GracieBoo' do
-        refute_kicked 'inertia186' do
-          spam_event.each_line do |line|
-            # We are trying to achieve the highest code coverage possible, so
-            # this particular test flushes and blocks every line of the example
-            # log. Passing a block to open like we do in other tests is "too
-            # efficient"  and causes the test to skip certain spam conditions.
+    # need at least two players for spam detection to work
+    player_nicks = ['GracieBoo', 'xXPlayerXx']
+    
+    Server.mock_mode(player_nicks: player_nicks) do
+      ServerQuery.mock_mode(full_query: {numplayers: player_nicks.size.to_s}) do
+        spam_event = <<-DONE
+          [08:33:03] [Server thread/INFO]: GracieBoo[/127.0.0.1:54212] logged in with entity id 315010 at (5583.5, 40.0, -5573.5)
+          [08:33:03] [Server thread/INFO]: GracieBoo joined the game
+          [08:33:06] [Server thread/INFO]: <GracieBoo> hi
+          [08:33:10] [Server thread/INFO]: <GracieBoo> anybody here?
+          [08:33:11] [Server thread/INFO]: <GracieBoo> HELLO
+          [08:33:12] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:12] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:13] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:13] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:14] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:15] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:16] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:16] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:17] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:17] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:18] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:18] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:19] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:19] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:20] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:20] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:21] [Server thread/INFO]: <GracieBoo> myserver.mcpre.co.uk NEW SERVER COME JOIN
+        DONE
+        
+        assert_callback_ran 'Spammy' do
+          assert_kicked 'GracieBoo' do
+            refute_kicked 'xXPlayerXx' do
+              spam_event.each_line do |line|
+                # We are trying to achieve the highest code coverage possible, so
+                # this particular test flushes and blocks every line of the example
+                # log. Passing a block to open like we do in other tests is "too
+                # efficient"  and causes the test to skip certain spam conditions.
       
-            # Note, it's good to test both ways because unflushed files more
-            # closely simulate a laggy server.
+                # Note, it's good to test both ways because unflushed files more
+                # closely simulate a laggy server.
       
-            f = File.open("#{Preference.path_to_server}/logs/latest.log", 'a')
-            f << line.strip + "\n"
-            f.close
-            MinecraftServerLogHandler.handle line.strip
+                f = File.open("#{Preference.path_to_server}/logs/latest.log", 'a')
+                f << line.strip + "\n"
+                f.close
+                MinecraftServerLogHandler.handle line.strip
+              end
+            end
           end
         end
       end
@@ -460,188 +455,184 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     MinecraftServerLogHandler.handle '[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848'
     MinecraftServerLogHandler.handle "[08:33:03] [User Authenticator #23/INFO]: UUID of player GracieBoo is a5077378-81eb-4215-96f9-16679e3401cb"
 
-    def Server.player_nicks(selector = nil)
-      ['GracieBoo', 'xXPlayerXx'] # need at least two players for spam detection to work
-    end
-
-    def ServerQuery.numplayers
-      "2"
-    end
-
-    spam_event = <<-DONE
-      [08:33:03] [Server thread/INFO]: GracieBoo[/127.0.0.1:54212] logged in with entity id 315010 at (5583.5, 40.0, -5573.5)
-      [08:33:03] [Server thread/INFO]: GracieBoo joined the game
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spam
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamt
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamtt
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamttt
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttt
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttt
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttt
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttt
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttt
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttttt
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttt
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttttttt
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttttt
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttttttttt
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttttttt
-      [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttttttttttt
-    DONE
-
-    File.open("#{Preference.path_to_server}/logs/latest.log", 'a') do |f|
-      spam_event.each_line do |line|
-        f << line.strip + "\n"
-      end
-    end
-
-    assert_callback_ran 'Spammy' do
-      assert_kicked 'GracieBoo' do
-        refute_kicked 'inertia186' do
-          MinecraftServerLogHandler.handle "[08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttttttttt", debug: true
+    # need at least two players for spam detection to work
+    player_nicks = ['GracieBoo', 'xXPlayerXx']
+    
+    Server.mock_mode(player_nicks: player_nicks) do
+      ServerQuery.mock_mode(full_query: {numplayers: player_nicks.size.to_s}) do
+        spam_event = <<-DONE
+          [08:33:03] [Server thread/INFO]: GracieBoo[/127.0.0.1:54212] logged in with entity id 315010 at (5583.5, 40.0, -5573.5)
+          [08:33:03] [Server thread/INFO]: GracieBoo joined the game
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spam
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamt
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamtt
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamttt
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttt
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttt
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttt
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttt
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttt
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttttt
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttt
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttttttt
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttttt
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttttttttt
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttttttt
+          [08:33:10] [Server thread/INFO]: <GracieBoo> spamttttttttttttttt
+        DONE
+        
+        File.open("#{Preference.path_to_server}/logs/latest.log", 'a') do |f|
+          spam_event.each_line do |line|
+            f << line.strip + "\n"
+          end
         end
+        
+        assert_callback_ran 'Spammy' do
+          assert_kicked 'GracieBoo' do
+            refute_kicked 'inertia186' do
+              MinecraftServerLogHandler.handle "[08:33:10] [Server thread/INFO]: <GracieBoo> spamtttttttttttttttt", debug: true
+            end
+          end
+        end
+        
+        assert (player = Player.find_by_nick('GracieBoo')).spam_ratio <= 0.1, 'expect kickable spam ratio'
+        assert player.above_exploration_threshold?, 'expect player above exploration threshold'
       end
     end
-
-    assert (player = Player.find_by_nick('GracieBoo')).spam_ratio <= 0.1, 'expect kickable spam ratio'
-    assert player.above_exploration_threshold?, 'expect player above exploration threshold'
   end
 
   def test_spam_with_tool_detect
     MinecraftServerLogHandler.handle '[12:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848'
     MinecraftServerLogHandler.handle "[13:31:09] [User Authenticator #115/INFO]: UUID of player SnowMan35 is 5e37e407-2ecf-407e-b717-316cfecc6b42"
-
-    def Server.player_nicks(selector = nil)
-      ['SnowMan35', 'xXPlayerXx'] # need at least two players for spam detection to work
-    end
-
-    def ServerQuery.numplayers
-      "2"
-    end
-
-    spam_event = <<-DONE
-      [13:31:10] [Server thread/INFO]: SnowMan35[/127.0.0.1:53431] logged in with entity id 4567520 at (5075.5, 95.40935860049753, -5624.5)
-      [13:31:10] [Server thread/INFO]: SnowMan35 joined the game
-      [13:31:19] [Server thread/WARN]: SnowMan35 moved too quickly! 0.0,32.40935860049753,0.0 (0.0, 32.40935860049753, 0.0)
-      [13:31:51] [Server thread/INFO]: <SnowMan35> ==========/\\===========
-      [13:31:51] [Server thread/INFO]: <SnowMan35> =========/==\\==========
-      [13:31:51] [Server thread/INFO]: <SnowMan35> ========/====\\=========
-      [13:31:51] [Server thread/INFO]: <SnowMan35> =======/======\\========
-      [13:31:51] [Server thread/INFO]: <SnowMan35> ======/========\\=======
-      [13:31:51] [Server thread/INFO]: <SnowMan35> =====/==========\\======
-      [13:31:51] [Server thread/INFO]: <SnowMan35> ====/============\\=====
-      [13:31:51] [Server thread/INFO]: <SnowMan35> ===/==============\\====
-      [13:31:51] [Server thread/INFO]: <SnowMan35> ==/================\\===
-    DONE
-
-    File.open("#{Preference.path_to_server}/logs/latest.log", 'a') do |f|
-      spam_event.each_line do |line|
-        f << line.strip + "\n"
-      end
-    end
     
-    assert_callback_ran 'Spammy' do
-      refute_kicked 'SnowMan35' do
-        refute_kicked 'xXPlayerXx' do
-          MinecraftServerLogHandler.handle "[13:31:51] [Server thread/INFO]: <SnowMan35> ==/================\===", debug: true
+    # need at least two players for spam detection to work
+    player_nicks = ['GracieBoo', 'xXPlayerXx']
+    
+    Server.mock_mode(player_nicks: player_nicks) do
+      ServerQuery.mock_mode(full_query: {numplayers: player_nicks.size.to_s}) do
+        spam_event = <<-DONE
+          [13:31:10] [Server thread/INFO]: SnowMan35[/127.0.0.1:53431] logged in with entity id 4567520 at (5075.5, 95.40935860049753, -5624.5)
+          [13:31:10] [Server thread/INFO]: SnowMan35 joined the game
+          [13:31:19] [Server thread/WARN]: SnowMan35 moved too quickly! 0.0,32.40935860049753,0.0 (0.0, 32.40935860049753, 0.0)
+          [13:31:51] [Server thread/INFO]: <SnowMan35> ==========/\\===========
+          [13:31:51] [Server thread/INFO]: <SnowMan35> =========/==\\==========
+          [13:31:51] [Server thread/INFO]: <SnowMan35> ========/====\\=========
+          [13:31:51] [Server thread/INFO]: <SnowMan35> =======/======\\========
+          [13:31:51] [Server thread/INFO]: <SnowMan35> ======/========\\=======
+          [13:31:51] [Server thread/INFO]: <SnowMan35> =====/==========\\======
+          [13:31:51] [Server thread/INFO]: <SnowMan35> ====/============\\=====
+          [13:31:51] [Server thread/INFO]: <SnowMan35> ===/==============\\====
+          [13:31:51] [Server thread/INFO]: <SnowMan35> ==/================\\===
+        DONE
+        
+        File.open("#{Preference.path_to_server}/logs/latest.log", 'a') do |f|
+          spam_event.each_line do |line|
+            f << line.strip + "\n"
+          end
         end
+    
+        assert_callback_ran 'Spammy' do
+          refute_kicked 'SnowMan35' do
+            refute_kicked 'xXPlayerXx' do
+              MinecraftServerLogHandler.handle "[13:31:51] [Server thread/INFO]: <SnowMan35> ==/================\===", debug: true
+            end
+          end
+        end
+        
+        #assert Player.find_by_nick('SnowMan35').spam_ratio <= 0.1, 'expect kickable spam ratio'
       end
     end
-
-    #assert Player.find_by_nick('SnowMan35').spam_ratio <= 0.1, 'expect kickable spam ratio'
   end
 
   def test_spam_detect_alt_alt
     MinecraftServerLogHandler.handle '[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848'
     MinecraftServerLogHandler.handle '[08:47:21] [User Authenticator #20/INFO]: UUID of player Genevieve05 is 5000277b-6f04-41d9-ba1a-f477f2b4810e'
-
-    def Server.player_nicks(selector = nil)
-      ['Genevieve05', 'xXPlayerXx'] # need at least two players for spam detection to work
-    end
-
-    def ServerQuery.numplayers
-      "2"
-    end
-
-    spam_event = <<-DONE
-    [08:47:21] [Server thread/INFO]: Genevieve05[/72.91.207.142:51737] logged in with entity id 303539 at (5000.3521081755625, 34.0, -5199.300000011921)
-    [08:47:21] [Server thread/INFO]: Genevieve05 joined the game
-    [08:47:33] [Server thread/INFO]: <Genevieve05> Γ¥û ╬⌐ ╬▓ ╬ª ╬ú ╬₧ Γƒü Γª╗ Γºë Γº¡ Γº┤ Γê₧ Γëî Γèò Γïì Γï░ Γï▒ Γ£û Γô╡ Γô╢ Γô╖ Γô╕ Γô╣ Γô║ Γô╗ Γô╝ Γô╜ Γô╛ ß┤ò Γ╕¿ Γ╕⌐ Γ¥¬ Γ¥½ Γô╡ Γô╢ Γô╖ Γô╕ Γô╣ Γô║ Γô╗ Γô╝ Γô╜ Γô╛ ΓÆê ΓÆë ΓÆè ΓÆï ΓÆî ΓÆì ΓÆÄ
-    [08:47:55] [Server thread/INFO]: <Genevieve05> ΓÆê ΓÆë ΓÆè ΓÆï ΓÆî ΓÆì ΓÆÄ
-    [08:48:01] [Server thread/INFO]: <Genevieve05> ΓÆê ΓÆë ΓÆè ΓÆï ΓÆî ΓÆì ΓÆÄ 8. 9. 10.
-    DONE
-    File.open("#{Preference.path_to_server}/logs/latest.log", 'a') do |f|
-      spam_event.each_line do |line|
-        f << line.strip + "\n"
-      end
-    end
-
-    assert_callback_ran 'Spammy' do
-      refute_kicked 'Genevieve05' do
-        refute_kicked 'inertia186' do
-          # TODO This should kick Genevieve05.
-          MinecraftServerLogHandler.handle '[08:49:03] [Server thread/INFO]: <Genevieve05> Γ¥û ╬⌐ ╬▓ ╬ª ╬ú ╬₧ Γƒü Γª╗ Γºë Γº¡ Γº┤ Γê₧ Γëî Γèò Γïì Γï░ Γï▒ Γ£û Γô╡ Γô╢ Γô╖ Γô╕ Γô╣ Γô║ Γô╗ Γô╝ Γô╜ Γô╛ ß┤ò Γ╕¿ Γ╕⌐ Γ¥¬ Γ¥½ Γô╡ Γô╢ Γô╖ Γô╕ Γô╣ Γô║ Γô╗ Γô╝ Γô╜ Γô╛ ΓÆê ΓÆë ΓÆè ΓÆï ΓÆî ΓÆì ΓÆÄ'
+    
+    # need at least two players for spam detection to work
+    player_nicks = ['Genevieve05', 'xXPlayerXx']
+    
+    Server.mock_mode(player_nicks: player_nicks) do
+      ServerQuery.mock_mode(full_query: {numplayers: player_nicks.size.to_s}) do
+        spam_event = <<-DONE
+        [08:47:21] [Server thread/INFO]: Genevieve05[/72.91.207.142:51737] logged in with entity id 303539 at (5000.3521081755625, 34.0, -5199.300000011921)
+        [08:47:21] [Server thread/INFO]: Genevieve05 joined the game
+        [08:47:33] [Server thread/INFO]: <Genevieve05> Γ¥û ╬⌐ ╬▓ ╬ª ╬ú ╬₧ Γƒü Γª╗ Γºë Γº¡ Γº┤ Γê₧ Γëî Γèò Γïì Γï░ Γï▒ Γ£û Γô╡ Γô╢ Γô╖ Γô╕ Γô╣ Γô║ Γô╗ Γô╝ Γô╜ Γô╛ ß┤ò Γ╕¿ Γ╕⌐ Γ¥¬ Γ¥½ Γô╡ Γô╢ Γô╖ Γô╕ Γô╣ Γô║ Γô╗ Γô╝ Γô╜ Γô╛ ΓÆê ΓÆë ΓÆè ΓÆï ΓÆî ΓÆì ΓÆÄ
+        [08:47:55] [Server thread/INFO]: <Genevieve05> ΓÆê ΓÆë ΓÆè ΓÆï ΓÆî ΓÆì ΓÆÄ
+        [08:48:01] [Server thread/INFO]: <Genevieve05> ΓÆê ΓÆë ΓÆè ΓÆï ΓÆî ΓÆì ΓÆÄ 8. 9. 10.
+        DONE
+        File.open("#{Preference.path_to_server}/logs/latest.log", 'a') do |f|
+          spam_event.each_line do |line|
+            f << line.strip + "\n"
+          end
         end
+        
+        assert_callback_ran 'Spammy' do
+          refute_kicked 'Genevieve05' do
+            refute_kicked 'inertia186' do
+              # TODO This should kick Genevieve05.
+              MinecraftServerLogHandler.handle '[08:49:03] [Server thread/INFO]: <Genevieve05> Γ¥û ╬⌐ ╬▓ ╬ª ╬ú ╬₧ Γƒü Γª╗ Γºë Γº¡ Γº┤ Γê₧ Γëî Γèò Γïì Γï░ Γï▒ Γ£û Γô╡ Γô╢ Γô╖ Γô╕ Γô╣ Γô║ Γô╗ Γô╝ Γô╜ Γô╛ ß┤ò Γ╕¿ Γ╕⌐ Γ¥¬ Γ¥½ Γô╡ Γô╢ Γô╖ Γô╕ Γô╣ Γô║ Γô╗ Γô╝ Γô╜ Γô╛ ΓÆê ΓÆë ΓÆè ΓÆï ΓÆî ΓÆì ΓÆÄ'
+            end
+          end
+        end
+
+        skip 'needs to be < 1.0' if Player.find_by_nick('Genevieve05').spam_ratio == 1.0
+        # :nocov:
+        fail
+        # :nocov:
+        #assert_equal ?, Player.find_by_nick('Genevieve05').spam_ratio, 'expect spam ratio'
       end
     end
-
-    skip 'needs to be < 1.0' if Player.find_by_nick('Genevieve05').spam_ratio == 1.0
-    # :nocov:
-    fail
-    # :nocov:
-    #assert_equal ?, Player.find_by_nick('Genevieve05').spam_ratio, 'expect spam ratio'
   end
 
   def test_emote_spam_detect
     MinecraftServerLogHandler.handle '[14:12:05] [User Authenticator #23/INFO]: UUID of player xXPlayerXx is f6ddf946-f162-8d48-a21b-ac00929fb848'
     MinecraftServerLogHandler.handle "[08:33:03] [User Authenticator #23/INFO]: UUID of player GracieBoo is a5077378-81eb-4215-96f9-16679e3401cb"
-
-    def Server.player_nicks(selector = nil)
-      ['GracieBoo', 'xXPlayerXx'] # need at least two players for spam detection to work
-    end
-
-    def ServerQuery.numplayers
-      "2"
-    end
-
-    spam_event = <<-DONE
-      [08:33:03] [Server thread/INFO]: GracieBoo[/127.0.0.1:54212] logged in with entity id 315010 at (5583.5, 40.0, -5573.5)
-      [08:33:03] [Server thread/INFO]: GracieBoo joined the game
-      [08:33:10] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:11] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:12] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:12] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:13] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:13] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:14] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:15] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:16] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:16] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:17] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:17] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:18] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:18] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:19] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:19] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:20] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-      [08:33:20] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
-    DONE
-
-    File.open("#{Preference.path_to_server}/logs/latest.log", 'a') do |f|
-      spam_event.each_line do |line|
-        f << line.strip + "\n"
-      end
-    end
-
-    assert_callback_ran 'Spammy' do
-      assert_kicked 'GracieBoo' do
-        refute_kicked 'inertia186' do
-          MinecraftServerLogHandler.handle "[08:33:21] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN", debug: true
+    
+    # need at least two players for spam detection to work
+    player_nicks = ['GracieBoo', 'xXPlayerXx']
+    
+    Server.mock_mode(player_nicks: player_nicks) do
+      ServerQuery.mock_mode(full_query: {numplayers: player_nicks.size.to_s}) do
+        spam_event = <<-DONE
+          [08:33:03] [Server thread/INFO]: GracieBoo[/127.0.0.1:54212] logged in with entity id 315010 at (5583.5, 40.0, -5573.5)
+          [08:33:03] [Server thread/INFO]: GracieBoo joined the game
+          [08:33:10] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:11] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:12] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:12] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:13] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:13] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:14] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:15] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:16] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:16] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:17] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:17] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:18] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:18] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:19] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:19] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:20] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+          [08:33:20] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN
+        DONE
+        
+        File.open("#{Preference.path_to_server}/logs/latest.log", 'a') do |f|
+          spam_event.each_line do |line|
+            f << line.strip + "\n"
+          end
         end
+        
+        assert_callback_ran 'Spammy' do
+          assert_kicked 'GracieBoo' do
+            refute_kicked 'inertia186' do
+              MinecraftServerLogHandler.handle "[08:33:21] [Server thread/INFO]: * GracieBoo myserver.mcpre.co.uk NEW SERVER COME JOIN", debug: true
+            end
+          end
+        end
+        
+        assert Player.find_by_nick('GracieBoo').spam_ratio <= 0.1, 'expect kickable spam ratio'
       end
     end
-
-    assert Player.find_by_nick('GracieBoo').spam_ratio <= 0.1, 'expect kickable spam ratio'
   end
 
   def test_soundcheck
@@ -650,15 +641,15 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_callback_ran callback do
       ServerCallback::PlayerCommand.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server soundcheck', debug: true)
     end
-
-    def Server.player_nicks(selector = nil)
-      ['inertia186']
-    end
     
-    Player.find_by_nick('inertia186').update_attribute(:play_sounds, false)
+    player_nicks = ['inertia186']
     
-    assert_callback_ran callback do
-      ServerCallback::PlayerCommand.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server soundcheck', debug: true)
+    Server.mock_mode(player_nicks: player_nicks) do
+      Player.find_by_nick('inertia186').update_attribute(:play_sounds, false)
+    
+      assert_callback_ran callback do
+        ServerCallback::PlayerCommand.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server soundcheck', debug: true)
+      end
     end
   end
   

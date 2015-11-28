@@ -1,0 +1,2312 @@
+
+---
+server_callbacks:
+  columns:
+  - id
+  - type
+  - name
+  - pattern
+  - pretty_pattern
+  - last_match
+  - command
+  - pretty_command
+  - last_command_output
+  - ran_at
+  - error_flag_at
+  - cooldown
+  - enabled
+  - system
+  - help_doc_key
+  - help_doc
+  - created_at
+  - updated_at
+  records: 
+  - - '728154'
+    - ServerCallback::PlayerAuthenticated
+    - Player Authenticated
+    - "/UUID of player ([a-zA-Z0-9_]+) is ([a-fA-Z0-9-]+)/"
+    - 
+    - 
+    - |-
+      check_mail("%1%")
+      player_authenticated "%1%", "%2%"
+      detect_trouble_entities
+      detect_frozen_projectiles
+      irc_event "%1% joined the game"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.387631'
+    - '2015-11-26 22:41:12.387631'
+  - - '728155'
+    - ServerCallback::PlayerAuthenticated
+    - Message of the Day
+    - "/UUID of player ([a-zA-Z0-9_]+) is ([a-fA-Z0-9-]+)/"
+    - 
+    - 
+    - tell_motd "%1%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.395546'
+    - '2015-11-26 22:41:12.395546'
+  - - '728156'
+    - ServerCallback::PlayerAuthenticated
+    - Current Topic
+    - "/UUID of player ([a-zA-Z0-9_]+) is ([a-fA-Z0-9-]+)/"
+    - 
+    - 
+    - tell_topic "%1%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.400247'
+    - '2015-11-26 22:41:12.400247'
+  - - '728157'
+    - ServerCallback::AnyPlayerEntry
+    - Spammy
+    - "/.*/"
+    - 
+    - 
+    - detect_spam "%nick%", "%message%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.421756'
+    - '2015-11-26 22:41:12.421756'
+  - - '728158'
+    - ServerCallback::AnyPlayerEntry
+    - Latest Player Chat
+    - "/.*/"
+    - 
+    - 
+    - update_player_last_chat "%nick%", "%message%", options
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.42859'
+    - '2015-11-26 22:41:12.42859'
+  - - '728159'
+    - ServerCallback::PlayerChat
+    - Autolink
+    - "/http/i"
+    - 
+    - 
+    - 'say_link "@a", "%message%", nick: "%nick%"'
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.454823'
+    - '2015-11-26 22:41:12.454823'
+  - - '728160'
+    - ServerCallback::PlayerChat
+    - IRC Reply
+    - "/^@irc (.*)$/i"
+    - 
+    - 
+    - irc_reply "%nick%", "%1%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - irc
+    - |-
+      Usage: @irc <message>
+
+      Sends a message to IRC.
+    - '2015-11-26 22:41:12.470451'
+    - '2015-11-26 22:41:12.470451'
+  - - '728161'
+    - ServerCallback::PlayerChat
+    - Send Mail
+    - "/^@([a-zA-Z0-9_]+) (.*)/i"
+    - 
+    - 
+    - send_mail("%nick%", "%1%", "%2%")
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.476939'
+    - '2015-11-26 22:41:12.476939'
+  - - '728162'
+    - ServerCallback::PlayerCommand
+    - Check Version
+    - "/^@server version$/i"
+    - 
+    - 
+    - |-
+      say "@a", "CobbleBot version %cobblebot_version%"
+      say_link "@a", "http://github.com/inertia186/cobblebot", only_title: true
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - version
+    - 'Usage: @server version'
+    - '2015-11-26 22:41:12.510194'
+    - '2015-11-26 22:41:12.510194'
+  - - '728163'
+    - ServerCallback::PlayerCommand
+    - Help ...
+    - "/^@server help(.*)/i"
+    - 
+    - 
+    - say_help "@a", "%1%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - help
+    - |+
+      Usage: @server help [topic]
+
+    - '2015-11-26 22:41:12.516653'
+    - '2015-11-26 22:41:12.516653'
+  - - '728164'
+    - ServerCallback::PlayerCommand
+    - lmgtfy
+    - "/^@server lmgtfy (.+)/i"
+    - 
+    - 
+    - say_lmgtfy_link "@a", "%1%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - lmgtfy
+    - 'Usage: @server lmgtfy <query>'
+    - '2015-11-26 22:41:12.523435'
+    - '2015-11-26 22:41:12.523435'
+  - - '728165'
+    - ServerCallback::PlayerCommand
+    - Message of the Day (self)
+    - "/^@server motd$/i"
+    - 
+    - 
+    - tell_motd "%nick%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - motd
+    - |-
+      Usage: @server motd
+
+      Shows the Message of the Day displayed at login in case you forgot what it was.
+    - '2015-11-26 22:41:12.530603'
+    - '2015-11-26 22:41:12.530603'
+  - - '728166'
+    - ServerCallback::PlayerCommand
+    - Sync Me
+    - "/^@server syncme$/i"
+    - 
+    - 
+    - |-
+      play_sound "%nick%", "smb_pipe"
+      tp "%nick%", "~ ~ ~"
+    - 
+    - 
+    - 
+    - 
+    - "+3 seconds"
+    - true
+    - true
+    - syncme
+    - |-
+      Usage: @server syncme
+
+      Sometimes help players who are stuck.
+    - '2015-11-26 22:41:12.53747'
+    - '2015-11-26 22:41:12.53747'
+  - - '728167'
+    - ServerCallback::PlayerCommand
+    - Sound Check
+    - "/^@server soundcheck$/"
+    - 
+    - 
+    - |-
+      # There is additional logic to demonstrate how commands
+      # can interact with players, not just respond blindly.  This command
+      # changes which sound to use depending on how many times the
+      # command has been used.
+
+      @@sound_check ||= 0
+      @@sound_check = 1 + @@sound_check
+
+      if @@sound_check == 4
+        play_sound "%nick%", "sound_check_b"
+      elsif @@sound_check > 7
+        play_sound "%nick%", "sound_check_c"
+        @@sound_check = 0
+      else
+        play_sound "%nick%", "sound_check_a"
+      end
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - soundcheck
+    - |-
+      Usage: @server soundcheck
+
+      Checks your CobbleBot sound configuration.
+    - '2015-11-26 22:41:12.545519'
+    - '2015-11-26 22:41:12.545519'
+  - - '728168'
+    - ServerCallback::PlayerCommand
+    - Player Check
+    - "/^@server playercheck ([a-z0-9_]+)$/i"
+    - 
+    - 
+    - say_playercheck "@a", "%1%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - playercheck
+    - |-
+      Usage: @server playercheck <player>
+
+      See the parting message of a player.
+    - '2015-11-26 22:41:12.551685'
+    - '2015-11-26 22:41:12.551685'
+  - - '728169'
+    - ServerCallback::PlayerCommand
+    - Slap
+    - "/^@server slap(.*)/i"
+    - 
+    - 
+    - say_slap "@a", "%nick%", "%1%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - slap
+    - |-
+      Usage: @server slap [target]
+
+      Gives the target a fine fettled slap.
+    - '2015-11-26 22:41:12.557953'
+    - '2015-11-26 22:41:12.557953'
+  - - '728170'
+    - ServerCallback::PlayerCommand
+    - Add Tip
+    - "/^@server addtip (.*)/i"
+    - 
+    - 
+    - add_tip "%nick%", "%1%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - addtip
+    - |-
+      Usage: @server addtip [tip]
+
+      Adds a useless tip to the useless tip memory bank.
+    - '2015-11-26 22:41:12.564229'
+    - '2015-11-26 22:41:12.564229'
+  - - '728171'
+    - ServerCallback::PlayerCommand
+    - Reply Tip
+    - "/^@server replytip (.*)/i"
+    - 
+    - 
+    - 'add_tip "%nick%", "%1%", reply: true'
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - replytip
+    - |-
+      Usage: @server replytip [tip]
+
+      Adds a useless tip in reply to the last useless tip.
+    - '2015-11-26 22:41:12.578391'
+    - '2015-11-26 22:41:12.578391'
+  - - '728172'
+    - ServerCallback::PlayerCommand
+    - Random Tip
+    - "/^@server tip(.*)/i"
+    - 
+    - 
+    - say_random_tip "@a", "%nick%", "%1%", options
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - tip
+    - |-
+      Usage @server tip [keywords]
+
+      Pulls a random tip from the useless tip memory bank.  If you provide a keywords, there is some kind of weird mechanism to make it more likely to show a random tip weighted to the keywords provided.
+    - '2015-11-26 22:41:12.585644'
+    - '2015-11-26 22:41:12.585644'
+  - - '728173'
+    - ServerCallback::PlayerCommand
+    - Tip Info
+    - "/^@server tips(.*)/i"
+    - 
+    - 
+    - tips("@a", "%1%")
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - tips
+    - |-
+      Usage: @server tips
+
+      Some statistics about the random tips memory bank.
+    - '2015-11-26 22:41:12.598956'
+    - '2015-11-26 22:41:12.598956'
+  - - '728174'
+    - ServerCallback::PlayerCommand
+    - Rules
+    - "/^@server rules/i"
+    - 
+    - 
+    - say_rules "%nick%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - rules
+    - 'Usage: @server rules'
+    - '2015-11-26 22:41:12.60694'
+    - '2015-11-26 22:41:12.60694'
+  - - '728175'
+    - ServerCallback::PlayerCommand
+    - Tutorial
+    - "/^@server tutorial/i"
+    - 
+    - 
+    - say_tutorial "%nick%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - tutorial
+    - 'Usage: @server tutorial'
+    - '2015-11-26 22:41:12.611082'
+    - '2015-11-26 22:41:12.611082'
+  - - '728176'
+    - ServerCallback::PlayerCommand
+    - FAQ
+    - "/^@server faq/i"
+    - 
+    - 
+    - say_faq "%nick%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - faq
+    - 'Usage: @server faq'
+    - '2015-11-26 22:41:12.615072'
+    - '2015-11-26 22:41:12.615072'
+  - - '728177'
+    - ServerCallback::PlayerCommand
+    - Toggle Sounds
+    - "/^@server togglesounds$/i"
+    - 
+    - 
+    - |-
+      player = Server.players.find_by_nick("%nick%")
+
+      if !!player
+        player.toggle_play_sounds!
+        if ServerCallback.ready.where(name: 'Sound Check').any?
+          player.tell('To test, type: @server soundcheck')
+        end
+      end
+
+      player
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - togglesounds
+    - |-
+      Usage: @server togglesounds
+
+      If you are unhappy with the CobbleBot sounds, you can turn them off.  If you change your mind, you can turn them back on.
+    - '2015-11-26 22:41:12.619016'
+    - '2015-11-26 22:41:12.619016'
+  - - '728178'
+    - ServerCallback::PlayerCommand
+    - Register
+    - "/^@server register/i"
+    - 
+    - 
+    - register("%nick%")
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - register
+    - |-
+      Usage: @server register
+
+      Adds your name to the registry of players.   That is all it does.  Really.
+    - '2015-11-26 22:41:12.653769'
+    - '2015-11-26 22:41:12.653769'
+  - - '728179'
+    - ServerCallback::PlayerCommand
+    - Unregister
+    - "/^@server unregister/i"
+    - 
+    - 
+    - unregister("%nick%")
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.65861'
+    - '2015-11-26 22:41:12.65861'
+  - - '728180'
+    - ServerCallback::PlayerCommand
+    - Origin
+    - "/^@server origin (.*)/i"
+    - 
+    - 
+    - say_origin("@a", "%1%")
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - origin
+    - |-
+      Usage: @server origin <nick>
+
+      Helps detect alts.  Matching origins may indicate an alt but it also may indicate, for example, the players just go to the same school.
+    - '2015-11-26 22:41:12.662888'
+    - '2015-11-26 22:41:12.662888'
+  - - '728181'
+    - ServerCallback::PlayerCommand
+    - Read Mail
+    - "/^@server mail(.*)/i"
+    - 
+    - 
+    - tell_mail("%nick%", "%1%")
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - mail
+    - |-
+      Usage: @server mail
+
+      Read latest mail.
+      Usage: @server mail clear
+
+      Removes mail from your inbox.
+      Usage: @server mail mute <player>
+
+      Ignore all mail from a player.
+      Usage: @server mail unmute <player>
+
+      Stop ignoring all mail from a player.
+      To send mail to a player, type: @player <message>
+    - '2015-11-26 22:41:12.668776'
+    - '2015-11-26 22:41:12.668776'
+  - - '728182'
+    - ServerCallback::PlayerCommand
+    - Topic
+    - "/^@server topic$/i"
+    - 
+    - 
+    - tell_topic("%nick%")
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - topic
+    - |-
+      Usage: @server topic
+
+      Show the current topic.  To set the topic:
+      @server topic <new topic>
+    - '2015-11-26 22:41:12.678481'
+    - '2015-11-26 22:41:12.678481'
+  - - '728183'
+    - ServerCallback::PlayerCommand
+    - Set Topic
+    - "/^@server topic (.*)/i"
+    - 
+    - 
+    - set_topic("%nick%", "%1%")
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.684325'
+    - '2015-11-26 22:41:12.684325'
+  - - '728184'
+    - ServerCallback::PlayerCommand
+    - Translate
+    - "/^@server (tr|translate) ([a-z:-]+) (.+)/i"
+    - 
+    - 
+    - say_translation("@a", "%2%", "%3%")
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - translate
+    - |-
+      Uses Google to translate from one language to another.  Use en:fr to translate from English to French.  Or just use en to auto-detect to English.
+      Usage: @server translate <language> <phrase>
+
+      Example: @server translate ru Do you own a glock?
+      Example: @server translate en:fr How do you say Quarter Pounder with Cheese?
+    - '2015-11-26 22:41:12.689459'
+    - '2015-11-26 22:41:12.689459'
+  - - '728185'
+    - ServerCallback::PlayerCommand
+    - Rate
+    - "/^@server rate ([a-zA-Z0-9_]+) ([\\-0-9]+)/i"
+    - 
+    - 
+    - rate("%nick%", "%1%", "%2%")
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - rate
+    - |-
+      Usage: @server rate <nick> <rating>
+
+      Adds an entry to the web of trust.
+    - '2015-11-26 22:41:12.694331'
+    - '2015-11-26 22:41:12.694331'
+  - - '728186'
+    - ServerCallback::PlayerCommand
+    - Vote Kick
+    - "/^@server votekick ([a-zA-Z0-9_]+)/i"
+    - 
+    - 
+    - votekick("%nick%", "%1%")
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - votekick
+    - |-
+      Usage: @server votekick <nick>
+
+      Registers a vote to kick a player.
+    - '2015-11-26 22:41:12.699645'
+    - '2015-11-26 22:41:12.699645'
+  - - '728187'
+    - ServerCallback::PlayerCommand
+    - Get Trust
+    - "/^@server gettrust ([a-zA-Z0-9_]+)[ ]*([a-zA-Z0-9_]*)/i"
+    - 
+    - 
+    - |-
+      truster = "%1%"
+      trustee = "%2%"
+      trustee = truster and truster = "%nick%" if trustee.empty?
+      say_trust('@a', truster, trustee)
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - gettrust
+    - |-
+      Usage: @server gettrust <player> [other player]
+
+      See the sum of trust between two players. See: @server help rate
+    - '2015-11-26 22:41:12.704944'
+    - '2015-11-26 22:41:12.704944'
+  - - '728188'
+    - ServerCallback::PlayerCommand
+    - Gametick
+    - "/^@server gametick$/i"
+    - 
+    - 
+    - |-
+      run do
+        say_gametick('@a')
+      end
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - gametick
+    - |-
+      Usage: @server gametick
+
+      Reports the current game tick and average.
+    - '2015-11-26 22:41:12.710403'
+    - '2015-11-26 22:41:12.710403'
+  - - '728189'
+    - ServerCallback::RunningBehind
+    - Behind
+    - "/.*Running ([0-9]+)ms behind, skipping ([0-9]+) tick.*/"
+    - 
+    - 
+    - |-
+      ms = "%1%".to_i
+      ticks = "%2%".to_i
+      tell 'inertia186', "ms: #{ms}, ticks: #{ticks}"
+      if ms > 20000
+        detect_trouble_entities
+        detect_frozen_projectiles
+      end
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.734935'
+    - '2015-11-26 22:41:12.734935'
+  - - '728190'
+    - ServerCallback::ServerEntry
+    - Autosync
+    - "/^([a-zA-Z0-9_]+) moved wrongly!/"
+    - 
+    - 
+    - |-
+      # This command will sometimes help players who are stuck, automatically.
+      tp "%1%", "~ ~ ~"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.748672'
+    - '2015-11-26 22:41:12.748672'
+  - - '728191'
+    - ServerCallback::ServerEntry
+    - Latest Player IP
+    - "/([a-zA-Z0-9_]+)\\[\\/([0-9.]+):[0-9]+\\] logged in with entity id [0-9]+ at
+      \\(([\\-0-9]+\\.[0-9]+), ([\\-0-9]+\\.[0-9]+), ([\\-0-9]+\\.[0-9]+)\\)/"
+    - 
+    - 
+    - |-
+      update_player_last_ip "%1%", "%2%"
+      update_player_last_location("%1%", "%3%", "%4%", "%5%")
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.75326'
+    - '2015-11-26 22:41:12.75326'
+  - - '728192'
+    - ServerCallback::ServerEntry
+    - Player Logged Out
+    - "/^([a-zA-Z0-9_]+) lost connection/"
+    - 
+    - 
+    - |-
+      touch_player_last_logged_out "%1%"
+      irc_event "%1% left the game"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.761114'
+    - '2015-11-26 22:41:12.761114'
+  - - '728193'
+    - ServerCallback::ServerEntry
+    - Cleaned Up Stats
+    - "/Invalid statistic in .\\/.+\\/stats\\/(.+)\\.json: (.+)/"
+    - 
+    - 
+    - |-
+      uuid = "%1%"
+      msg = "%2%"
+      player = Player.find_by_uuid uuid
+
+      tell player.nick, msg if !!player
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.77071'
+    - '2015-11-26 22:41:12.77071'
+  - - '728194'
+    - ServerCallback::ServerEntry
+    - Update Last Nick
+    - "/^([a-zA-Z0-9_]+) (formerly known as ([a-zA-Z0-9_]+)) joined the game$/"
+    - 
+    - 
+    - |-
+      player = Player.find_by_nick '%1%'
+      player.update_attribute(:last_nick, '%2%') unless player.nil?
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.789021'
+    - '2015-11-26 22:41:12.789021'
+  - - '728195'
+    - ServerCallback::DeathAnnouncement
+    - Slain
+    - "/was slain by/"
+    - 
+    - 
+    - |-
+      play_sound "@a", "smb_mario_die"
+      detect_pvp "%message%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.80609'
+    - '2015-11-26 22:41:12.80609'
+  - - '728196'
+    - ServerCallback::DeathAnnouncement
+    - Shot
+    - "/was shot by/"
+    - 
+    - 
+    - |-
+      play_sound "@a", "smb3_player_down"
+      detect_pvp "%message%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.812418'
+    - '2015-11-26 22:41:12.812418'
+  - - '728197'
+    - ServerCallback::DeathAnnouncement
+    - Killed
+    - "/was killed by/"
+    - 
+    - 
+    - |-
+      play_sound "@a", "smb3_player_down"
+      detect_pvp "%message%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.817799'
+    - '2015-11-26 22:41:12.817799'
+  - - '728198'
+    - ServerCallback::DeathAnnouncement
+    - Thorns
+    - "/was killed trying to hurt/"
+    - 
+    - 
+    - |-
+      play_sound "@a", "loz_shield"
+      detect_pvp "%message%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.839963'
+    - '2015-11-26 22:41:12.839963'
+  - - '728199'
+    - ServerCallback::DeathAnnouncement
+    - Burnt
+    - "/was burnt to a crisp/"
+    - 
+    - 
+    - |-
+      play_sound "@a", "family_guy_bruce_oh_no"
+      detect_pvp "%message%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.844425'
+    - '2015-11-26 22:41:12.844425'
+  - - '728200'
+    - ServerCallback::DeathAnnouncement
+    - Lava Swim
+    - "/tried to swim in lava/"
+    - 
+    - 
+    - |-
+      play_sound "@a", "loz_die"
+      detect_pvp "%message%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.849163'
+    - '2015-11-26 22:41:12.849163'
+  - - '728201'
+    - ServerCallback::DeathAnnouncement
+    - Sploded to Death
+    - "/was blown up by/"
+    - 
+    - 
+    - |-
+      play_sound "@a", "sadtrombone"
+      detect_pvp "%message%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - 
+    - 
+    - '2015-11-26 22:41:12.853641'
+    - '2015-11-26 22:41:12.853641'
+  - - '728202'
+    - ServerCallback::DeathAnnouncement
+    - Pricked
+    - "/pricked|cactus/"
+    - 
+    - 
+    - |-
+      play_sound "@a", "loz_shield"
+      detect_pvp "%message%"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.858853'
+    - '2015-11-26 22:41:12.858853'
+  - - '728203'
+    - ServerCallback::PlayerCommand
+    - Last PVP
+    - "/^@server lastpvp(.*)/i"
+    - 
+    - 
+    - say_last_pvp("@a", "%1%")
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - lastpvp
+    - |-
+      Usage: @server lastpvp [victim]
+
+      Get the last PVP message.  The results may include a multiplier which indicates total PVP.  If the victim is slain last, then multiplier only counts slayings.  If the victim is shot last, then the multiplier only counts shots.
+    - '2015-11-26 22:41:12.865457'
+    - '2015-11-26 22:41:12.865457'
+  - - '728204'
+    - ServerCallback::PlayerChat
+    - To The Batcave!
+    - "/^to the/i"
+    - 
+    - 
+    - play_sound "@a", "to_the_batcave"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.870968'
+    - '2015-11-26 22:41:12.870968'
+  - - '728205'
+    - ServerCallback::PlayerChat
+    - boo
+    - "/halloween/i"
+    - 
+    - 
+    - play_sound "@a", "mk64_boo_laugh"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.8786'
+    - '2015-11-26 22:41:12.8786'
+  - - '728206'
+    - ServerCallback::PlayerChat
+    - SEGA
+    - "/blast processing/i"
+    - 
+    - 
+    - play_sound "@a", "sega"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.884451'
+    - '2015-11-26 22:41:12.884451'
+  - - '728207'
+    - ServerCallback::PlayerChat
+    - Soon
+    - "/soon/i"
+    - 
+    - 
+    - play_sound "@a", "smb_warning"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.890591'
+    - '2015-11-26 22:41:12.890591'
+  - - '728208'
+    - ServerCallback::PlayerChat
+    - Navi
+    - "/!!!/"
+    - 
+    - 
+    - play_sound "@a", "oot_navi_hey"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.895194'
+    - '2015-11-26 22:41:12.895194'
+  - - '728209'
+    - ServerCallback::PlayerChat
+    - The More You Know
+    - "/tmyk/i"
+    - 
+    - 
+    - play_sound "@a", "cf_tmyk"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.903538'
+    - '2015-11-26 22:41:12.903538'
+  - - '728210'
+    - ServerCallback::PlayerChat
+    - TROLOLO
+    - "/trololo/i"
+    - 
+    - 
+    - play_sound "@a", "cf_trololo"
+    - 
+    - 
+    - 
+    - 
+    - "+2 hours"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.919681'
+    - '2015-11-26 22:41:12.919681'
+  - - '728211'
+    - ServerCallback::PlayerChat
+    - Bueller?
+    - "/^anyone[^ ]*$/i"
+    - 
+    - 
+    - "# This sound is a little different in how it behaves.  Once the command is\n#
+      triggered, it waits 5 seconds, then it checks to see if the player has typed
+      \n# anything new.  If not, the sound plays.\n#\n# Thus, it doesn't always play,
+      but it will always go into cooldown if it is\n# triggered.\n\nrun do\n  sleep
+      5\n  if \"%message%\" == find_latest_chat_by_nick(\"%nick%\")\n    play_sound
+      \"@a\", \"cf_bueller\"\n  end\nend"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.926555'
+    - '2015-11-26 22:41:12.926555'
+  - - '728212'
+    - ServerCallback::PlayerChat
+    - Oops
+    - "/(oops|wups)/i"
+    - 
+    - 
+    - play_sound "@a", "cf_wups"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.93175'
+    - '2015-11-26 22:41:12.93175'
+  - - '728213'
+    - ServerCallback::PlayerChat
+    - Oh My
+    - "/^oh my$/i"
+    - 
+    - 
+    - play_sound "@a", "cf_ohmy"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.938294'
+    - '2015-11-26 22:41:12.938294'
+  - - '728214'
+    - ServerCallback::PlayerChat
+    - Make It So
+    - "/make it so/i"
+    - 
+    - 
+    - play_sound "@a", "cf_makeitso"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.943438'
+    - '2015-11-26 22:41:12.943438'
+  - - '728215'
+    - ServerCallback::PlayerChat
+    - That Word
+    - "/that word/i"
+    - 
+    - 
+    - play_sound "@a", "cf_inconceivable"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.946979'
+    - '2015-11-26 22:41:12.946979'
+  - - '728216'
+    - ServerCallback::PlayerChat
+    - Going Turbo
+    - "/(went|go|going) turbo/i"
+    - 
+    - 
+    - play_sound "@a", "turbotastic"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.953149'
+    - '2015-11-26 22:41:12.953149'
+  - - '728217'
+    - ServerCallback::PlayerEmote
+    - Facepalm
+    - "/facepalms/i"
+    - 
+    - 
+    - play_sound "@a", "cf_rimshot"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.98494'
+    - '2015-11-26 22:41:12.98494'
+  - - '728218'
+    - ServerCallback::DeathAnnouncement
+    - Killed Using Magic
+    - "/was killed.*using magic/"
+    - 
+    - 
+    - play_sound "@a", "family_guy_bruce_oh_no"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.989962'
+    - '2015-11-26 22:41:12.989962'
+  - - '728219'
+    - ServerCallback::DeathAnnouncement
+    - Fell Out of the World
+    - "/^[a-zA-A0-9_]+ fell out of the world/"
+    - 
+    - 
+    - play_sound "@a", "goofy_holler"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.994783'
+    - '2015-11-26 22:41:12.994783'
+  - - '728220'
+    - ServerCallback::DeathAnnouncement
+    - Knocked Into the Void
+    - "/was knocked into the void/"
+    - 
+    - 
+    - play_sound "@a", "goofy_holler"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:12.99893'
+    - '2015-11-26 22:41:12.99893'
+  - - '728221'
+    - ServerCallback::DeathAnnouncement
+    - Fell
+    - "/^[a-zA-Z0-9_]+ fell from a high place/"
+    - 
+    - 
+    - play_sound "@a", "fallen"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.005593'
+    - '2015-11-26 22:41:13.005593'
+  - - '728222'
+    - ServerCallback::DeathAnnouncement
+    - Doomed to Fall
+    - "/was doomed to fall/"
+    - 
+    - 
+    - play_sound "@a", "wilhelm"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.010092'
+    - '2015-11-26 22:41:13.010092'
+  - - '728223'
+    - ServerCallback::DeathAnnouncement
+    - Hit the Ground Too Hard
+    - "/hit the ground too hard/"
+    - 
+    - 
+    - play_sound "@a", "fallen"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.015248'
+    - '2015-11-26 22:41:13.015248'
+  - - '728224'
+    - ServerCallback::DeathAnnouncement
+    - Starved to Death
+    - "/starved to death/"
+    - 
+    - 
+    - play_sound "@a", "sm64_mario_mamma_mia"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.023844'
+    - '2015-11-26 22:41:13.023844'
+  - - '728225'
+    - ServerCallback::DeathAnnouncement
+    - Withered Away
+    - "/withered away/"
+    - 
+    - 
+    - play_sound "@a", "mk64_boo_laugh"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.02915'
+    - '2015-11-26 22:41:13.02915'
+  - - '728226'
+    - ServerCallback::DeathAnnouncement
+    - Killed by Witch
+    - "/killed by Witch/"
+    - 
+    - 
+    - play_sound "@a", "mk64_boo_laugh"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.032502'
+    - '2015-11-26 22:41:13.032502'
+  - - '728227'
+    - ServerCallback::DeathAnnouncement
+    - Burned
+    - "/burned to death/"
+    - 
+    - 
+    - play_sound "@a", "loz_die"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.0395'
+    - '2015-11-26 22:41:13.0395'
+  - - '728228'
+    - ServerCallback::DeathAnnouncement
+    - Anvil Death
+    - "/squashed/"
+    - 
+    - 
+    - play_sound "@a", "oot_navi_watch_out"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.051326'
+    - '2015-11-26 22:41:13.051326'
+  - - '728229'
+    - ServerCallback::DeathAnnouncement
+    - Bat Death?
+    - "/by Bat/"
+    - 
+    - 
+    - play_sound "@a", "to_the_batcave"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.057635'
+    - '2015-11-26 22:41:13.057635'
+  - - '728230'
+    - ServerCallback::DeathAnnouncement
+    - Fireballed to Death
+    - "/fireballed/"
+    - 
+    - 
+    - play_sound "@a", "family_guy_bruce_oh_no"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.061747'
+    - '2015-11-26 22:41:13.061747'
+  - - '728231'
+    - ServerCallback::DeathAnnouncement
+    - Just Died
+    - "/died$/"
+    - 
+    - 
+    - play_sound "@a", "family_guy_bruce_what"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.066237'
+    - '2015-11-26 22:41:13.066237'
+  - - '728232'
+    - ServerCallback::DeathAnnouncement
+    - Killer Bunny
+    - "/was slain by The Killer Bunny$/"
+    - 
+    - 
+    - play_sound "@a", "cf_horn"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.070435'
+    - '2015-11-26 22:41:13.070435'
+  - - '728233'
+    - ServerCallback::DeathAnnouncement
+    - Kinetic Energy
+    - "/experienced kinetic energy$/"
+    - 
+    - 
+    - play_sound "@a", "cf_dadgummit"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.075218'
+    - '2015-11-26 22:41:13.075218'
+  - - '728234'
+    - ServerCallback::ServerEntry
+    - Flying Kick
+    - "/was kicked for floating too long/"
+    - 
+    - 
+    - play_sound "@a", "smas_smb3_thud"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.081364'
+    - '2015-11-26 22:41:13.081364'
+  - - '728235'
+    - ServerCallback::ServerEntry
+    - Idle Kick
+    - "/You have been idle for too long/"
+    - 
+    - 
+    - play_sound "@a", "smb3_pause"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.08568'
+    - '2015-11-26 22:41:13.08568'
+  - - '728236'
+    - ServerCallback::ServerEntry
+    - Another Client
+    - "/You logged in from another location$/"
+    - 
+    - 
+    - play_sound "@a", "family_guy_bruce_what"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.091141'
+    - '2015-11-26 22:41:13.091141'
+  - - '728237'
+    - ServerCallback::AchievementAnnouncement
+    - The Lie
+    - "/The Lie/"
+    - 
+    - 
+    - play_sound "@a", "portal_still_alive"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.110989'
+    - '2015-11-26 22:41:13.110989'
+  - - '728238'
+    - ServerCallback::AchievementAnnouncement
+    - On A Rail
+    - "/On A Rail/"
+    - 
+    - 
+    - play_sound "@a", "smw_course_clear"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.116862'
+    - '2015-11-26 22:41:13.116862'
+  - - '728239'
+    - ServerCallback::AchievementAnnouncement
+    - When Pigs Fly
+    - "/When Pigs Fly/"
+    - 
+    - 
+    - play_sound "@a", "cf_rumble"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.130788'
+    - '2015-11-26 22:41:13.130788'
+  - - '728240'
+    - ServerCallback::AchievementAnnouncement
+    - Sniper Duel
+    - "/Sniper Duel/"
+    - 
+    - 
+    - play_sound "@a", "cf_danielsan"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.155723'
+    - '2015-11-26 22:41:13.155723'
+  - - '728241'
+    - ServerCallback::AchievementAnnouncement
+    - DIAMONDS
+    - "/DIAMONDS/"
+    - 
+    - 
+    - play_sound "@a", "loz_secret"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.16225'
+    - '2015-11-26 22:41:13.16225'
+  - - '728242'
+    - ServerCallback::AchievementAnnouncement
+    - We Need to Go Deeper
+    - "/We Need to Go Deeper/"
+    - 
+    - 
+    - play_sound "@a", "sm64_bowser_message"
+    - 
+    - 
+    - 
+    - 
+    - "+15 minutes"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.167144'
+    - '2015-11-26 22:41:13.167144'
+  - - '728243'
+    - ServerCallback::AchievementAnnouncement
+    - Return to Sender
+    - "/Return to Sender/"
+    - 
+    - 
+    - play_sound "@a", "excellent"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.172873'
+    - '2015-11-26 22:41:13.172873'
+  - - '728244'
+    - ServerCallback::AchievementAnnouncement
+    - Into Fire
+    - "/Into Fire/"
+    - 
+    - 
+    - play_sound "@a", "loz_fanfare"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.17843'
+    - '2015-11-26 22:41:13.17843'
+  - - '728245'
+    - ServerCallback::AchievementAnnouncement
+    - Local Brewery
+    - "/Local Brewery/"
+    - 
+    - 
+    - play_sound "@a", "smb_powerup"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.183679'
+    - '2015-11-26 22:41:13.183679'
+  - - '728246'
+    - ServerCallback::AchievementAnnouncement
+    - The End
+    - "/The End/"
+    - 
+    - 
+    - play_sound "@a", "smb_pipe"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.189675'
+    - '2015-11-26 22:41:13.189675'
+  - - '728247'
+    - ServerCallback::AchievementAnnouncement
+    - Enchanter
+    - "/Enchanter/"
+    - 
+    - 
+    - play_sound "@a", "smb_powerup"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.194589'
+    - '2015-11-26 22:41:13.194589'
+  - - '728248'
+    - ServerCallback::AchievementAnnouncement
+    - Overkill
+    - "/Overkill/"
+    - 
+    - 
+    - play_sound "@a", "excellent"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.200837'
+    - '2015-11-26 22:41:13.200837'
+  - - '728249'
+    - ServerCallback::AchievementAnnouncement
+    - Librarian
+    - "/Librarian/"
+    - 
+    - 
+    - play_sound "@a", "loz_secret"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.20614'
+    - '2015-11-26 22:41:13.20614'
+  - - '728250'
+    - ServerCallback::AchievementAnnouncement
+    - Adventuring Time
+    - "/Adventuring Time/"
+    - 
+    - 
+    - play_sound "@a", "mk64_racestart"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.211889'
+    - '2015-11-26 22:41:13.211889'
+  - - '728251'
+    - ServerCallback::AchievementAnnouncement
+    - The Beginning
+    - "/The Beginning[^\\?]/"
+    - 
+    - 
+    - play_sound "@a", "loz_secret"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.217476'
+    - '2015-11-26 22:41:13.217476'
+  - - '728252'
+    - ServerCallback::AchievementAnnouncement
+    - Beaconator
+    - "/Beaconator/"
+    - 
+    - 
+    - play_sound "@a", "smb_powerup"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.221982'
+    - '2015-11-26 22:41:13.221982'
+  - - '728253'
+    - ServerCallback::AchievementAnnouncement
+    - Repopulation
+    - "/Repopulation/"
+    - 
+    - 
+    - play_sound "@a", "smb_1up"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.227318'
+    - '2015-11-26 22:41:13.227318'
+  - - '728254'
+    - ServerCallback::AchievementAnnouncement
+    - Diamonds to you
+    - "/Diamonds to you/"
+    - 
+    - 
+    - play_sound "@a", "smb_coin"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.232343'
+    - '2015-11-26 22:41:13.232343'
+  - - '728255'
+    - ServerCallback::AchievementAnnouncement
+    - Overpowered
+    - "/\\[Overpowered\\]/"
+    - 
+    - 
+    - play_sound "@a", "sm64_key_get"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.241105'
+    - '2015-11-26 22:41:13.241105'
+  - - '728256'
+    - ServerCallback::PlayerCommand
+    - Donations
+    - "/^@server (donations|donate)/i"
+    - 
+    - 
+    - tell_donations("%nick%")
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - true
+    - donations
+    - |-
+      Usage: @server donations
+
+      Shows donation information.
+    - '2015-11-26 22:41:13.25358'
+    - '2015-11-26 22:41:13.25358'
+  - - '728257'
+    - ServerCallback::PlayerCommand
+    - Number Guess
+    - "/^@server numberguess(.*)$/i"
+    - 
+    - 
+    - |-
+      # Number Guess.  This is a demonstration of how to store variables.  A new
+      # number is picked every so often, usually whenever the worker restarts.
+
+      args = "%1%"
+
+      if args.empty?
+        say "@a", "Pick a number between 1 and 1000.  Each guess costs one Level of XP.  If you win, you get levels as a prize (more guesses = lower prize).  There is a random time limit on the secret number.  Multiple players may play simultaneously, but only the first correct guess wins. To guess, type: @server numberguess <guess>", color: "dark_purple", as: "Server"
+
+        return
+      end
+
+      if @number.nil?
+        say "@a", "A new secret number has been picked.", color: "green", as: "Server"
+        @number ||= Random.rand(1000) + 1
+        @guess_count = 14
+      end
+
+      guess = args.split(' ')[0].to_i
+
+      execute "xp -1L %nick%"
+
+      # Unfortunately, there's not a simple way to tell if the player reaches zero levels.
+
+      @guess_count = @guess_count - 1
+
+      say "@a", "%nick% guessed #{guess}.  Too high.  Try again.", color: "red", as: "Server" and return if guess > @number
+      say "@a", "%nick% guessed #{guess}.  Too low.  Try again.", color: "gold", as: "Server" and return if guess < @number
+
+      @guess_count = 0 if @guess_count < 0
+      say "@a", "%nick% guessed it and won #{pluralize @guess_count, 'level'}!  The number was #{guess}!", color: "green", as: "Server"
+      execute "xp #{@guess_count}L %nick%"
+      @number = nil
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - numberguess
+    - 'Usage: @server numberguess [guess]'
+    - '2015-11-26 22:41:13.273558'
+    - '2015-11-26 22:41:13.273558'
+  - - '728258'
+    - ServerCallback::PlayerCommand
+    - Florida Man
+    - "/^@server ([^ ]+)man$/i"
+    - 
+    - 
+    - |-
+      term = "%1%".downcase
+      url = "https://ajax.googleapis.com/ajax/services/search/news?v=1.0&q=#{term}%20man"
+      response = Net::HTTP.get_response(URI.parse(url))
+      json = JSON.parse(response.body)
+      article = json['responseData']['results'].sample
+
+      if !!article
+        title = CGI.unescapeHTML(article['titleNoFormatting']).gsub(/"/, '\"')
+        say "@a", title, color: "white", as: "Google"
+      end
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - floridaman
+    - |-
+      Usage: @server FloridaMan
+
+      See what Florida Man is up to.
+    - '2015-11-26 22:41:13.285372'
+    - '2015-11-26 22:41:13.285372'
+  - - '728259'
+    - ServerCallback::PlayerChat
+    - 'Grammar Nazi #001'
+    - "/([a-z]+ould) of/i"
+    - 
+    - 
+    - |-
+      # When people say "could of" or similar, this command corrects them with
+      # "could have" or similar.
+
+      return if "%message%" =~ /of course/i
+
+      run do
+        sleep 5 # Don't reply right away.
+        say "@a", "*%1% have"
+      end
+    - 
+    - 
+    - 
+    - 
+    - "+30 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.292606'
+    - '2015-11-26 22:41:13.292606'
+  - - '728260'
+    - ServerCallback::PlayerChat
+    - Dijon?
+    - "/an expensive ([a-z]{4,})/i"
+    - 
+    - 
+    - |-
+      run do
+        sleep 5
+        say "@a", "Dijon %1%?"
+      end
+    - 
+    - 
+    - 
+    - 
+    - "+30 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.298401'
+    - '2015-11-26 22:41:13.298401'
+  - - '728261'
+    - ServerCallback::PlayerChat
+    - Embiggen
+    - "/embiggen/i"
+    - 
+    - 
+    - |-
+      run do
+        sleep 5
+        say "@a", "... a perfectly cromulent word."
+      end
+    - 
+    - 
+    - 
+    - 
+    - "+30 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.303228'
+    - '2015-11-26 22:41:13.303228'
+  - - '728262'
+    - ServerCallback::PlayerChat
+    - Captain Obvious
+    - "/([a-z]+) [a-z]+ (is|are) \\1/i"
+    - 
+    - 
+    - |-
+      run do
+        sleep 5
+        say "@a", "We have a Captain Obvious over here."
+      end
+    - 
+    - 
+    - 
+    - 
+    - "+30 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.308802'
+    - '2015-11-26 22:41:13.308802'
+  - - '728263'
+    - ServerCallback::PlayerChat
+    - CAPS
+    - "/[A-Z]* [A-Z]* [A-Z]* [A-Z]*/"
+    - 
+    - 
+    - say "@a", "Easy on the caps, please."
+    - 
+    - 
+    - 
+    - 
+    - "+30 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.316231'
+    - '2015-11-26 22:41:13.316231'
+  - - '728264'
+    - ServerCallback::PlayerChat
+    - Festivus
+    - "/festivus/i"
+    - 
+    - 
+    - say "@a", "... for the rest of us!"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.321656'
+    - '2015-11-26 22:41:13.321656'
+  - - '728265'
+    - ServerCallback::PlayerChat
+    - Muscallonge
+    - "/muscallonge/i"
+    - 
+    - 
+    - say "@a", "You mean, the fish?"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.327837'
+    - '2015-11-26 22:41:13.327837'
+  - - '728266'
+    - ServerCallback::PlayerChat
+    - Search Replace
+    - "/^%s\\/([^\\/]*)\\/([^\\/]*)[\\/]{0,1}$/i"
+    - 
+    - 
+    - "corrected = find_latest_chat_by_nick(\"%nick%\", \"%1%\")\n\nif corrected.nil?\n
+      \ all_nicks.each do |nick|\n    corrected = find_latest_chat_by_nick(nick, \"%1%\")\n
+      \   unless corrected.nil?\n      corrected.gsub!(/%1%/i, \"%2%\")\n      return
+      emote \"@a\", \"thinks #{nick} meant: #{corrected}\", as: \"%nick%\"\n    end
+      \   \n  end\nelse\n  corrected.gsub!(/%1%/i, \"%2%\")\n  emote \"@a\", \"meant:
+      #{corrected}\", as: \"%nick%\"\nend"
+    - 
+    - 
+    - 
+    - 
+    - "+0 seconds"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.333512'
+    - '2015-11-26 22:41:13.333512'
+  - - '728267'
+    - ServerCallback::ServerEntry
+    - Predict
+    - "/^com.mojang.authlib.GameProfile@[^ ]+\\[id=<null>,name=(.*),properties={},legacy=false\\]
+      \\(\\/[0-9.]+:[0-9]+\\) lost connection: Disconnected$/"
+    - 
+    - 
+    - emote_player_prediction("@a", "%1%")
+    - 
+    - 
+    - 
+    - 
+    - "+2 hours"
+    - true
+    - false
+    - 
+    - 
+    - '2015-11-26 22:41:13.34318'
+    - '2015-11-26 22:41:13.34318'

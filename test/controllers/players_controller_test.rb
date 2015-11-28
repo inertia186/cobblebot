@@ -79,10 +79,6 @@ class PlayersControllerTest < ActionController::TestCase
     
     Server.mock_mode(up: true, latest_log_entry_at: Time.now, player_nicks: Player.limit(1).pluck(:nick)) do
       ServerQuery.mock_mode(full_query: {numplayers: "1", maxplayers: "20"}) do
-        def ServerQuery.full_query
-          { numplayers: '1', maxplayers: '20' }
-        end
-    
         xhr :get, :index, format: :js, after: after.to_i.to_s
     
         assert_response 204

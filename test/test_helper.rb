@@ -1,43 +1,128 @@
 ENV['RAILS_ENV'] ||= 'test'
+
+if ENV["HELL_ENABLED"]
+  require 'simplecov'
+  SimpleCov.start 'rails'
+  SimpleCov.merge_timeout 3600
+
+  require 'database_cleaner'
+  # DatabaseCleaner.strategy = :transaction
+  DatabaseCleaner.strategy = :truncation, {only: %w[reputations mutes]}
+  # DatabaseCleaner.strategy = :truncation
+end
+
 require File.expand_path('../../config/environment', __FILE__)
 require 'rcon/rcon'
 require 'rails/test_help'
-require "minitest/hell"
-require 'simplecov'
 require 'webmock/minitest'
 require "codeclimate-test-reporter"
-require 'database_cleaner'
 require 'capybara/rails'
 require 'capybara/poltergeist'
+require 'capybara-screenshot/minitest'
 
-SimpleCov.start
+if ENV["HELL_ENABLED"]
+  require "minitest/hell"
+else
+  require "minitest/pride"
+end
+
 WebMock.disable_net_connect!(allow_localhost: true, allow: 'codeclimate.com:443')
 CodeClimate::TestReporter.start
-DatabaseCleaner[:active_record].strategy = :transaction
+
+phantomjs_logger = if ENV['TESTOPTS'].to_s.include?('--verbose')
+  $stdout
+else
+  File.open("log/test_phantomjs.log", "a")
+end
 
 Capybara.register_driver :poltergeist do |app|
   Capybara::Poltergeist::Driver.new(app, {
-    :phantomjs => Phantomjs.path,
+    phantomjs: Phantomjs.path,
+    phantomjs_logger: phantomjs_logger,
     debug: false,
     #timeout: 60,
     js_errors: true,
-    #inspector: true,
+    inspector: true,
+    extensions: [
+      'test/support/scripts/angular_errors.js'
+    ]
   })
 end
 
 Capybara.javascript_driver = :poltergeist
 Capybara.default_driver = :poltergeist
 
-class ActionDispatch::IntegrationTest
-  include Capybara::DSL
+Capybara::Screenshot.prune_strategy = { keep: 20 }
 
-  def save_screenshot
-    page.save_screenshot "tmp/page.png", :full => true
+Rails.application.load_seed
+
+module TestTools
+  def skip_until_pass(message = "This test is now passing, please revise.", &block)
+    begin
+      yield block
+    rescue Minitest::Assertion
+      skip 'Skipped assertion until fixed.'
+    rescue ActionView::Template::Error
+      skip 'Skipped template error until fixed.'
+    end
+
+    fail message
+  end
+end
+
+class ActionDispatch::IntegrationTest
+  include TestTools
+  include Capybara::DSL
+  include Capybara::Angular::DSL
+  include Capybara::Screenshot::MiniTestPlugin
+
+  self.use_transactional_fixtures = true# unless defined? DatabaseCleaner
+  fixtures :all
+
+  def before_setup
+    DatabaseCleaner.start if defined? DatabaseCleaner
+    super
+  end
+
+  def after_teardown
+    super
+    DatabaseCleaner.clean if defined? DatabaseCleaner
+    Capybara.reset_session!
+  end
+
+  def admin_sign_in
+    visit '/'
+    find_link('Admin').click
+    find_link('Log In').click
+    fill_in 'admin_password', with: preferences(:web_admin_password).value
+    find_button('Login').click
+  end
+
+  def ajax_sync(strategy = :skip, message = "AJAX was too slow.")
+    # May become 'jQuery.ajax.active' in future releases.
+    jquery_not_active = page.evaluate_script('jQuery.active').zero?
+    angular_not_active = page.evaluate_script("angular.element(document.body).injector().get('$http').pendingRequests.length").zero?
+
+    if jquery_not_active && angular_not_active
+      # success
+    else
+      send strategy, message
+    end
+  end
+
+  def admin_sign_out
+    visit '/'
+    find_link('Admin').click
+    find_link('Admin Log Out').click
+  end
+
+  def save_screenshot(filename = Time.now.to_i)
+    page.save_screenshot "tmp/capybara/manual-screenshot-#{filename}.png", :full => true
   end
 
   def save_screenshot_and_skip(message = nil)
     save_screenshot
-    
+
     if !!message
       skip "Skipped integration: #{message}"
     else
@@ -47,41 +132,33 @@ class ActionDispatch::IntegrationTest
 end
 
 class ActiveSupport::TestCase
-  self.use_transactional_fixtures = true
+  include TestTools
+
+  self.use_transactional_fixtures = true# unless defined? DatabaseCleaner
   fixtures :all
 
   def before_setup
-    begin
-      super
-      DatabaseCleaner.start
-      Rails.application.load_seed
-    rescue ActiveRecord::ConnectionTimeoutError => e
-      begin
-        sleep 1 if Preference.path_to_server.nil?
-        skip "Possible race condition: #{e.inspect}"
-      rescue ActiveRecord::ConnectionTimeoutError => e2
-        skip "Race condition: #{e2.inspect}"
-      end
-    end
+    DatabaseCleaner.start if defined? DatabaseCleaner
+    super
   end
 
   def after_teardown
-    DatabaseCleaner.clean
     super
+    DatabaseCleaner.clean if defined? DatabaseCleaner
   end
 
   def integrated_admin_sign_in
     params = {
       admin_password: Preference.web_admin_password
     }
-    
+
     delete admin_destroy_session_url
     post admin_sessions_url(params)
   end
 
   def ServerCommand.kick(nick, message = "Have A Nice Day")
     super
-    
+
     kicked[nick] = message
   end
 
@@ -115,16 +192,16 @@ class ActiveSupport::TestCase
 
   def assert_kicked(nick, &block)
     yield block
-  
+
     assert ServerCommand.kicked.keys.include?(nick), "expect player kicked: #{nick}"
   end
 
   def refute_kicked(nick, &block)
     yield block
-  
+
     refute ServerCommand.kicked.keys.include?(nick), "expect player kicked: #{nick}"
   end
-  
+
   def assert_command_executed(&block)
     ServerCommand.reset_commands_executed
     yield block
@@ -138,7 +215,7 @@ class ActiveSupport::TestCase
       callback
     end
     raise CobbleBotError.new(message: "Unknown callback: #{callback}") if c.nil?
-    
+
     ran_at = c.ran_at
     yield block
     if !!options[:inverted]
@@ -149,7 +226,7 @@ class ActiveSupport::TestCase
       refute c.error_flag_at, "callback \"#{c.name}\" ran, but got error: #{c.last_command_output}"
     end
   end
-  
+
   def refute_callback_ran(callback = nil, &block)
     if callback.nil?
       ServerCallback.find_each do |c|
@@ -271,7 +348,7 @@ fake_inertia186_stats = "#{fake_stats}/d6edf996-6182-4d58-ac1b-4ca0321fb748.json
 File.delete(fake_inertia186_stats) if File.exists?(fake_inertia186_stats)
 File.open(fake_inertia186_stats, 'a') do |f|
   inertia186_stats = <<-DONE
-  {  
+  {
     "stat.useItem.minecraft.bow":10,
     "achievement.buildHoe":2,
     "stat.leaveGame":212,
@@ -288,9 +365,9 @@ File.open(fake_inertia186_stats, 'a') do |f|
     "stat.craftItem.minecraft.iron_ingot":1,
     "stat.useItem.minecraft.obsidian":14,
     "stat.useItem.minecraft.dirt":1,
-    "achievement.exploreAllBiomes":{  
+    "achievement.exploreAllBiomes":{
       "value":0,
-      "progress":[  
+      "progress":[
         "Beach",
         "ForestHills",
         "River",
@@ -419,7 +496,7 @@ File.open(fake_banned_ips, 'a') do |f|
   end
   f.sync
 end
- 
+
 fake_ops = "#{tmp}/ops.json"
 File.delete(fake_ops) if File.exists?(fake_ops)
 File.open(fake_ops, 'a') do |f|
@@ -437,7 +514,7 @@ File.open(fake_ops, 'a') do |f|
   end
   f.sync
 end
- 
+
 fake_whitelist = "#{tmp}/whitelist.json"
 File.delete(fake_whitelist) if File.exists?(fake_whitelist)
 File.open(fake_whitelist, 'a') do |f|
@@ -454,7 +531,31 @@ File.open(fake_whitelist, 'a') do |f|
   end
   f.sync
 end
- 
+
+if !!ENV['HELL_ENABLED'] # No colors in hell.
+  COLORS =
+    {
+      "black"   => 0,
+      "red"     => 1,
+      "green"   => 2,
+      "yellow"  => 3,
+      "blue"    => 4,
+      "purple"  => 5,
+      "magenta" => 5,
+      "cyan"    => 6,
+      "white"   => 7
+    }
+  COLORS.each_pair do |color, value|
+    CapybaraScreenshot::Helpers.send(:define_method, color) do |text|
+      text if ENV['TESTOPTS'].include?('--verbose')
+    end
+
+    CapybaraScreenshot::Helpers.send(:define_method, "bright_#{color}") do |text|
+      text if ENV['TESTOPTS'].include?('--verbose')
+    end
+  end
+end
+
 if Server.up?
   # TODO Eventually, this warning should only warn and not actually raise an
   # exception.  For now, we're just trying to be safe.

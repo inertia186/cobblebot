@@ -80,6 +80,11 @@ GEM
       rack (>= 1.0.0)
       rack-test (>= 0.5.4)
       xpath (~> 2.0)
+    capybara-angular (0.2.2)
+      capybara (>= 2.5.0)
+    capybara-screenshot (1.0.11)
+      capybara (>= 1.0, < 3)
+      launchy
     chosen-rails (1.4.3)
       coffee-rails (>= 3.2)
       compass-rails (>= 2.0.4)
@@ -161,6 +166,11 @@ GEM
     json (1.8.3)
     json (1.8.3-java)
     json_pure (1.8.3)
+    launchy (2.4.3)
+      addressable (~> 2.3)
+    launchy (2.4.3-java)
+      addressable (~> 2.3)
+      spoon (~> 0.0.1)
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
     mail (2.6.3)
@@ -355,6 +365,8 @@ DEPENDENCIES
   binding_of_caller
   byebug
   capybara
+  capybara-angular
+  capybara-screenshot
   chosen-rails
   codeclimate-test-reporter
   coffee-rails

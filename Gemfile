@@ -113,6 +113,8 @@ end
 
 group :test do
   gem 'capybara'
+  gem 'capybara-angular'
+  gem 'capybara-screenshot'
   gem 'poltergeist'
   gem 'phantomjs', require: 'phantomjs/poltergeist'
   gem 'simplecov', require: false

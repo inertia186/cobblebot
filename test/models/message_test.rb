@@ -19,6 +19,7 @@ class MessageTest < ActiveSupport::TestCase
   end
   
   def test_query
+    Rails.application.load_seed
     assert Message::Tip.query('minecraft').any?, 'expect minecraft tips'
     refute Message::Tip.query('lego').any?, 'did not expect lego tips'
     assert Message::Tip.query('minecraft', 'lego').any?, 'expect minecraft tips'

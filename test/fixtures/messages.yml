@@ -1,5 +1,5 @@
 nether_horses:
-  uuid: '45383e36-b29d-49d4-b472-6ff5e69bb56a'
+  uuid: <%= SecureRandom.uuid %>
   body: 'Where have all of the nether horses gone?'
   author: inertia186
   author_type: 'Player'
@@ -8,10 +8,38 @@ nether_horses:
   recipient_term: '@dinnerbone'
 
 secure_oceans:
-  uuid: '70b946f4-4a24-4358-963d-057d0a95f7f8'
+  uuid: <%= SecureRandom.uuid %>
   body: 'http://i.imgur.com/aRko3NI.jpg'
   author: inertia186
   author_type: 'Player'
   recipient: Dinnerbone
   recipient_type: 'Player'
   recipient_term: '@dinnerbone'
+
+donation_from_resnullius:
+  type: Message::Donation
+  uuid: <%= SecureRandom.uuid %>
+  body: '$10 from resnullius'
+  author: resnullius
+  author_type: 'Player'
+  recipient_term: '@a'
+
+dinnerbone_shot_dinnerbone:
+  type: Message::Pvp
+  uuid: <%= SecureRandom.uuid %>
+  body: Dinnerbone was shot by Dinnerbone
+  author: Dinnerbone
+  author_type: Player
+  recipient: Dinnerbone
+  recipient_type: Player
+  recipient_term: '@a'
+
+dinnerbone_killed_resnullius:
+  type: Message::Pvp
+  uuid: <%= SecureRandom.uuid %>
+  body: resnullius was killed by Dinnerbone using magic
+  author: Dinnerbone
+  author_type: Player
+  recipient: resnullius
+  recipient_type: Player
+  recipient_term: '@a'
