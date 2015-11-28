@@ -4,8 +4,6 @@
 %div{data: {preload_resource: '/admin/preferences.json', data: (render template: '/admin/preferences/index.json')}}
 
 .row{ng_controller: 'PreferenceCtrl'}
-  .alert.alert-danger{data_ng_show: 'errorMode'}
-    {{errorMessage}}
   %table.table
     %thead
       %tr
@@ -13,19 +11,20 @@
         %th{width: '66%'} Value
         %th
     %tbody
-      %tr{ng_repeat: 'preference in preferences', ng_keydown: "$event.which === 27 && !(editMode = false) && cancel(preference)", id: '{{preference.key}}'}
+      %tr{ng_repeat: 'preference in preferences', ng_keydown: "$event.which === 27 && !(editMode = false) && cancel(preference)", id: '{{preference.key}}', ng_class: "{'alert alert-danger' : rowErrorMessage.length > 0}"}
         %td
           {{preference.displayKey()}}
-          .error_message
+          .alert.alert-warning{data_ng_show: 'rowErrorMessage.length > 0'}
+            {{rowErrorMessage}}
         %td{data_ng_click: 'editMode = true; edit(preference)'}
           %span{data_ng_hide: 'editMode'} {{preference.displayValue()}}
           %edit-cell
         %td{width: '15%'}
           .row{data_ng_hide: 'editMode'}
             .col-sm-12
-              %a.btn.btn-info.btn-sm{data_ng_click: 'editMode = true; edit(preference)'} Edit
+              %a.btn.btn-info.btn-sm{href: '#', data_ng_click: 'editMode = true; edit(preference)'} Edit
           .row{data_ng_show: 'editMode'}
             .col-sm-6
-              %a.btn.btn-info.btn-sm{data_ng_click: 'editMode = false; save(preference)'} Save
+              %a.btn.btn-info.btn-sm{href: '#', data_ng_click: 'editMode = false; save(preference)'} Save
             .col-sm-6
-              %a.btn.btn-info.btn-sm{data_ng_click: 'editMode = false; cancel(preference)'} Cancel
+              %a.btn.btn-info.btn-sm{href: '#', data_ng_click: 'editMode = false; cancel(preference)'} Cancel
