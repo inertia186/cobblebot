@@ -13,7 +13,8 @@ controller('DonationCtrl', ['$scope', 'Donation', ($scope, Donation) ->
     $scope.lastSearchId = setTimeout(apply, 250)
   $scope.repeatComplete = ->
     $scope.showCount = true
-    $scope.countFrom = Math.round($scope.filteredDonations.length / 1.01)
+    len = $scope.filteredDonations.length
+    $scope.countFrom = Math.round(len / 1.01)
 ]).
 filter('searchFor', ['$rootScope', ($rootScope) -> (donations, searchString) ->
   return donations if !searchString

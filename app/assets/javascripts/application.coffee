@@ -130,18 +130,17 @@ directive('countUp', ['$compile', '$timeout', ($compile, $timeout) ->
     countTo: '@countTo'
     interval: '=interval'
   controller: ['$scope', '$element', '$attrs', '$timeout', ($scope, $element, $attrs, $timeout) ->
-    i = $scope.millis = $scope.countFrom || 0
+    $scope.counter = $scope.countFrom || 0
     if $element.html().trim().length == 0
-      $element.append($compile('<span>{{millis}}</span>')($scope))
+      $element.append($compile('<span>{{counter}}</span>')($scope))
     else
       $element.append($compile($element.contents())($scope));
-      
     timeloop = ->
       tick = ->
-        $scope.millis++
         $scope.$digest()
-        i++
-        timeloop() if i < $scope.countTo
+        if $scope.counter < $scope.countTo
+          $scope.counter++
+          timeloop()
       $timeout tick, $scope.interval
     
     timeloop()
@@ -160,26 +159,13 @@ factory('Donation', ['$resource', 'resourceCache', ($resource, resourceCache) ->
   
   Donation
 ]).
-factory('Preference', ['$resource', '$rootScope', 'resourceCache', ($resource, $rootScope, resourceCache) ->
-  Preference = $resource "/admin/preferences/:key.json",
-    {key: "@key"}, 
-    {query: {cache: resourceCache, isArray: true}},
-  {
+factory('Preference', ['$resource', '$rootScope', ($resource, $rootScope) ->
+  Preference = $resource "/admin/preferences/:key.json", {
+    key: "@key"
+  }, {
     update: {
-      method: "PATCH"
-      interceptor: {
-        response: (response) ->
-          key = response['config']['data']['key']
-          $rootScope.errorMessage = ''
-          $rootScope.errorMode = false
-          $rootScope.$broadcast 'rootScope:ok', {key: key}
-        responseError: (response) ->
-          key = response['config']['data']['key']
-          message = response['data']['value'][0]
-          $rootScope.errorMessage = message
-          $rootScope.errorMode = true
-          $rootScope.$broadcast 'rootScope:error', {key: key, message: message}
-      }
+      # Note, standards compliance requires PUT, not PATCH, until RFC5789 is widely adopted.
+      method: "PUT"
     }
   }
   

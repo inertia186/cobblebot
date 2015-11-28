@@ -13,7 +13,8 @@ controller('PvpCtrl', ['$scope', '$timeout', 'Pvp', ($scope, $timeout, Pvp) ->
     $scope.lastSearchId = $timeout(apply, 250)
   $scope.repeatComplete = ->
     $scope.showCount = true
-    $scope.countFrom = Math.round($scope.filteredPvps.length / 1.01)
+    len = $scope.filteredPvps.length
+    $scope.countFrom = Math.round(len / 1.01)
 ]).
 filter('searchFor', ['$rootScope', ($rootScope) -> (pvps, searchString) ->
   return pvps if !searchString
