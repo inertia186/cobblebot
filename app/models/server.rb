@@ -4,14 +4,14 @@ class Server
   TRY_MAX = 5
   RETRY_SLEEP = 5
   
-  @@mock_options = nil
+  @mock_options = nil
 
   def self.mock_mode(options = {}, &block)
     raise "Mock mode should only be used in tests." unless Rails.env == 'test'
     
-    @@mock_options = options
+    @mock_options = options
     yield
-    @@mock_options = nil
+    @mock_options = nil
   end
   
   def self.try_max
@@ -23,7 +23,7 @@ class Server
   end
   
   def self.up?
-    return @@mock_options[:up] if !!@@mock_options
+    return @mock_options[:up] if !!@mock_options
     
     query = nil
     
@@ -47,7 +47,7 @@ class Server
   
   def self.latest_log_entry_at
     return unless up?
-    return @@mock_options[:latest_log_entry_at] if !!@@mock_options
+    return @mock_options[:latest_log_entry_at] if !!@mock_options
     
     server_log = "#{ServerProperties.path_to_server}/logs/latest.log"
     File.ctime(server_log)
@@ -62,7 +62,7 @@ class Server
   end
   
   def self.player_nicks(selector = nil)
-    return @@mock_options[:player_nicks] if !!@@mock_options
+    return @mock_options[:player_nicks] if !!@mock_options
     
     nicks = []
     
@@ -96,6 +96,8 @@ class Server
   # until the buffer is empty.
   #
   def self.entity_data(options = {selector: "@e[c=1]", near_player: nil, radius: 0, only: []})
+    return @mock_options[:entity_data] if !!@mock_options
+    
     end_response = 'Unknown command. Try /help for a list of commands'
     error_response = 'The entity UUID provided is in an invalid format'
     rcon = RCON::Minecraft.new(ServerProperties.server_ip, ServerProperties.rcon_port)
