@@ -31,21 +31,47 @@ class StatusTest < ActionDispatch::IntegrationTest
           key, value = pair
           nth = index + 1
 
-          expected_result = case key
-          when :plugins then "None"
-          when :raw_plugins then "None"
-          when :server then "N/A"
+          expected_name = case key
+            when 'gametype' then 'Game Type'
+            when 'game_id' then 'Game ID'
+            when 'version' then 'Version'
+            when 'plugins' then 'Plugins'
+            when 'map' then 'Map'
+            when 'numplayers' then 'No. of Players'
+            when 'maxplayers' then 'Max No. of Players'
+            when 'hostip' then 'Host IP'
+            when 'motd' then 'Message of the Day'
+            when 'rawplugins' then 'Raw Plugins'
+            when 'server' then 'Server'
+            when 'timestamp' then 'Timestamp'
+            else @key
+          end
+
+          expected_value = case key
+          when :plugins then 'None'
+          when :raw_plugins then 'None'
+          when :server then 'N/A'
           when :players then '["inertia186","Dinnerbone"]'
           when :timestamp then value.in_time_zone(Time.zone).strftime(timestamp_format)
           else value
           end
 
           css_path = "table > tbody > tr:nth-child(#{nth}) > th"
-          result_name = page.evaluate_script("angular.element('#{css_path}').html();")
+
+          result_name = within :css, css_path do
+            assert page.has_content?(expected_name), "expect row ##{nth} to contain: #{expected_name}"
+            page.evaluate_script("angular.element('#{css_path}').html();")
+          end
+
           css_path = "table > tbody > tr:nth-child(#{nth}) > td"
-          result_value = page.evaluate_script("angular.element('#{css_path}').html();")
-          assert_equal expected_result, result_value,
-            "expect {#{key}: #{value}} to yield #{expected_result}, but instead, we got: {#{result_name}: #{result_value}}"
+
+          result_value = within :css, css_path do
+            assert page.has_content?(expected_value), "expect cell ##{nth} to contain: #{expected_value}"
+            page.evaluate_script("angular.element('#{css_path}').html();")
+          end
+
+          assert_equal expected_value, result_value,
+            "expect {#{key}: #{value}} to yield #{expected_value}, but instead, we got: {#{result_name}: #{result_value}}"
         end
         save_screenshot
       end

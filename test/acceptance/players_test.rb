@@ -9,9 +9,7 @@ class PlayersTest < ActionDispatch::IntegrationTest
       ServerQuery.mock_mode(full_query: {numplayers: "0", maxplayers: "20"}) do
         visit '/players'
 
-        css_path = "table > tbody > tr:nth-child(1) > td"
-        result = page.evaluate_script("angular.element('#{css_path}').html();")
-        refute_equal 'Searching ...', result
+        assert page.has_no_content?('Searching ...'), 'did not expect "Searching ..." text showing'
       end
     end
   end

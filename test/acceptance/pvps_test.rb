@@ -10,42 +10,37 @@ class PvpsTest < ActionDispatch::IntegrationTest
 
       visit '/pvps'
 
-      css_path = 'count-up > span'
-      result = page.evaluate_script("angular.element('#{css_path}').html();")
-      assert_equal Message::Pvp.count, result.to_i
+      assert page.has_css?('count-up > span'), 'expect counter showing'
+      within :css, 'count-up > span' do
+        assert page.has_content?(Message::Pvp.count), "expect counter now at: #{Message::Pvp.count}"
+      end
 
       index = 0
-
-      ajax_sync
 
       pvps.find_each do |pvp|
         nth = index = index + 1
 
-        css_path = "table > tbody > tr:nth-child(#{nth}) > td"
-        result = page.evaluate_script("angular.element('#{css_path}').html();")
-        refute_equal 'Searching ...', result
-        ajax_sync
-        assert_equal pvp.body, result
+        assert page.has_no_content?('Searching ...'), 'did not expect "Searching ..." text showing'
+        assert page.has_content?(pvp.body), "expect results to contain: #{pvp.body}"
 
-        css_path = "table > tbody > tr:nth-child(#{nth}) > td:nth-child(2)"
-        result = page.evaluate_script("angular.element('#{css_path}').html();")
-        assert_match pvp.recipient.nick, result
+        within :css, "table > tbody > tr:nth-child(#{nth}) > td:nth-child(2)" do
+          assert page.has_content?(pvp.recipient.nick), "expected result #{nth} to contain loser: #{pvp.recipient.nick}"
+        end
 
-        css_path = "table > tbody > tr:nth-child(#{nth}) > td:nth-child(3)"
-        result = page.evaluate_script("angular.element('#{css_path}').html();")
-        assert_match pvp.author.nick, result
+        within :css, "table > tbody > tr:nth-child(#{nth}) > td:nth-child(3)" do
+          assert page.has_content?(pvp.author.nick), "expected result #{nth} to contain winner: #{pvp.author.nick}"
+        end
       end
 
       fill_in 'query', with: 'resnullius'
-      pvps = pvps.where(author: players(:resnullius))
+      pvps = pvps.where(recipient: players(:resnullius))
 
-      css_path = 'count-up > span'
-      result = page.evaluate_script("angular.element('#{css_path}').html();")
-      assert_equal pvps.count, result.to_i
+      within :css, 'count-up > span' do
+        assert page.has_content?(pvps.count), "expect counter now at: #{pvps.count}"
+      end
 
-      css_path = "table > tbody > tr:nth-child(1) > td"
-      result = page.evaluate_script("angular.element('#{css_path}').html();")
-      refute_equal 'Dinnerbone was shot by Dinnerbone', result
+      assert page.has_no_content?('Dinnerbone was shot by Dinnerbone'), 'did not expect Dinnerbone listed as victim'
+      assert page.has_content?('resnullius was killed by Dinnerbone using magic'), 'expect only resnullius listed as victim'
     end
   end
 

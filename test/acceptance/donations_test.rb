@@ -3,36 +3,29 @@ require "test_helper"
 class DonationsTest < ActionDispatch::IntegrationTest
   def setup
   end
-  
+
   def test_basic_workflow
     Server.mock_mode(up: true) do
       visit '/donations'
-      
-      css_path = "table > tbody > tr:nth-child(1) > td"
-      result = page.evaluate_script("angular.element('#{css_path}').html();")
-      refute_equal 'Searching ...', result
-      assert_equal '$10 from resnullius', result
-      
-      css_path = 'count-up > span'
-      result = page.evaluate_script("angular.element('#{css_path}').html();")
-      assert_equal Message::Donation.count, result.to_i
-      
-      css_path = "table > tbody > tr:nth-child(1) > td:nth-child(2)"
-      result = page.evaluate_script("angular.element('#{css_path}').html();")
-      assert_match 'resnullius', result
-      
+
+      assert page.has_no_content?('Searching ...')
+      assert page.has_content?('$10 from resnullius')
+
+      assert page.has_css?('count-up > span')
+      within :css, 'count-up > span' do
+        assert page.has_content?(Message::Donation.count)
+      end
+
+      within :css, "table > tbody > tr:nth-child(1) > td:nth-child(2)" do
+        assert page.has_content?('resnullius')
+      end
+
       fill_in 'query', with: 'dinnerbone'
-      
-      css_path = "table > tbody > tr:nth-child(1) > td"
-      result = page.evaluate_script("angular.element('#{css_path}').html();")
-      refute_equal '$10 from resnullius', result
-      
-      css_path = 'count-up > span'
-      result = page.evaluate_script("angular.element('#{css_path}').html();")
-      refute result
+      assert page.has_no_content?('$10 from resnullius')
+      assert page.has_no_css?('count-up > span')
     end
   end
-  
+
   def test_basic_json
     Server.mock_mode(up: true) do
       visit '/donations.json'
