@@ -47,7 +47,7 @@ directive('selectPlayer', ['$http', ($http) ->
     id = e.val()
     e.empty()
     e.append($('<option></option>'))
-    
+
     $http.get(attrs.selectPlayer).success (data) ->
       angular.forEach data, (player, index) ->
         nick = player.nick
@@ -87,12 +87,12 @@ directive('suggestion', -> {
       ''
     else
       '/' + attr.module
-      
+
     verbose = if attr.verbose == undefined
       true
     else
       attr.verbose == 'true'
-      
+
     module + '/suggestion/' + attr.group + '/' + attr.key + "?verbose=" + verbose
 }).
 directive('repeatComplete', ['$rootScope', ($rootScope) ->
@@ -102,20 +102,20 @@ directive('repeatComplete', ['$rootScope', ($rootScope) ->
       id = ++uuid
       element.attr("repeat-complete-id", id)
       element.removeAttr("repeat-complete")
-    
+
       completeExpression = attr.repeatComplete
       parent = element.parent()
       parentScope = (parent.scope() || $rootScope)
       unbindWatcher = parentScope.$watch ->
         lastItem = parent.children("*[ repeat-complete-id = '" + id + "' ]:last")
         return if !lastItem.length
-      
+
         itemScope = lastItem.scope()
-      
+
         if itemScope.$last
           unbindWatcher();
           itemScope.$eval(completeExpression);
-      
+
       true
     priority: 1001,
     restrict: "A"
@@ -142,7 +142,7 @@ directive('countUp', ['$compile', '$timeout', ($compile, $timeout) ->
           $scope.counter++
           timeloop()
       $timeout tick, $scope.interval
-    
+
     timeloop()
   ]
 ])
@@ -156,22 +156,20 @@ factory('Donation', ['$resource', 'resourceCache', ($resource, resourceCache) ->
   {query: {cache: resourceCache, isArray: true}}
   angular.extend Donation.prototype,
     createdAgo: -> moment(@created_at).fromNow()
-  
+
   Donation
 ]).
-factory('Preference', ['$resource', '$rootScope', ($resource, $rootScope) ->
-  Preference = $resource "/admin/preferences/:key.json", {
-    key: "@key"
-  }, {
-    update: {
+factory('Preference', ['$resource', 'resourceCache', ($resource, resourceCache) ->
+  Preference = $resource "/admin/preferences/:key.json",
+    {key: "@key"},
+      query:
+        cache: resourceCache, isArray: true
       # Note, standards compliance requires PUT, not PATCH, until RFC5789 is widely adopted.
-      method: "PUT"
-    }
-  }
-  
+      update: {method: "PUT"}
+
   MAX = 80
   ELLIPSIS = ' ...'
-  
+
   angular.extend Preference.prototype,
     isJson: -> /_json$/.test @key
     isTimestamp: -> /_timestamp$/.test @key
@@ -224,7 +222,7 @@ factory('Preference', ['$resource', '$rootScope', ($resource, $rootScope) ->
     errors: ->
       if !@key && !!@value
         @value
-        
+
   Preference
 ]).
 factory('Pvp', ['$resource', 'resourceCache', ($resource, resourceCache) ->
@@ -233,7 +231,7 @@ factory('Pvp', ['$resource', 'resourceCache', ($resource, resourceCache) ->
   {query: {cache: resourceCache, isArray: true}}
   angular.extend Pvp.prototype,
     createdAgo: -> moment(@created_at).fromNow()
-  
+
   Pvp
 ]).
 factory('Stat', ['$resource', 'resourceCache', ($resource, resourceCache) ->
@@ -266,12 +264,12 @@ factory('Stat', ['$resource', 'resourceCache', ($resource, resourceCache) ->
         "None"
       else
         @value
-  
+
   Stat
 ])
 
 $(document).on 'ready page:load', -> angular.bootstrap 'body', ['CobbleBot']
-  
+
 updatePublicPlayers = ->
   after = $('#last_activity').attr 'data-last-activity-at'
   $.getScript('/players.js?after=' + after).done ->
