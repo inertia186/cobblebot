@@ -24,6 +24,7 @@ class PvpsTest < ActionDispatch::IntegrationTest
         css_path = "table > tbody > tr:nth-child(#{nth}) > td"
         result = page.evaluate_script("angular.element('#{css_path}').html();")
         refute_equal 'Searching ...', result
+        ajax_sync
         assert_equal pvp.body, result
 
         css_path = "table > tbody > tr:nth-child(#{nth}) > td:nth-child(2)"
