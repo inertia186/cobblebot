@@ -7,102 +7,142 @@ web_admin_password:
   key: <%= Preference::WEB_ADMIN_PASSWORD %>
   value: '123456'
   system: 'f'
-  
+
 path_to_server:
   key: <%= Preference::PATH_TO_SERVER %>
   value: '/path/to/minecraft/server'
   system: 'f'
-  
+
 command_scheme:
   key: <%= Preference::COMMAND_SCHEME %>
   value: 'rcon'
   system: 'f'
-  
+
 motd:
   key: <%= Preference::MOTD %>
   value: 'Welcome to the server!'
   system: 'f'
-  
+
 rules_json:
   key: <%= Preference::RULES_JSON %>
   value: "{\"color\": \"yellow\", \"text\": \"Server Rules\" }\n{\"color\": \"yellow\", \"text\": \"===\" }\n{\"color\": \"yellow\", \"text\": \"  1. No abusive chat.\" }\n{\"color\": \"yellow\", \"text\": \"  2. No annoying chat.\" }\n{\"color\": \"yellow\", \"text\": \"  3. Do not intentionally cause lag or crash the server nor threaten to do so.\" }\n{\"text\": \"\" }\n{\"color\": \"yellow\", \"text\": \"You will be banned for the violation of the above rules.\" }\n{\"text\": \"\" }\n{ \"color\": \"yellow\", \"text\": \"To get a random tip, type: \", \"extra\": [{\"text\": \"@server tip\", \"color\": \"dark_purple\", \"underlined\": \"true\", \"clickEvent\": {\"action\": \"run_command\", \"value\": \"@server tip\"}, \"hoverEvent\": {\"action\": \"show_text\", \"value\": \"Not Really That Helpful\"}}] }"
   system: 'f'
-  
+
 tutorial_json:
   key: <%= Preference::TUTORIAL_JSON %>
   value: "{ \"color\": \"yellow\", \"text\": \"Don't die.\" }"
   system: 'f'
-  
+
 faq_jason:
   key: <%= Preference::FAQ_JSON %>
   value: "{ \"color\": \"yellow\", \"text\": \"FAQ has not been defined.\" }"
   system: 'f'
-  
+
 donations_json:
   key: <%= Preference::DONATIONS_JSON %>
   value: "{ \"color\": \"yellow\", \"text\": \"The owner does not accept donations.\" }"
   system: 'f'
-  
+
 irc_enabled:
   key: <%= Preference::IRC_ENABLED %>
   value: 'false'
   system: 'f'
-  
+
 irc_info:
   key: <%= Preference::IRC_INFO %>
   value: 'Example: My Minecraft Server - hostname or IP - http://web-site-url'
   system: 'f'
-  
+
 irc_web_chat_enabled:
   key: <%= Preference::IRC_WEB_CHAT_ENABLED %>
   value: 'false'
   system: 'f'
-  
+
 irc_web_chat_url_label:
   key: <%= Preference::IRC_WEB_CHAT_URL_LABEL %>
   value: 'freenode.net'
   system: 'f'
-  
+
 irc_web_chat_url:
   key: <%= Preference::IRC_WEB_CHAT_URL %>
   value: 'http://webchat.freenode.net/?channels=%23my_channel&uio=d4'
   system: 'f'
-  
+
 irc_server_host:
   key: <%= Preference::IRC_SERVER_HOST %>
   value: 'irc.freenode.net'
   system: 'f'
-  
+
 irc_server_port:
   key: <%= Preference::IRC_SERVER_PORT %>
   value: '8000'
   system: 'f'
-  
+
 irc_nick:
   key: <%= Preference::IRC_NICK %>
   value: "cobblebot#{Random.rand(100)}"
   system: 'f'
-  
+
 irc_channel:
   key: <%= Preference::IRC_CHANNEL %>
   value: '#my_channel'
   system: 'f'
-  
+
 irc_channel_ops:
   key: <%= Preference::IRC_CHANNEL_OPS %>
   value: ''
   system: 'f'
-  
+
 irc_nickserv_password:
   key: <%= Preference::IRC_NICKSERV_PASSWORD %>
   value: 'secret'
   system: 'f'
-  
+
 origin_salt:
   key: <%= Preference::ORIGIN_SALT %>
   value: "#{Random.rand(100000)}"
   system: 'f'
-  
+
+latest_resource_pack_timestamp:
+  key: <%= Preference::LATEST_RESOURCE_PACK_TIMESTAMP %>
+  value: '1448743789'
+  system: 't'
+
+latest_resource_pack_hash:
+  key: <%= Preference::LATEST_RESOURCE_PACK_HASH %>
+  value: '4cc499e4e96fc925e1344f9ebf9f6696'
+  system: 't'
+
+is_junk_objective_timestamp:
+  key: <%= Preference::IS_JUNK_OBJECTIVE_TIMESTAMP %>
+  value: '1448381695'
+  system: 't'
+
+active_in_irc:
+  key: <%= Preference::ACTIVE_IN_IRC %>
+  value: '0'
+  system: 't'
+
+latest_gametick:
+  key: <%= Preference::LATEST_GAMETICK %>
+  value: '10.30'
+  system: 't'
+
+latest_gametick_population:
+  key: <%= Preference::LATEST_GAMETICK_POPULATION %>
+  value: '6'
+  system: 't'
+
+latest_gametick_timestamp:
+  key: <%= Preference::LATEST_GAMETICK_TIMESTAMP %>
+  value: '1444592443'
+  system: 't'
+
+latest_gametick_in_progress:
+  key: <%= Preference::LATEST_GAMETICK_IN_PROGRESS %>
+  value: 'f'
+  system: 't'
+ 
 stop_words:
   key: <%= Preference::STOP_WORDS %>
   value: '@$$ ahole amcik andskota anus arschloch arse ash0le ash0les asholes ass assface assh0le assh0lez asshole assholes assholz assmonkey assrammer asswipe ayir azzhole b!+ch b!tch b00b b00bs b17ch b1tch bassterds bastard bastards bastardz basterds basterdz bi+ch bi7ch biatch bird bitch bitches blowjob boffing boiolas bollock boobs buceta butt-pirate butthole buttwipe c0ck c0cks c0k cabron cawk cawks cazzo chink chraa chuj cipa clit clits cnts cntz cock cock-head cock-sucker cockhead cocks cocksucker cum cunt cunts cuntz d4mn damn daygo dego dick dike dild0 dild0s dildo dildos dilld0 dilld0s dirsa dominatricks dominatrics dominatrix dupa dyke dziwka ejackulate ejakulate ekrem ekto enculer enema faen fag fag1t faget fagg1t faggit faggot fagit fags fagz faig faigs fanculo fanny fart fatass fcuk feces feg felcher ficken fitt flikker flipping foreskin fotze fu fuck fucker fuckin fucking fucks fuk fukah fuken fuker fukin fukk fukkah fukken fukker fukkin futkretzn fux0r g00k gay gayboy gaygirl gays gayz god-damned gook guiena h00r h0ar h0r h0re hells helvete hoar hoer hoor hoore hore huevon hui injun jackoff jap japs jerk-off jisim jism jiss jizm jizz kanker kawk kike klootzak knobz knulle kraut kuk kuksuger kunt kunts kuntz kurac kurwa kusi kyrpa l3i+ch l3itch lesbian lesbo lezzian lipshits lipshitz mamhoon masochist masokist massterbait masstrbait masstrbate masterbaiter masterbat masterbat3 masterbate masterbates masturbat masturbate merd mibun mofo monkleigh motherfucker mouliewop muie mulkku muschi n1gr nastt nazis nepesaurio nigga nigger nigur niiger niigr nutsack orafis orgasim orgasm orgasum oriface orifice orifiss orospu p0rn packi packie packy paki pakie paky paska peeenus peeenusss peenus peinus pen1s penas penis-breath penus penuus perse phuc phuck phuk phuker phukker picka pierdol pillu pimmel pimpis piss pizda polac polack polak poonani poontsee porn pr0n pr1c pr1ck pr1k preteen pula pule pusse pussee pussy puta puto puuke puuker qahbeh queef queer queers queerz qweers qweerz qweir rautenberg recktum rectum s.o.b. sadist scank schaffer scheiss schlampe schlong schmuck screw scrotum semen sex sexy sh!+ sh!t sh1t sh1ter sh1ts sh1tter sh1tz sharmuta sharmute shemale shi+ shipal shit shits shitter shitty shity shitz shiz shyt shyte shytty shyty skanck skank skankee skankey skanks skanky skribz skurwysyn slut sluts slutty slutz smut son-of-a-bitch sphencter spic spierdalaj splooge suka teets teez testical testicle tit tits titt turd twat va1jina vag1na vagiina vagina vaj1na vajina vittu vullva vulva w00se w0p wank wetback wh00r wh0re whoar whore wichser wop xrated xxx yed zabourah'

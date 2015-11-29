@@ -35,7 +35,7 @@ class Admin::CallbacksTest < ActionDispatch::IntegrationTest
 
         within(:css, results_container) do
           assert page.has_content?('Spammy'), 'expect Spammy in spammy results'
-          refute page.has_content?('Read Mail'), 'expect Read Mail in spammy results'
+          assert page.has_no_content?('Read Mail'), 'expect Read Mail in spammy results'
         end
       end
     end

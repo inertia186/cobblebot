@@ -3,7 +3,7 @@ require 'test_helper'
 class StatusTest < ActionDispatch::IntegrationTest
   def setup
   end
-  
+
   def test_basic_workflow
     full_status = {
       gametype: 'SMP',
@@ -19,27 +19,27 @@ class StatusTest < ActionDispatch::IntegrationTest
       players: ['inertia186', 'Dinnerbone'],
       raw_plugins: '',
       server: nil,
-      timestamp: Time.now.to_i
+      timestamp: Time.now
     }
-    
+
     Server.mock_mode(up: true) do
       ServerQuery.mock_mode(full_query: full_status) do
         visit '/status'
         timestamp_format = '"%Y-%m-%dT%H:%M:%S.000Z"'
-        
+
         full_status.each_with_index do |pair, index|
           key, value = pair
           nth = index + 1
-          
+
           expected_result = case key
           when :plugins then "None"
           when :raw_plugins then "None"
           when :server then "N/A"
           when :players then '["inertia186","Dinnerbone"]'
-          when :timestamp then Time.zone.at(value).strftime(timestamp_format)
+          when :timestamp then value.in_time_zone(Time.zone).strftime(timestamp_format)
           else value
           end
-          
+
           css_path = "table > tbody > tr:nth-child(#{nth}) > th"
           result_name = page.evaluate_script("angular.element('#{css_path}').html();")
           css_path = "table > tbody > tr:nth-child(#{nth}) > td"

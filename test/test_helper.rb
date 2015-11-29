@@ -1,12 +1,8 @@
 ENV['RAILS_ENV'] ||= 'test'
 
-if ENV["HELL_ENABLED"]
-  require 'simplecov'
-  SimpleCov.start 'rails'
-  SimpleCov.merge_timeout 3600
-
-  require 'database_cleaner'
-end
+require 'simplecov'
+SimpleCov.start 'rails'
+SimpleCov.merge_timeout 3600
 
 require File.expand_path('../../config/environment', __FILE__)
 require 'rcon/rcon'
@@ -19,6 +15,7 @@ require 'capybara-screenshot/minitest'
 
 if ENV["HELL_ENABLED"]
   require "minitest/hell"
+  require 'database_cleaner'
 else
   require "minitest/pride"
 end
@@ -68,8 +65,56 @@ module TestTools
   end
 end
 
+module SlackStubs
+  def stub_auth_test(key, &block)
+    stub = stub_request(:post, "https://slack.com/api/auth.test").
+      with(body: {"token" => key}).
+      to_return status: 200, body: <<-DONE
+      {
+        "ok": true, "url": "https://cobblebot.dev/", "team": "CobbleBot Dev",
+        "user": "cobblebot", "team_id": "T12345678", "user_id": "U12345678"
+      }
+    DONE
+    yield block
+    remove_request_stub(stub)
+  end
+
+  def stub_groups_list(key, &block)
+    stub = stub_request(:post, "https://slack.com/api/groups.list").
+      with(body: {"token" => key}).
+      to_return status: 200, body: <<-DONE
+      {
+        "ok": true,
+        "groups": [{
+          "id": "G12345678",
+          "name": "cobblebot",
+          "is_group": true,
+          "created": 1446528312,
+          "creator": "U12345678",
+          "is_archived": false,
+          "is_mpim": false,
+          "members": ["U12345678", "U87654321"],
+          "topic": {
+            "value": "World players: 2 of 20",
+            "creator": "U0DN6Q60Y",
+            "last_set": 1448757448
+          },
+          "purpose": {
+            "value": "Current activity on the server.",
+            "creator": "U12345678",
+            "last_set": 1447018607
+          }
+        }]
+      }
+    DONE
+    yield block
+    remove_request_stub(stub)
+  end
+end
+
 class ActionDispatch::IntegrationTest
   include TestTools
+  include SlackStubs
   include Capybara::DSL
   include Capybara::Angular::DSL
   include Capybara::Screenshot::MiniTestPlugin
@@ -101,16 +146,31 @@ class ActionDispatch::IntegrationTest
     find_button('Login').click
   end
 
-  def ajax_sync(strategy = :skip, message = "AJAX was too slow.")
-    # May become 'jQuery.ajax.active' in future releases.
-    jquery_not_active = page.evaluate_script('jQuery.active').zero?
-    angular_not_active = page.evaluate_script("angular.element(document.body).injector().get('$http').pendingRequests.length").zero?
+  def ajax_sync(options = {tries: 10, sleep_for: 1, strategy: :skip, message: "AJAX was too slow."})
+    still_running = true
 
-    if jquery_not_active && angular_not_active
-      # success
-    else
-      send strategy, message
+    options[:tries].times do
+      break unless still_running
+
+      # May become 'jQuery.ajax.active' in future releases.
+      jquery_active = page.evaluate_script('jQuery.active')
+      jquery_not_active = jquery_active.zero?
+      angular_active = page.evaluate_script("angular.element(document.body).injector().get('$http').pendingRequests.length")
+      angular_not_active = angular_active.zero?
+
+      if jquery_not_active && angular_not_active
+        still_running = false
+      else
+        if ENV['TESTOPTS'].to_s.include?('--verbose')
+          puts "jQuery active: #{jquery_active}" unless jquery_not_active
+          puts "AngularJS active: #{angular_active}" unless angular_not_active
+        end
+
+        sleep options[:sleep_for]
+      end
     end
+
+    send strategy, message if still_running
   end
 
   def admin_sign_out
@@ -136,6 +196,7 @@ end
 
 class ActiveSupport::TestCase
   include TestTools
+  include SlackStubs
 
   if defined? DatabaseCleaner
     DatabaseCleaner.clean_with(:truncation)
@@ -559,11 +620,11 @@ if !!ENV['HELL_ENABLED'] # No colors in hell.
     }
   COLORS.each_pair do |color, value|
     CapybaraScreenshot::Helpers.send(:define_method, color) do |text|
-      text if ENV['TESTOPTS'].include?('--verbose')
+      text if ENV['TESTOPTS'].to_s.include?('--verbose')
     end
 
     CapybaraScreenshot::Helpers.send(:define_method, "bright_#{color}") do |text|
-      text if ENV['TESTOPTS'].include?('--verbose')
+      text if ENV['TESTOPTS'].to_s.include?('--verbose')
     end
   end
 end

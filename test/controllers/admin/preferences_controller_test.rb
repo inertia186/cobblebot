@@ -3,16 +3,13 @@ require 'test_helper'
 class Admin::PreferencesControllerTest < ActionController::TestCase
   def setup
     session[:admin_signed_in] = true
-
-    stub_request(:post, "https://slack.com/api/auth.test").
-      with(body: {"token" => true}, headers: {
-        'Accept' => 'application/json; charset=utf-8', 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Content-Type' => 'application/x-www-form-urlencoded', 'User-Agent' => 'Slack Ruby Gem 1.1.6'
-      }).
-      to_return(status: 200, body: "")
+    Preference.slack_api_key = "ID12345678"
   end
 
   def test_routings
     assert_routing('admin/preferences', controller: 'admin/preferences', action: 'index')
+    assert_routing('admin/preferences/edit_cell', controller: 'admin/preferences', action: 'edit_cell')
+    assert_routing('admin/preferences/slack_group_element', controller: 'admin/preferences', action: 'slack_group_element')
     assert_routing({ method: 'patch', path: 'admin/preferences/42' }, controller: 'admin/preferences', action: 'update', id: '42')
   end
 
@@ -29,6 +26,25 @@ class Admin::PreferencesControllerTest < ActionController::TestCase
     assert JSON.parse(response.body), 'expect valid json'
 
     assert_template :index
+    assert_response :success
+  end
+
+  def test_edit_cell
+    get :edit_cell
+
+    assert_template :edit_cell
+    assert_response :success
+  end
+
+  def test_slack_group_element
+
+    stub_auth_test(Preference.slack_api_key) do
+      stub_groups_list(Preference.slack_api_key) do
+        get :slack_group_element
+      end
+    end
+
+    assert_template :slack_group_element
     assert_response :success
   end
 

@@ -34,7 +34,7 @@ class Admin::PlayersTest < ActionDispatch::IntegrationTest
 
         within(:css, results_container) do
           assert page.has_content?('inertia186'), 'expect inertia186 in inertia results'
-          refute page.has_content?('Dinnerbone'), 'did not expect Dinnerbone in inertia results'
+          assert page.has_no_content?('Dinnerbone'), 'did not expect Dinnerbone in inertia results'
         end
       end
     end
