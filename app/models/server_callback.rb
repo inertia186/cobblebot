@@ -17,7 +17,7 @@ class ServerCallback < ActiveRecord::Base
   REGEX_ACHIEVEMENT_ANNOUNCEMENT = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread/INFO\]: .* has just earned the achievement.*$}
   REGEX_RUNNING_BEHIND = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread/WARN\]: Can't keep up! Did the system time change, or is the server overloaded? Running [0-9]+ms behind, skipping [0-9]+ tick.*$}
   REGEX_PLAYER_AUTHENTICATED = %r{^\[\d{2}:\d{2}:\d{2}\] \[User Authenticator #\d+/INFO\]: UUID of player ([a-zA-Z0-9_]+) is ([a-fA-Z0-9-]+)$}
-  
+
   validates :name, presence: true
   validates_uniqueness_of :name, case_sensitive: true
   validates :pattern, presence: true
@@ -42,10 +42,10 @@ class ServerCallback < ActiveRecord::Base
     adapter_type = ActiveRecord::Base.connection.adapter_name.downcase.to_sym
     clause = case adapter_type
     when :sqlite then 'server_callbacks.ran_at IS NULL OR datetime(server_callbacks.ran_at, server_callbacks.cooldown) <= ?'
-    when :postgresql then 'server_callbacks.ran_at IS NULL OR server_callbacks.ran_at + (server_callbacks.cooldown::interval) <= ?'
+    when :postgresql then "COALESCE(server_callbacks.ran_at, 'epoch'::timestamp) + (server_callbacks.cooldown::interval) <= ?"
     else raise NotImplementedError, "Unknown adapter type '#{adapter_type}'"
     end
-        
+
     enabled.where(clause, Time.now).tap do |r|
       return ready ? r : where.not(id: r)
     end
@@ -87,7 +87,7 @@ class ServerCallback < ActiveRecord::Base
       return has_help_docs ? r : where.not(id: r)
     end
   }
-  
+
   def self.for_handling(line)
     raise CobbleBotError.new(message: "Cannot handle undefine callback type for: #{line}")
   end
@@ -100,7 +100,7 @@ class ServerCallback < ActiveRecord::Base
       result = callback.handle_entry(*entry(line, options))
       any_result ||= result
     end
-    
+
     any_result
   end
 
@@ -111,11 +111,11 @@ class ServerCallback < ActiveRecord::Base
   def to_param
     "#{id}-#{name.parameterize}"
   end
-  
+
   def display_type
     type.split('::')[1..-1].join(' ').titleize
   end
-  
+
   def valid_pattern
     eval_check(:pattern)
   end
@@ -128,7 +128,7 @@ class ServerCallback < ActiveRecord::Base
       ServerCallback::PlayerEmote
       ServerCallback::AnyPlayerEntry
     )
-    
+
     unless allowed_types.include? type
       if command =~ /%nick%/
         errors[:command] << "cannot reference %nick% in a #{type.titleize} callback.  Try %1% if you intend to capture the nick yourself."
@@ -156,14 +156,14 @@ class ServerCallback < ActiveRecord::Base
 
   def ready?
     return true unless ran?
-    
+
     if respond_to? :status
       status.nil? || status <= Time.now
     else
       ServerCallback.where(id: self).ready.any?
     end
   end
-  
+
   def handle_entry(player, message, line, options = {})
     case message
     when ServerCommand.eval_pattern(pattern, to_param)
@@ -174,22 +174,22 @@ class ServerCallback < ActiveRecord::Base
       nil
     end
   end
-  
+
   def execute_command(nick, message, options = {})
     update_column(:error_flag_at, nil) unless error_flag_at.nil? # no AR callbacks
-    
+
     if player_input?(message)
       begin
         message_escaped = message
-      
+
         # TODO Also look for and escape: []\^$.|?*+()
         %w( [ ] \\ ^ $ . | ? * + \( \)).each do |c|
           message_escaped.gsub!(c, "\\#{c}")
         end
-      
+
         # Find quotes to avoid breaking json.
         message_escaped.gsub!(/"/, '\"')
-      
+
         # Find ruby escaped #{vars} in strings and just remove them.
         message_escaped.gsub!(/\#{[^}]+}/, '')
 
@@ -203,7 +203,7 @@ class ServerCallback < ActiveRecord::Base
         Rails.logger.error "Problem escaping message: #{e.inspect}"
       end
     end
-    
+
     cmd = command.
       gsub("%message%", "#{message}").
       gsub("%nick%", "#{nick}").
@@ -223,10 +223,10 @@ class ServerCallback < ActiveRecord::Base
       Rails.logger.error(result = CobbleBotError.new(message: "Unable to evaluate command: #{[cmd, to_param, options].inspect}", cause: e).local_backtrace)
       error_flag!
     end
-    
+
     update_columns(ran_at: Time.now, last_command_output: result.inspect) # no AR callbacks
   end
-  
+
   def ran?
     ran_at.present?
   end
@@ -247,7 +247,7 @@ class ServerCallback < ActiveRecord::Base
   def remove_pretty_command
     self.pretty_command = nil
   end
-  
+
   def prettify key
     code = send(key)
     uri = URI.parse('http://pygments-1-4.appspot.com/')

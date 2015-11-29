@@ -4,16 +4,16 @@ class MinecraftWatchdog
   WATCHDOG_TICK = 300
   DEFERRED_OPERATIONS = %(update_player_quotes update_player_last_ip update_player_last_location)
   DEFERRED_MAX_RETRY = 5
-  
+
   def self.before_perform_log_job(*args)
     Rails.logger.info "About to perform #{self} with #{args.inspect}"
   end
-  
+
   def self.perform(options = {})
     Rails.logger.info "Started #{self}"
 
     deferred_operation(options) if !!options['operation']
-    
+
     begin
       # TODO do quick stuff on live Query::simpleQuery results
       # TODO look for any new crash logs, e.g.: hs_err_pid29380.log or crash-reports/crash-2015-03-14_13.01.01-server.txt
@@ -26,7 +26,7 @@ class MinecraftWatchdog
       update_player_stats
       start_slack_bot_rtm
 
-      break if !!options[:debug]      
+      break if !!options[:debug]
       if Resque.size(@queue) < 6
         Rails.logger.info "#{self} sleeping for #{WATCHDOG_TICK}"
         sleep WATCHDOG_TICK
@@ -41,7 +41,7 @@ class MinecraftWatchdog
 private
   def self.deferred_operation(options)
     op = options['operation']
-    
+
     if DEFERRED_OPERATIONS.include? op
       begin
         ActiveRecord::Base.transaction do
@@ -58,7 +58,7 @@ private
 
   def self._retry(options = {})
     retry_count = options['retry_count'].to_i + 1
-    
+
     if retry_count < DEFERRED_MAX_RETRY
       sleep 5 + retry_count
       options['retry_count'] = retry_count
@@ -70,7 +70,7 @@ private
 
   def self.check_resque
     # Make sure the other workers are queued and working (like IRC and Log Monitor)
-    
+
     queues = {
       minecraft_server_log_monitor: {
         class: MinecraftServerLogMonitor,
@@ -104,7 +104,7 @@ private
         Resque.enqueue(q[:class], q[:options])
       end
     end
-    
+
     Resque.queues.each do |queue|
       if !!(q = queues[queue.to_sym])
         unless q[:enabled]
@@ -112,7 +112,7 @@ private
           Rails.logger.info "Skipping disabled queue: #{queue}: #{Resque.size(queue)}"
           next
         end
-        
+
         if Resque.size(queue) > q[:max_queues] && q[:class] != MinecraftWatchdog
           Rails.logger.info "Dequeuing #{queue}.  Current queue: #{Resque.size(queue)}"
           Resque.dequeue(q[:class])
@@ -129,13 +129,13 @@ private
 
     # TODO Also check that the correct number of workers are actually working the above queues, warn if not.
   end
-  
+
   # Every so often, download the resource-pack and cache the hash.
   def self.check_resource_pack
     if !!ServerProperties.resource_pack
       latest_resource_pack_timestamp = Preference.latest_resource_pack_timestamp.to_i
       timestamp = Time.at(latest_resource_pack_timestamp) if !!latest_resource_pack_timestamp
-      
+
       if 24.hours.ago > timestamp
         begin
           agent = CobbleBotAgent.new
@@ -145,35 +145,35 @@ private
         rescue StandardError => e
           Rails.logger.error e.inspect
         end
-        
+
         Preference.latest_resource_pack_hash = resource_pack_hash
         Preference.latest_resource_pack_timestamp = Time.now.to_i
       end
     end
   end
-  
+
   def self.prettify_callbacks
     ServerCallback.needs_prettification.find_each do |callback|
       callback.prettify(:pattern) unless !!callback.pretty_pattern
       callback.prettify(:command) unless !!callback.pretty_command
     end
   end
-  
+
   def self.update_ip_cc
     Player.where.not(last_ip: nil).where.not(id: Ip.all.select(:player_id)).find_each do |player|
       player.ips.create(address: player.last_ip)
     end
-    
+
     ips = Ip.where(cc: nil).pluck(:address).uniq
-    
+
     ips.each do |ip|
       break unless !!Ip.send(:update_cc, ip)
     end
   end
-  
+
   def self.update_player_stats(deadline = 0.25)
     start = Time.now.to_f
-    
+
     [].tap do |a|
       begin
         ActiveRecord::Base.transaction do
@@ -195,22 +195,22 @@ private
     at = Time.at(options['at'].to_i)
     player = Player.find_by_nick(options['nick'])
     _retry(options) and return if player.nil?
-    
+
     player.quotes.create(body: message) unless player.last_pvp_loss_has_quote?(at)
     player.quotes.create(body: message) unless player.last_pvp_win_has_quote?(at)
   end
-  
+
   def self.update_player_last_ip(options)
     player = Player.find_by_nick(options['nick'])
     _retry(options) and return if player.nil?
-    
+
     address = options['address']
     return if player.last_ip == address
 
     player.update_attribute(:last_ip, address) # no AR callbacks
     player.ips.create(address: address)
   end
-  
+
   def self.update_player_last_location(options)
     player = Player.find_by_nick(options['nick'])
     _retry(options) and return if player.nil?
@@ -220,33 +220,33 @@ private
     z = options['z']
     player.update_attribute(:last_location, "x=#{x.to_i},y=#{y.to_i},z=#{z.to_i}") # no AR callbacks
   end
-  
+
   def self.start_slack_bot_rtm
     @slack_bot_thread = nil unless !!@slack_bot_thread && @slack_bot_thread.alive?
-    
+
     @slack_bot_thread ||= Thread.start do
-      @slack_bot = SlackBot.new
+      @slack_bot = SlackBot.instance
       client = @slack_bot.realtime
 
       client.on :hello do
         Rails.logger.info "SlackBot realtime client started."
       end
-      
+
       client.on :message do |data|
         begin
           Rails.logger.info data.inspect
-          
+
           channel = data['channel']
           return unless channel == Preference.slack_group
-          
+
           message = data['text'].force_encoding('US-ASCII')
           return if message.nil?
-          
+
           at, command = message.split(' ')
           return unless at == '@cobblebot' || at == '@cb' || at == '@server'
-        
+
           Rails.logger.info command
-        
+
           case command
           when /^list$/
             msg = ServerCommand.execute('list') || ''
@@ -270,7 +270,7 @@ private
           Rails.logger.error e.inspect
         end
       end
-      
+
       client.start
     end
   end
