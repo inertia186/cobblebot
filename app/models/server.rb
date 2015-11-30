@@ -8,12 +8,13 @@ class Server
 
   def self.mock_mode(options = {}, &block)
     raise "Mock mode should only be used in tests." unless Rails.env == 'test'
-    
+
     @mock_options = options
-    yield
+    yield block
+  ensure
     @mock_options = nil
   end
-  
+
   def self.try_max
     Rails.env == 'test' ? 1 : Preference.try_max.to_i || TRY_MAX
   end

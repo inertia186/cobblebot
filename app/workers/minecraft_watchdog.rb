@@ -260,7 +260,10 @@ private
               msg = words[2..-1].join(' ').gsub(/['`"]/, "\'")
               user_info = @slack_bot.users_info user: data['user']
               if !!user_info
-                ServerCommand.say "@a", msg, as: user_info['user']['name'], color: 'white'
+                # We downcase the name just in case the Slack user changes their
+                # name to Server.
+                nick = user_info['user']['name'].downcase
+                ServerCommand.say "@a", msg, as: nick, color: 'white'
               end
             end
           else

@@ -6,12 +6,13 @@ class ServerQuery
 
   def self.mock_mode(options = {}, &block)
     raise "Mock mode should only be used in tests." unless Rails.env == 'test'
-    
+
     @mock_options = options
     yield
+  ensure
     @mock_options = nil
   end
-  
+
   def self.try_max
     Rails.env == 'test' ? 1 : TRY_MAX
   end
