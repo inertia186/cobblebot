@@ -1,13 +1,10 @@
 require 'test_helper'
 
 class Admin::LinksControllerTest < ActionController::TestCase
+  include WebStubs
+
   def setup
     session[:admin_signed_in] = true
-
-    stub_request(:head, "http://www.mit.edu/").
-      to_return(status: 200)
-    stub_request(:head, "http://github.com/inertia186/cobblebot").
-      to_return(status: 200)
   end
 
   def test_routings
@@ -24,7 +21,11 @@ class Admin::LinksControllerTest < ActionController::TestCase
   end
 
   def test_index_sort_by_link_linked_by
-    get :index, sort_field: 'link_linked_by'
+    stub_mit do
+      stub_github do
+        get :index, sort_field: 'link_linked_by'
+      end
+    end
     links = assigns :links
     refute_equal links.count(:all), 0, 'did not expect zero count'
 
@@ -37,7 +38,11 @@ class Admin::LinksControllerTest < ActionController::TestCase
     credentials = basic.encode_credentials('admin', Preference.web_admin_password)
     request.headers['Authorization'] = credentials
 
-    get :index, format: :atom
+    stub_mit do
+      stub_github do
+        get :index, format: :atom
+      end
+    end
     links = assigns :links
     refute_equal links.count(:all), 0, 'did not expect zero count'
 
@@ -46,7 +51,9 @@ class Admin::LinksControllerTest < ActionController::TestCase
   end
 
   def test_index
-    get :index, query: 'mit'
+    stub_mit do
+      get :index, query: 'mit'
+    end
     links = assigns :links
     refute_equal links.count(:all), 0, 'did not expect zero count'
 
@@ -60,7 +67,9 @@ class Admin::LinksControllerTest < ActionController::TestCase
       Link.first.update_attribute(:actor, player)
     end
 
-    get :index, player_id: player
+    stub_mit do
+      get :index, player_id: player
+    end
     links = assigns :links
     refute_equal links.count(:all), 0, 'did not expect zero count'
 
@@ -69,14 +78,16 @@ class Admin::LinksControllerTest < ActionController::TestCase
   end
 
   def test_show
-    get :show, id: Link.first
+    stub_mit do
+      get :show, id: Link.first
+    end
 
     assert_template :_link
     assert_template :show
     assert_template 'layouts/application'
     assert_response :success
   end
-  
+
   def test_destroy
     assert_difference -> { Link.count }, -1, 'expect different count' do
       delete :destroy, id: Link.first

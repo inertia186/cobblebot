@@ -9,10 +9,7 @@ class Admin::CallbacksTest < ActionDispatch::IntegrationTest
     Server.mock_mode(up: true, player_nicks: []) do
       ServerQuery.mock_mode(full_query: {numplayers: "0", maxplayers: "20"}) do
         admin_sign_in
-        find_link('Admin').click
-        within(:css, '#cobblebot-navbar > ul:nth-child(1) > li.dropdown.open') do
-          find_link('Callbacks').click
-        end
+        admin_navigate('Callbacks')
         assert page.has_content?('Callbacks'), 'expect Callbacks.  We should now be on the Callbacks page.'
       end
     end
@@ -29,7 +26,6 @@ class Admin::CallbacksTest < ActionDispatch::IntegrationTest
           assert page.has_content?('Read Mail'), 'expect Read Mail in initial results'
         end
 
-        save_screenshot
         fill_in('query', with: 'spammy')
         click_on('Search')
 

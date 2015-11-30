@@ -1,6 +1,6 @@
 require "test_helper"
 
-class Admin::PlayersTest < ActionDispatch::IntegrationTest
+class Admin::DonationsTest < ActionDispatch::IntegrationTest
   def setup
     preferences(:path_to_server).update_attribute(:value, "#{Rails.root}/tmp")
   end
@@ -9,9 +9,8 @@ class Admin::PlayersTest < ActionDispatch::IntegrationTest
     Server.mock_mode(up: true, player_nicks: []) do
       ServerQuery.mock_mode(full_query: {numplayers: "0", maxplayers: "20"}) do
         admin_sign_in
-        find_link('Admin').click
-        admin_navigate('Players')
-        assert page.has_content?('Players'), 'expect Players.  We should now be on the Players page.'
+        admin_navigate('Donations')
+        assert page.has_content?('Donations'), 'expect Donations.  We should now be on the Donations page.'
       end
     end
   end
@@ -23,16 +22,14 @@ class Admin::PlayersTest < ActionDispatch::IntegrationTest
     Server.mock_mode(up: true, player_nicks: []) do
       ServerQuery.mock_mode(full_query: {numplayers: "0", maxplayers: "20"}) do
         within(:css, results_container) do
-          assert page.has_content?('inertia186'), 'expect inertia186 in initial results'
-          assert page.has_content?('Dinnerbone'), 'expect Dinnerbone in initial results'
+          assert page.has_content?('resnullius'), 'expect resnullius in initial results'
         end
 
         fill_in('query', with: 'inertia')
         click_on('Search')
 
         within(:css, results_container) do
-          assert page.has_content?('inertia186'), 'expect inertia186 in inertia results'
-          assert page.has_no_content?('Dinnerbone'), 'did not expect Dinnerbone in inertia results'
+          assert page.has_no_content?('resnullius'), 'did not expect resnullius in inertia results'
         end
       end
     end

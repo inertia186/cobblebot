@@ -15,7 +15,6 @@ require 'capybara-screenshot/minitest'
 
 if ENV["HELL_ENABLED"]
   require "minitest/hell"
-  require 'database_cleaner'
 else
   require "minitest/pride"
 end
@@ -65,6 +64,84 @@ module TestTools
   end
 end
 
+module WebStubs
+  def stub_mit(&block)
+    stub = stub_request(:head, "http://www.mit.edu/").
+      to_return(status: 200)
+    yield block
+  ensure
+    remove_request_stub stub
+  end
+
+  def stub_github(&block)
+    stub_head = stub_request(:head, "http://github.com/inertia186/cobblebot").
+      to_return(status: 200)
+    stub_get = stub_request(:get, "https://gist.github.com/inertia186/5002463").
+      to_return(status: 200)
+    yield block
+  ensure
+    remove_request_stub stub_get
+    remove_request_stub stub_head
+  end
+
+  def stub_googleapis(&block)
+    stub_florida_man = stub_request(:get, "https://ajax.googleapis.com/ajax/services/search/news?q=florida%20man&v=1.0").
+      to_return(status: 200)
+    stub_man = stub_request(:get, "https://ajax.googleapis.com/ajax/services/search/news?q=%20man&v=1.0").
+      to_return(status: 200)
+    yield block
+  ensure
+    remove_request_stub stub_man
+    remove_request_stub stub_florida_man
+  end
+
+  def stub_gist(&block)
+    stub_head = stub_request(:head, "https://gist.github.com/inertia186/5002463").
+      to_return(status: 200)
+    stub_get = stub_request(:get, "https://gist.github.com/inertia186/5002463").
+      to_return(status: 200)
+    yield block
+  ensure
+    remove_request_stub stub_head
+    remove_request_stub stub_get
+  end
+
+  def stub_youtube(&block)
+    stub_doobie_bros = stub_request(:get, "https://www.youtube.com/watch?v=GVgMzKMgNxw").
+      to_return(status: 200)
+    stub_the_office = stub_request(:get, "https://www.youtube.com/watch?v=OdSkx7QmO7k").
+      to_return(status: 200)
+    yield block
+  ensure
+    remove_request_stub stub_the_office
+    remove_request_stub stub_doobie_bros
+  end
+
+  def stub_mojang(&block)
+    stub = stub_request(:get, "http://www.mojang.com/").
+      to_return(status: 200)
+    yield block
+  ensure
+    remove_request_stub stub
+  end
+
+  def stub_resource_pack(&block)
+    stub = stub_request(:get, ServerProperties.resource_pack).
+      to_return(status: 200)
+    yield block
+  ensure
+    remove_request_stub stub
+  end
+
+  def stub_pygments(&block)
+    stub = stub_request(:post, "http://pygments-1-4.appspot.com/").
+      to_return(status: 200)
+    yield block
+  ensure
+    remove_request_stub stub
+  end
+end
+
 module SlackStubs
   def stub_auth_test(key, &block)
     stub = stub_request(:post, "https://slack.com/api/auth.test").
@@ -76,7 +153,8 @@ module SlackStubs
       }
     DONE
     yield block
-    remove_request_stub(stub)
+  ensure
+    remove_request_stub stub
   end
 
   def stub_groups_list(key, &block)
@@ -108,7 +186,8 @@ module SlackStubs
       }
     DONE
     yield block
-    remove_request_stub(stub)
+  ensure
+    remove_request_stub stub
   end
 end
 
@@ -119,22 +198,18 @@ class ActionDispatch::IntegrationTest
   include Capybara::Angular::DSL
   include Capybara::Screenshot::MiniTestPlugin
 
-  # Never use transactional fixtures with integration tests.
+  # Never use transactional fixtures with integration tests due to having
+  # multiple processess in play.
   self.use_transactional_fixtures = false
 
   fixtures :all
 
   def before_setup
-    if defined? DatabaseCleaner
-      DatabaseCleaner.strategy = :truncation
-      DatabaseCleaner.start
-    end
     super
   end
 
   def after_teardown
     super
-    DatabaseCleaner.clean if defined? DatabaseCleaner
     Capybara.reset_session!
   end
 
@@ -144,6 +219,18 @@ class ActionDispatch::IntegrationTest
     find_link('Log In').click
     fill_in 'admin_password', with: preferences(:web_admin_password).value
     find_button('Login').click
+  end
+
+  def admin_navigate(link_name)
+    admin_dropdown_name = 'Admin'
+    assert page.has_content?(admin_dropdown_name), "expect link: #{admin_dropdown_name}"
+    find_link(admin_dropdown_name).click
+    dropdown_css = '#cobblebot-navbar > ul:nth-child(1) > li.dropdown.open'
+    skip "Expected CSS (#{dropdown_css}) has not loaded in time." if page.has_no_css?(dropdown_css)
+    within :css, dropdown_css do
+      assert page.has_content?(link_name), "expect link: #{link_name}"
+      find_link(link_name).click
+    end
   end
 
   def ajax_sync(options = {tries: 10, sleep_for: 1, strategy: :skip, message: "AJAX was too slow."})
@@ -179,12 +266,14 @@ class ActionDispatch::IntegrationTest
     find_link('Admin Log Out').click
   end
 
-  def save_screenshot(filename = Time.now.to_i)
-    page.save_screenshot "tmp/capybara/manual-screenshot-#{filename}.png", :full => true
+  def save_screenshot(filename = '')
+    filename.gsub!(' ', '-')
+    filename = "tmp/capybara/manual-screenshot-#{filename}-#{Time.now.to_i}.png"
+    page.save_screenshot filename, :full => true
   end
 
   def save_screenshot_and_skip(message = nil)
-    save_screenshot
+    save_screenshot(message)
 
     if !!message
       skip "Skipped integration: #{message}"
@@ -198,26 +287,16 @@ class ActiveSupport::TestCase
   include TestTools
   include SlackStubs
 
-  if defined? DatabaseCleaner
-    DatabaseCleaner.clean_with(:truncation)
-    self.use_transactional_fixtures = false
-  else
-    self.use_transactional_fixtures = true
-  end
+  self.use_transactional_fixtures = true
 
   fixtures :all
 
   def before_setup
-    if defined? DatabaseCleaner
-      DatabaseCleaner.strategy = :transaction
-      DatabaseCleaner.start
-    end
     super
   end
 
   def after_teardown
     super
-    DatabaseCleaner.clean if defined? DatabaseCleaner
   end
 
   def integrated_admin_sign_in

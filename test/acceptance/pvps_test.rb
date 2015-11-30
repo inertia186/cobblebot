@@ -24,11 +24,12 @@ class PvpsTest < ActionDispatch::IntegrationTest
         assert page.has_content?(pvp.body), "expect results to contain: #{pvp.body}"
 
         within :css, "table > tbody > tr:nth-child(#{nth}) > td:nth-child(2)" do
-          assert page.has_content?(pvp.recipient.nick), "expected result #{nth} to contain loser: #{pvp.recipient.nick}"
+          skip "expected result ##{nth} to contain loser: #{pvp.recipient.nick}" if page.has_no_content?(pvp.recipient.nick)
+          assert page.has_content?(pvp.recipient.nick), "expected result ##{nth} to contain loser: #{pvp.recipient.nick}"
         end
 
         within :css, "table > tbody > tr:nth-child(#{nth}) > td:nth-child(3)" do
-          assert page.has_content?(pvp.author.nick), "expected result #{nth} to contain winner: #{pvp.author.nick}"
+          assert page.has_content?(pvp.author.nick), "expected result ##{nth} to contain winner: #{pvp.author.nick}"
         end
       end
 

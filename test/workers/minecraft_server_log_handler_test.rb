@@ -1,19 +1,10 @@
 require 'test_helper'
 
 class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
+  include WebStubs
+
   def setup
     Preference.path_to_server = "#{Rails.root}/tmp"
-
-    stub_request(:head, "https://gist.github.com/inertia186/5002463").
-      to_return(status: 200)
-    stub_request(:get, "https://gist.github.com/inertia186/5002463").
-      to_return(status: 200)
-    stub_request(:get, "https://www.youtube.com/watch?v=GVgMzKMgNxw").
-      to_return(status: 200)
-    stub_request(:get, "https://www.youtube.com/watch?v=OdSkx7QmO7k").
-      to_return(status: 200)
-    stub_request(:get, "http://www.mojang.com/").
-      to_return(status: 200)
   end
 
   def test_handled
@@ -72,7 +63,9 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     player.update_attribute(:may_autolink, true)
     assert_difference -> { player.links.count }, 1, 'expect new link record' do
       assert_callback_ran 'Autolink' do
-        ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> https://www.youtube.com/watch?v=OdSkx7QmO7k', debug: true)
+        stub_youtube do
+          ServerCallback::AnyPlayerEntry.handle('[08:23:03] [Server thread/INFO]: <inertia186> https://www.youtube.com/watch?v=OdSkx7QmO7k', debug: true)
+        end
       end
     end
   end
@@ -349,7 +342,9 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { Link.count }, 1, 'expect new link' do
       assert_difference -> { Message::Tip.count }, 1, 'expect new tip' do
         assert_callback_ran 'Add Tip' do
-          ServerCallback::PlayerCommand.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server addtip https://www.youtube.com/watch?v=GVgMzKMgNxw', debug: true)
+          stub_youtube do
+            ServerCallback::PlayerCommand.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server addtip https://www.youtube.com/watch?v=GVgMzKMgNxw', debug: true)
+          end
         end
       end
     end
@@ -367,7 +362,9 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
 
   def test_slap_no_target
     assert_callback_ran 'Slap' do
-      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server slap', debug: true)
+      stub_gist do
+        ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server slap', debug: true)
+      end
     end
     # Make sure the "pretend" option reaches the callback for simulated chat.
     assert_equal '@server slap', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server slap'
@@ -759,7 +756,9 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_difference -> { inertia186.messages.read(false).count }, 2, 'expected unread' do
       assert_callback_ran callback do
         ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <Dinnerbone> @inertia186 Hello there!', debug: true)
-        ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <Dinnerbone> @inertia186 Check this out: http://www.mojang.com/', debug: true)
+        stub_mojang do
+          ServerCallback::AnyPlayerEntry.handle('[15:04:50] [Server thread/INFO]: <Dinnerbone> @inertia186 Check this out: http://www.mojang.com/', debug: true)
+        end
       end
     end
 

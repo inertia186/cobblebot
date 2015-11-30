@@ -73,7 +73,6 @@ class StatusTest < ActionDispatch::IntegrationTest
           assert_equal expected_value, result_value,
             "expect {#{key}: #{value}} to yield #{expected_value}, but instead, we got: {#{result_name}: #{result_value}}"
         end
-        save_screenshot
       end
     end
   end

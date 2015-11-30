@@ -1,16 +1,17 @@
 require 'test_helper'
 
 class MinecraftWatchdogTest < ActiveSupport::TestCase
+  include WebStubs
+
   def setup
     Preference.path_to_server = "#{Rails.root}/tmp"
-    
-    stub_request(:get, ServerProperties.resource_pack).
-      to_return(status: 200)
-    stub_request(:post, "http://pygments-1-4.appspot.com/").
-      to_return(status: 200)
   end
-  
+
   def test_perform
-    MinecraftWatchdog.perform(debug: true)
+    stub_resource_pack do
+      stub_pygments do
+        MinecraftWatchdog.perform(debug: true)
+      end
+    end
   end
 end

@@ -1,21 +1,15 @@
 require 'test_helper'
 
 class ServerCallbackTest < ActiveSupport::TestCase
+  include WebStubs
+
   # Add callback names to array to cause tests to skip in case they cannot be
   # automatically tested.
   SKIP_CALLBACKS_NAMED = []
-  
+
   # Many of these tests require the true seeds, not fixtures.  These are marked with "IMPORTANT!"
-  
+
   def setup
-    stub_request(:get, "https://gist.github.com/inertia186/5002463").
-      to_return(status: 200)
-    stub_request(:get, "https://ajax.googleapis.com/ajax/services/search/news?q=florida%20man&v=1.0").
-      to_return(status: 200)
-    stub_request(:head, "https://gist.github.com/inertia186/5002463").
-      to_return(status: 200)
-    stub_request(:get, "https://ajax.googleapis.com/ajax/services/search/news?q=%20man&v=1.0").
-      to_return(status: 200)
   end
 
   def test_all_patterns
@@ -35,10 +29,14 @@ class ServerCallbackTest < ActiveSupport::TestCase
   def test_all_commands
     ServerCallback.all.find_each do |callback|
       begin
-        callback.execute_command("@a", "Test")
+        stub_github do
+          stub_googleapis do
+            callback.execute_command("@a", "Test")
+          end
+        end
       rescue SyntaxError => e
         # :nocov:
-        if [SKIP_CALLBACKS_NAMED].include? callback.name 
+        if [SKIP_CALLBACKS_NAMED].include? callback.name
           skip "SyntaxError while evaluating callback command named \"#{callback.name}\":\nCommand: #{callback.command}\n#{e.inspect}"
         else
           fail "SyntaxError while evaluating callback command named \"#{callback.name}\":\nCommand: #{callback.command}\n#{e.inspect}"
@@ -53,12 +51,12 @@ class ServerCallbackTest < ActiveSupport::TestCase
 
   def test_all_command_as_base
     callback = ServerCallback.first.becomes(ServerCallback)
-    
+
     begin
       callback.execute_command("@a", "Test")
     rescue SyntaxError => e
       # :nocov:
-      if [SKIP_CALLBACKS_NAMED].include? callback.name 
+      if [SKIP_CALLBACKS_NAMED].include? callback.name
         skip "SyntaxError while evaluating callback command named \"#{callback.name}\":\nCommand: #{callback.command}\n#{e.inspect}"
       else
         fail "SyntaxError while evaluating callback command named \"#{callback.name}\":\nCommand: #{callback.command}\n#{e.inspect}"
@@ -142,10 +140,10 @@ class ServerCallbackTest < ActiveSupport::TestCase
   def test_callbacks_that_need_help_docs
     callbacks = ServerCallback.where("pattern LIKE '%@server%'")
     callbacks = callbacks.where(help_doc_key: nil)
-    
+
     # Note, these are hidden @server patterns.
     callbacks = callbacks.where.not(name: ['Unregister', 'Set Topic'])
-    
+
     refute callbacks.any?, "The following callbacks need help docs: #{callbacks.map(&:name).join(', ')}"
   end
 end
