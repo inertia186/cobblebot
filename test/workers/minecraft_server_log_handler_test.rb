@@ -696,7 +696,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
 
   def test_register
     callback = ServerCallback.find_by_name('Register')
-    player = Player.find_by_nick('inertia186')
+    player = Player.find_by_nick('resnullius')
     player.update_attribute(:created_at, 48.hours.ago)
     def player.biomes_explored
       13 # Required to be above 12.
@@ -705,7 +705,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute player.registered?, 'did not expect player to be registered'
 
     assert_callback_ran callback do
-      result = ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server register', debug: true)
+      result = ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <resnullius> @server register', debug: true)
     end
 
     assert player.reload.registered?, 'expect player to be registered'
@@ -713,13 +713,13 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
 
   def test_register_low_samples
     callback = ServerCallback.find_by_name('Register')
-    player = Player.find_by_nick('inertia186')
+    player = Player.find_by_nick('resnullius')
     player.update_attribute(:created_at, 48.hours.ago)
 
     refute player.registered?, 'did not expect player to be registered'
 
     assert_callback_ran callback do
-      result = ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server register', debug: true)
+      result = ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <resnullius> @server register', debug: true)
     end
 
     assert player.reload.registered?, 'did not expect player to be registered (did not explore enough, but not enough samples either)'
@@ -729,7 +729,6 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     callback = ServerCallback.find_by_name('Unregister')
     player = Player.find_by_nick('inertia186')
     player.update_attribute(:created_at, 48.hours.ago)
-    player.update_attribute(:registered_at, 24.hours.ago)
 
     assert player.registered?, 'expect player to be registered'
 

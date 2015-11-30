@@ -4,52 +4,72 @@ class Api::V1::MessagesControllerTest < ActionController::TestCase
   def setup
     @attributes = %w(body recipient_term read_at created_at author_nick recipient_nick)
   end
-  
+
   def test_routings
     assert_routing 'api/messages', controller: 'api/v1/messages', action: 'index', format: 'json'
     assert_routing 'api/messages/42', controller: 'api/v1/messages', action: 'show', id: '42', format: 'json'
   end
 
-  def index
-    get :index
+  def test_index
+    get :index, format: :json
     assert_response 200
 
     assert_template :index
     assert_template partial: "api/v1/messages/_minimal_message"
   end
 
-  def index_with_limit
+  def test_index_with_limit
     limit = 1
-    get :index, limit: limit
+    get :index, format: :json, limit: limit
     assert_response 200
 
-    assert_equal response_json.size, limit
+    assert_equal limit, response_json.size
 
     assert_template :index
     assert_template partial: "api/v1/messages/_minimal_message"
   end
 
-  def index_by_author
-    message = Message.first
-    get :index, author_id: message.nick
+  def test_index_by_author
+    refute_nil message = Message.first
+    get :index, format: :json, author_id: message.author
     assert_response 200
 
-    @attributes.each do |attr|
-      assert_equal message.send(attr), response_json[0][attr]
+    response_json.each do |json|
+      refute_nil message = Message.find_by_uuid(json['uuid'])
+
+      @attributes.each do |attr|
+        case attr
+        when 'author_nick'
+          assert_equal message.author.nick, json[attr]
+        when 'recipient_nick'
+          assert_equal message.recipient.nick, json[attr]
+        else
+          assert_equal message.send(attr), json[attr]
+        end
+      end
     end
 
     assert_template :index
     assert_template partial: "api/v1/messages/_minimal_message"
   end
 
-  def index_by_any_recipient_nick
+  def test_index_by_any_recipient_nick
     dinnerbone = Player.find_by_nick('Dinnerbone')
-    get :index, any_recipient_nick: dinnerbone.nick
+    get :index, format: :json, any_recipient_nick: dinnerbone.nick
     assert_response 200
 
     response_json.each do |json|
+      refute_nil message = Message.find_by_uuid(json['uuid'])
+
       @attributes.each do |attr|
-        assert_equal message.send(attr), json[attr]
+        case attr
+        when 'author_nick'
+          assert_equal message.author.nick, json[attr]
+        when 'recipient_nick'
+          assert_equal message.recipient.nick, json[attr]
+        else
+          assert_equal message.send(attr), json[attr]
+        end
       end
     end
 
