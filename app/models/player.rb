@@ -526,6 +526,10 @@ class Player < ActiveRecord::Base
     json = JSON.parse(response.body)
   end
 
+  def profile_legacy?
+    !!profile['legacy']
+  end
+
   # Returns all the nicks this player has used in the past and the one they are using currently.
   #
   # http://wiki.vg/Mojang_API#UUID_-.3E_Name_history
@@ -557,7 +561,7 @@ class Player < ActiveRecord::Base
   
   # To set a vote as claimed for a player.
   def mmp_vote_claim!
-    uri =     uri = URI.parse('http://minecraft-mp.com/api/')
+    uri = URI.parse('http://minecraft-mp.com/api/')
     options = {
       action: 'post',
       object: 'votes',
