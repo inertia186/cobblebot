@@ -24,6 +24,24 @@ class Admin::PlayersControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_index_query
+    get :index, query: 'inertia'
+    players = assigns :players
+    refute_equal players.count, 0, 'did not expect zero count'
+
+    assert_template :index
+    assert_response :success
+  end
+
+  def test_index_json
+    get :index, format: :json, select: '*'
+    players = assigns :players
+    refute_equal players.count, 0, 'did not expect zero count'
+
+    assert_template nil
+    assert_response :success
+  end
+
   def test_show
     get :show, id: Player.first
     refute_nil assigns :player

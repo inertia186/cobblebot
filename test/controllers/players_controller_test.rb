@@ -86,6 +86,20 @@ class PlayersControllerTest < ActionController::TestCase
     end
   end
 
+  def test_index_js_after_with_last_chat
+    after = 10.minutes.ago
+    player = Player.last
+    player.update_attributes last_chat: 'Hello.', last_chat_at: Time.now
+
+    Server.mock_mode(up: true, latest_log_entry_at: Time.now, player_nicks: [player.nick]) do
+      ServerQuery.mock_mode(full_query: {numplayers: "1", maxplayers: "20"}) do
+        xhr :get, :index, format: :js, after: after.to_i.to_s
+
+        assert_response 200
+      end
+    end
+  end
+
   def test_index_js
     Server.mock_mode(up: true, latest_log_entry_at: Time.now, player_nicks: Player.limit(1).pluck(:nick)) do
       ServerQuery.mock_mode(full_query: {numplayers: "1", maxplayers: "20"}) do
