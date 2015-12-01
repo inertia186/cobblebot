@@ -47,7 +47,7 @@ class ServerCallback < ActiveRecord::Base
     end
 
     enabled.where(clause, Time.now).tap do |r|
-      return ready ? r : where.not(id: r)
+      return ready ? r : where.not(id: r.except(:select))
     end
   }
   scope :error_flagged, lambda { |error_flagged = true|
