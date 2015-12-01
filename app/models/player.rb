@@ -115,7 +115,7 @@ class Player < ActiveRecord::Base
       players.last_logout_at < ? OR
       players.updated_at < ?
     DONE
-    where(clause, after, after, after, after)
+    where(clause, before, before, before, before)
   }
   scope :activity_after, lambda { |after|
     clause = <<-DONE
