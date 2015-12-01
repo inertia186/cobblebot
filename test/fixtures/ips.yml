@@ -9,3 +9,11 @@ localhostB:
   origin: 'bar'
   player: inertia186
   cc: '**'
+
+homeip:
+  address: 74.194.9.177
+  origin: mau
+  player: inertia186
+  cc: US
+  state: California
+  city: San Francisco

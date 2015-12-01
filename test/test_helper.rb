@@ -153,6 +153,85 @@ module WebStubs
   ensure
     remove_request_stub stub
   end
+
+  def stub_mojang_sessions_server(uuid, &block)
+      body = case uuid
+      when 'd6edf99661824d58ac1b4ca0321fb748' then <<-DONE
+        {
+          "id": "d6edf99661824d58ac1b4ca0321fb748",
+          "name": "inertia186",
+          "properties": [{
+            "name": "textures",
+            "value": "eyJ0aW1lc3RhbXAiOjE0NDg5ODg3MzMxMTYsInByb2ZpbGVJZCI6ImQ2ZWRmOTk2NjE4MjRkNThhYzFiNGNhMDMyMWZiNzQ4IiwicHJvZmlsZU5hbWUiOiJpbmVydGlhMTg2IiwidGV4dHVyZXMiOnsiU0tJTiI6eyJ1cmwiOiJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RmYzk1YWFlNGJlMGNkMzRiNTIwOTkyYTUzNjJhYzJjYTk4NmFiYzhjYzE5MGIzNWNiZjk3YzRmODFlMzQ0YiJ9fX0="
+          }]
+        }
+      DONE
+      when '61699b2ed3274a019f1e0ea8c3f06bc6' then <<-DONE
+        {
+          "id": "61699b2ed3274a019f1e0ea8c3f06bc6",
+          "name": "Dinnerbone",
+          "properties": [{
+            "name": "textures",
+            "value": "eyJ0aW1lc3RhbXAiOjE0NDg5OTAyNDQ5MjYsInByb2ZpbGVJZCI6IjYxNjk5YjJlZDMyNzRhMDE5ZjFlMGVhOGMzZjA2YmM2IiwicHJvZmlsZU5hbWUiOiJEaW5uZXJib25lIiwidGV4dHVyZXMiOnsiU0tJTiI6eyJ1cmwiOiJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2NkNmJlOTE1YjI2MTY0M2ZkMTM2MjFlZTRlOTljOWU1NDFhNTUxZDgwMjcyNjg3YTNiNTYxODNiOTgxZmI5YSJ9LCJDQVBFIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvM2Y2ODhlMGU2OTliM2Q5ZmU0NDhiNWJiNTBhM2EyODhmOWM1ODk3NjJiM2RhZTgzMDg4NDIxMjJkY2I4MSJ9fX0="
+          }]
+        }
+      DONE
+      when '47b590744dd044ea8b98d3d309516e2f' then <<-DONE
+        {
+          "id": "47b590744dd044ea8b98d3d309516e2f",
+          "name": "resnullius",
+          "properties": [{
+            "name": "textures",
+            "value": "eyJ0aW1lc3RhbXAiOjE0NDg5OTA0MzgzODIsInByb2ZpbGVJZCI6IjQ3YjU5MDc0NGRkMDQ0ZWE4Yjk4ZDNkMzA5NTE2ZTJmIiwicHJvZmlsZU5hbWUiOiJyZXNudWxsaXVzIiwidGV4dHVyZXMiOnsiU0tJTiI6eyJ1cmwiOiJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzRiMmNkZTViNzUyZDQ5Y2ZhNmRhNDJkNTNkNjNjMGNmYjYxMmY1MmU5NjQ5Njc4OWU3MDRjY2U4YmZlYzY5MCJ9fX0="
+          }],
+          "legacy": true
+        }
+      DONE
+      else raise "unknown uuid: #{uuid}"
+      end
+    stub = stub_request(:get, "https://sessionserver.mojang.com/session/minecraft/profile/#{uuid}").
+      to_return(status: 200, body: body)
+    yield block
+  ensure
+    remove_request_stub stub if !!stub
+  end
+
+  def stub_nick_history(uuid, &block)
+    body = case uuid
+    when 'd6edf99661824d58ac1b4ca0321fb748' then '[{"name":"inertia186"}]'
+    when '61699b2ed3274a019f1e0ea8c3f06bc6' then '[{"name":"Dinnerbone"}]'
+    when '47b590744dd044ea8b98d3d309516e2f' then '[{"name":"resnullius"}]'
+    else raise "unknown uuid: #{uuid}"
+    end
+    stub = stub_request(:get, "https://api.mojang.com/user/profiles/#{uuid}/names").
+      to_return(status: 200, body: body)
+    yield block
+  ensure
+    remove_request_stub stub if !!stub
+  end
+
+  def stub_mmp_vote_history(nick, &block)
+    body = case nick
+    when 'inertia186' then '0'
+    when 'Dinnerbone' then '1'
+    when 'resnullius' then '2'
+    else raise "unknown nick: #{nick}"
+    end
+    stub = stub_request(:get, "http://minecraft-mp.com/api/?element=claim&key=#{Preference.mmp_api_key}&object=votes&username=#{nick}").
+      to_return(status: 200, body: body)
+    yield block
+  ensure
+    remove_request_stub stub if !!stub
+  end
+
+  def stub_mmp_vote_claim(options, &block)
+    stub = stub_request(:post, "http://minecraft-mp.com/api/").
+      with(body: options).
+      to_return(status: 200, body: '1')
+    yield block
+ ensure
+   remove_request_stub stub
+  end
 end
 
 module SlackStubs
