@@ -140,6 +140,19 @@ module WebStubs
   ensure
     remove_request_stub stub
   end
+
+  def stub_minotar(nick, size, format, &block)
+    status = case nick
+    when 'Notch' then 404
+    when 'jeb_' then 304
+    else 200
+    end
+    stub = stub_request(:get, "https://minotar.net/avatar/#{nick}/#{size}.#{format}").
+      to_return(status: status)
+    yield block
+  ensure
+    remove_request_stub stub
+  end
 end
 
 module SlackStubs
