@@ -64,6 +64,7 @@ GEM
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
     addressable (2.3.8)
+    ai4r (1.13)
     angularjs-rails (1.4.7)
     arel (6.0.3)
     better_errors (2.1.1)
@@ -360,6 +361,7 @@ PLATFORMS
 DEPENDENCIES
   actionpack-action_caching
   activerecord-jdbcsqlite3-adapter
+  ai4r
   angularjs-rails
   better_errors
   binding_of_caller
@@ -409,3 +411,6 @@ DEPENDENCIES
   web-console (~> 2.0)
   webmock
   will_paginate
+
+BUNDLED WITH
+   1.10.6

@@ -74,6 +74,12 @@ gem 'mc-slap', git: 'git://gist.github.com/5002463.git'
 # Used to translate in-game chat.
 gem 'google-translate'
 
+# Adds machine learning capabilities directly to models.
+# gem 'cabalist'
+
+# Adds general machine learning capabilities.
+gem 'ai4r'
+
 # CobbleBot uses redis/resque to kick off the log monitor and other stuff.
 gem 'redis', require: false
 gem 'redis-store', require: false

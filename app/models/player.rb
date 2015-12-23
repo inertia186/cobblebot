@@ -246,6 +246,28 @@ class Player < ActiveRecord::Base
     "@p[#{nicks}]"
   end
   
+  def self.id3_reputations
+    return @id3_reputations if !!@id3_reputations
+    data_labels = %w(truster trustee rate)
+    data_items = Reputation.all.map do |reputation|
+      [reputation.truster.nick, reputation.trustee.nick, reputation.rate]
+    end
+    
+    data_set = Ai4r::Data::DataSet.new data_labels: data_labels, data_items: data_items
+    @id3_reputations = Ai4r::Classifiers::ID3.new.build data_set
+  end
+  
+  def self.hyperpipes_reputations
+    return @hyperpipes_reputations if !!@hyperpipes_reputations
+    data_labels = %w(truster trustee rate)
+    data_items = Reputation.all.map do |reputation|
+      [reputation.truster.nick, reputation.trustee.nick, reputation.rate]
+    end
+    
+    data_set = Ai4r::Data::DataSet.new data_labels: data_labels, data_items: data_items
+    @hyperpipes_reputations = Ai4r::Classifiers::ID3.new.build data_set
+  end
+  
   # Level I trust is the sum of direct trust for this player by a truster.
   # Level II trust is the sum of all trust for this player by those the truster trusts (through recursion).
   def reputation_sum(options = {level: 'I'})
@@ -589,6 +611,10 @@ class Player < ActiveRecord::Base
   
   def mail
     messages.read(false).deleted(false).muted(false)
+  end
+  
+  def predict_reputation trustee
+    Player.id3_reputations.eval([nick, trustee])
   end
 private  
   def update_last_nick
