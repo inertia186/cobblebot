@@ -268,6 +268,24 @@ class Player < ActiveRecord::Base
     @hyperpipes_reputations = Ai4r::Classifiers::ID3.new.build data_set
   end
   
+  def self.id3_hours_since_deaths(players = Player.all)
+    data_labels = %w(
+      spam_ratio play_sounds biomes_explored registered? may_autolink?
+      leave_game deaths mob_kills player_kills hours_since_death
+    )
+    data_items = players.where.not(time_since_death: [nil, 0]).map do |player|
+      [
+        player.spam_ratio, player.play_sounds?, player.biomes_explored,
+        player.registered?, player.may_autolink?, player.leave_game,
+        player.deaths, player.mob_kills, player.player_kills,
+        player.hours_since_death
+      ]
+    end
+    
+    data_set = Ai4r::Data::DataSet.new data_labels: data_labels, data_items: data_items
+    Ai4r::Classifiers::ID3.new.build data_set
+  end
+  
   # Level I trust is the sum of direct trust for this player by a truster.
   # Level II trust is the sum of all trust for this player by those the truster trusts (through recursion).
   def reputation_sum(options = {level: 'I'})
@@ -615,6 +633,13 @@ class Player < ActiveRecord::Base
   
   def predict_reputation trustee
     Player.id3_reputations.eval([nick, trustee])
+  end
+  
+  def predict_death
+    Player.id3_hours_since_deaths(Player.where.not(id: self)).eval([
+      spam_ratio, play_sounds?, biomes_explored, registered?, may_autolink?,
+      leave_game, deaths, mob_kills, player_kills
+    ])
   end
 private  
   def update_last_nick
