@@ -142,7 +142,7 @@ class ServerCallbackTest < ActiveSupport::TestCase
     callbacks = callbacks.where(help_doc_key: nil)
 
     # Note, these are hidden @server patterns.
-    callbacks = callbacks.where.not(name: ['Unregister', 'Set Topic'])
+    callbacks = callbacks.where.not(name: ['Unregister', 'Set Topic', 'Predict Death'])
 
     refute callbacks.any?, "The following callbacks need help docs: #{callbacks.map(&:name).join(', ')}"
   end
