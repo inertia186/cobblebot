@@ -254,6 +254,12 @@ module Detectable
         end
         
         TROUBLE_ENTITIES.map { |data| data[0] }.uniq.each do |type| 
+          # Try to limit pathfinding for mobs in grinders.
+          execute "entitydata @e[type=#{type},score_isJunk_min=1] {NoAI:1}"
+          execute "entitydata @e[type=#{type},score_isJunk_min=2] {NoAI:1}"
+          execute "entitydata @e[type=#{type},score_isJunk_min=3] {NoAI:1}"
+          execute "entitydata @e[type=#{type},score_isJunk_min=4] {NoAI:1}"
+          
           # This is useful for debugging and troubleshooting.  It allows the
           # log to record which mobs were removed near which player.
           execute "execute @e[type=#{type},score_isJunk_min=5] ~ ~ ~ playsound random.pop @a[r=32] ~ ~ ~ 1 1"
