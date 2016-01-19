@@ -262,7 +262,7 @@ module Detectable
           
           # This is useful for debugging and troubleshooting.  It allows the
           # log to record which mobs were removed near which player.
-          execute "execute @e[type=#{type},score_isJunk_min=5] ~ ~ ~ playsound random.pop @a[r=32] ~ ~ ~ 1 1"
+          execute "execute @e[type=#{type},score_isJunk_min=5] ~ ~ ~ playsound random.pop master @a[r=32] ~ ~ ~ 1 1"
           execute "execute @e[type=#{type},score_isJunk_min=5] ~ ~ ~ particle cloud ~ ~ ~ 0 0 0 0"
           
           # Sweep

@@ -9,7 +9,7 @@ module Audible
   module ClassMethods
     def play_sound(selector, sound, options = {volume: '', pitch: ''})
       selector = prep_play_sound_selector(selector)    
-      clean_play_sound_result execute("execute #{selector} ~ ~ ~ playsound #{sound} @p ~0 ~0 ~0 #{options[:volume]} #{options[:pitch]}") unless selector.nil?
+      clean_play_sound_result execute("execute #{selector} ~ ~ ~ playsound #{sound} master @p ~0 ~0 ~0 #{options[:volume]} #{options[:pitch]}") unless selector.nil?
     end
     
     def check_mail(nick)
