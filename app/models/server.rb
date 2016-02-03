@@ -112,7 +112,7 @@ class Server
       player = options[:near_player]
       player = Player.find_by_nick player if player.class == String
       
-      pos = player.current_location
+      pos = player.current_pos
       raise CobbleBotError.new(message: "Unable to find #{player.nick} position.") unless !!pos
       
       "@e[r=#{radius},x=#{pos[0].to_i},y=#{pos[1].to_i},z=#{pos[2].to_i}]"
