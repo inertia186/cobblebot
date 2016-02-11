@@ -169,8 +169,7 @@ module Commandable
       text.sub!(/(@a\[.*\])/i, Server.player_nicks($1).sample.to_s) while text =~ /(@a\[.*\])/i && !!options[:deep]
       text.sub!(/@a/i, Server.player_nicks.sample) while text =~ /@a/i && !!options[:deep]
       text.sub!(/@a/i, 'everyone') while text =~ /@a/i
-      text.sub!(/@e\[c=-1\]/i, random_mob) while text =~ /@e\[c=-1\]/i
-      text.sub!(/@e\[c=1\]/i, random_mob) while text =~ /@e\[c=1\]/i
+      text.sub!(/@e\[c=[\-0-9]+\]/i, random_mob) while text =~ /@e\[c=[\-0-9]+\]/i
       text.sub!(/@e/i, random_mob) while text =~ /@e/i
     
       text
