@@ -104,7 +104,7 @@ module Tellable
           elsif args == '@r' || args == '@p'
             args = Server.player_nicks(args).first
           elsif args == '@e'
-            return tell(nick, "Spy Chicken has been muted.")
+            return tell(nick, "#{random_mob} has been muted.")
           end
           
           Player.best_match_by_nick(args, no_match: -> {
@@ -135,7 +135,7 @@ module Tellable
             count = player.mutes.where(muted_player_id: Server.players).destroy_all.size
             return tell(nick, "Unmuted #{pluralize(count, 'player')}.")
           elsif args == '@e'
-            return tell(nick, "Spy Chicken has been unmuted.")
+            return tell(nick, "#{random_mob} has been unmuted.")
           end
           
           Player.best_match_by_nick(args, no_match: -> {
