@@ -522,6 +522,8 @@ module Sayable
           
             Preference.latest_gametick = gametick
             Preference.latest_gametick_population = gametick_population
+            
+            slack_bot.say("*Debug Report* \n```#{report}```")
           end
         else
           say(selector, "Gametick from #{ago} ago was: #{latest_gametick} with #{pluralize(latest_gametick_population, 'player')}; ideal gametick: 20.0")
