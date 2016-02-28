@@ -96,6 +96,9 @@ gem 'haml'
 
 gem 'will_paginate'
 
+# For 'Calc' callback
+gem 'dentaku'
+
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 

@@ -1053,4 +1053,12 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       MinecraftServerLogHandler.handle(keeping_entity_warning, debug: true)
     end
   end
+  
+  def test_calc
+    calc = ServerCallback.find_by_name 'Calc'
+    
+    assert_callback_ran 'Calc' do
+      ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> =128/8', debug: true)
+    end
+  end
 end

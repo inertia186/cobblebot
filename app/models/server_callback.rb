@@ -183,7 +183,7 @@ class ServerCallback < ActiveRecord::Base
         message_escaped = message
 
         # TODO Also look for and escape: []\^$.|?*+()
-        %w( [ ] \\ ^ $ . | ? * + \( \)).each do |c|
+        %w( [ ] \\ ^ $ . | ? * \+ \( \)).each do |c|
           message_escaped.gsub!(c, "\\#{c}")
         end
 
@@ -210,7 +210,7 @@ class ServerCallback < ActiveRecord::Base
       gsub("%cobblebot_version%", COBBLEBOT_VERSION)
 
     message.match(ServerCommand.eval_pattern(pattern, to_param)).captures.each_with_index do |capture, index|
-      cmd.gsub!("%#{index + 1}%", "#{capture}")
+      cmd.gsub!("%#{index + 1}%", capture)
     end if message.match(ServerCommand.eval_pattern(pattern, to_param))
 
     # Remove matched vars.
