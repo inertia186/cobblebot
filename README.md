@@ -267,8 +267,7 @@ To test the resource pack on the default configuration, type the command in the 
 
 ## Supported environments
 
-* Minecraft 1.9 (snapshots)
-* Minecraft 1.8.4
+* Minecraft 1.9
 
 ## Get in touch!
 

@@ -224,7 +224,7 @@ module Sayable
       elsif tip_body =~ /^>/i
         say(selector, tip_body, color: 'green', as: 'Server', hover_text: replies)
       elsif tip_body =~ /explode/i
-        play_sound(selector, 'random.explode')
+        play_sound(selector, 'random:entity.generic.explode')
         say(selector, tip_body, color: 'white', as: 'Server', hover_text: replies)
       elsif tip_body =~ /there is no place like/i
         play_sound(selector, 'loz_recorder')
