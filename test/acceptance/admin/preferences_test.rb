@@ -112,7 +112,7 @@ class Admin::PreferencesTest < ActionDispatch::IntegrationTest
           ServerQuery.mock_mode(full_query: {numplayers: "0", maxplayers: "20"}) do
             admin_sign_in
             # cheaty way to prime the pump
-            visit '/admin/preferences/slack_group_element'
+            visit '/admin/preferences/slack_group_element' rescue 'Ignored'
             assert page.has_no_content?('Please configure Slack and restart CobbleBot.'), 'did not expect warning about configuring Slack.'
             visit '/admin/preferences'
 
