@@ -2,17 +2,7 @@
   = f.hidden_field :author_type, value: 'Player'
   
   - if @donation.errors.any?
-    .alert.alert-danger
-      %h4 #{pluralize((@donation.errors.keys - [:base]).size, "error")} prohibited this template from being saved:
-      %ul>
-      - @donation.errors.keys.each do |key|
-        - if key == :base
-          %pre.alert-warning>~ @donation.errors.messages[key].uniq.join(" ")
-        - else
-          %li>
-            = key.to_s.titleize
-            %span>:&nbsp;
-            = @donation.errors.messages[key].join(" and/or ")
+    %form-errors{data: {errors: @donation.errors.full_messages.to_json}}
 
   .row
     .input-group

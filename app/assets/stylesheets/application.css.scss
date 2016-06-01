@@ -10,11 +10,14 @@
  * defined in the other CSS/SCSS files in this directory. It is generally better to create a new
  * file per style scope.
  *
- *= require bootstrap.min
- *= require chosen
  *= require_tree .
  *= require_self
  */
+ 
+@import 'bootstrap';
+@import 'bootstrap/glyphicons';
+@import 'chosen';
+@import 'nprogress';
 
 @font-face {
  font-family: 'Glyphicons Halflings';
@@ -86,6 +89,13 @@
 .vg { color: #19177C } /* Name.Variable.Global */
 .vi { color: #19177C } /* Name.Variable.Instance */
 .il { color: #666666 } /* Literal.Number.Integer.Long */
+
+.btn-xs, .btn-group-xs > .btn {
+  padding: .45rem .25rem;
+  font-size: .75rem;
+  line-height: .75;
+  border-radius: .2rem;
+}
 
 a.tip {
   position: relative;

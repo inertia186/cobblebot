@@ -1,3 +1,8 @@
+.row
+  .col-sm-12
+    %h3
+      %span.glyphicon.glyphicon-folder-open
+      Server Properties
 .row{ng_controller: 'ConfigCtrl'}
   %table.table
     %thead
@@ -15,7 +20,9 @@
               = ServerProperties.send(key)
             - if key =~ /^resource-pack$/i && ( !ServerProperties.send(key) || ServerProperties.send(key).empty? )
               %suggestion{module: 'admin', group: 'server_properties', key: key}
-            - if key =~ /^resource-pack-hash$/i && !!Preference.latest_resource_pack_hash && ServerProperties.send(key) != Preference.latest_resource_pack_hash && !!ServerProperties.resource_pack
+            - if key =~ /^resource-pack-hash$/i && !!Preference.latest_resource_pack_hash && !!ServerProperties.send(key) && !!ServerProperties.resource_pack
+              %suggestion{module: 'admin', group: 'server_properties', key: key}
+            - if key =~ /^resource-pack-sha1$/i && !!Preference.latest_resource_pack_hash && ServerProperties.send(key) != Preference.latest_resource_pack_hash && !!ServerProperties.resource_pack
               %suggestion{module: 'admin', group: 'server_properties', key: key}
             - if key =~ /^announce-player-achievements$/i && ServerProperties.send(key) != 'true'
               %suggestion{module: 'admin', group: 'server_properties', key: key}

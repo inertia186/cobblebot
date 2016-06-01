@@ -1,6 +1,7 @@
 .row
   .col-sm-3
     %h3
+      %span.glyphicon.glyphicon-gift
       Donations
       - if @author
         by
@@ -8,7 +9,7 @@
   .col-sm-9
     %suggestion{module: 'admin', group: 'donations', key: 'main', verbose: 'false'}
 
-%div{style: 'float: right'}
+.pull-xs-right
   = form_tag url_for(action: controller.action_name), method: :get do
     = hidden_field_tag :sort_field, @sort_field
     = hidden_field_tag :sort_order, @sort_order
@@ -18,10 +19,10 @@
     = submit_tag 'Search', class: 'btn btn-info btn-xs'
 
 %ul.nav.nav-tabs
-  %li{class: @filter == 'all' ? 'active' : ''}
-    = link_to 'All', admin_message_donations_path(author_id: @author_id), 'aria-controls' => "all"
-  %li{class: @filter == 'only_today' ? 'active' : ''}
-    = link_to 'Today', admin_message_donations_path(author_id: @author_id, filter: 'only_today'), 'aria-controls' => "non-system"
+  %li.nav-item
+    = link_to 'All', admin_message_donations_path(author_id: @author_id), 'aria-controls' => "all", class: @filter == 'all' ? 'nav-link active' : 'nav-link'
+  %li.nav-item
+    = link_to 'Today', admin_message_donations_path(author_id: @author_id, filter: 'only_today'), 'aria-controls' => "non-system", class: @filter == 'only_today' ? 'nav-link active' : 'nav-link'
 
 .tab-contents
   .tab-panel.tab-pane.active

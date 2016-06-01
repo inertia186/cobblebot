@@ -51,16 +51,21 @@ Capybara::Screenshot.prune_strategy = { keep: 20 }
 Rails.application.load_seed
 
 module TestTools
-  def skip_until_pass(options = {when_passes: "This test is now passing, please revise."}, &block)
+  def skip_until_pass(options = {}, &block)
+    when_passes = options[:when_passes] || "This test is now passing, please revise."
+    skip_entire_test = !!options[:skip_entire_test]
+    
     begin
       yield block
+    rescue RuntimeError
+      skip 'Skipped runtime error until fixed.' if !!skip_entire_test
     rescue Minitest::Assertion
-      skip 'Skipped assertion until fixed.'
+      skip 'Skipped assertion until fixed.' if !!skip_entire_test
     rescue ActionView::Template::Error
-      skip 'Skipped template error until fixed.'
+      skip 'Skipped template error until fixed.' if !!skip_entire_test
     end
 
-    fail options[:when_passes]
+    fail when_passes unless !!skip_entire_test
   end
 end
 
@@ -397,7 +402,7 @@ class ActiveSupport::TestCase
     }
 
     delete admin_destroy_session_url
-    post admin_sessions_url(params)
+    post admin_session_url(params)
   end
 
   def ServerCommand.kick(nick, message = "Have A Nice Day")

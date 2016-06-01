@@ -1,4 +1,5 @@
 - if @verbose == 'true'
-  %button.btn.btn-info.btn-sm{style: 'float: right', type: :button, data: { toggle: :modal, target: "#explain_#{@group}_#{@key}"}} Suggestion
+  %button.btn.btn-info.btn-xs.pull-xs-right{type: :button, data: { toggle: :modal, target: "#explain_#{@group}_#{@key}"}} Suggestion
 - else
-  %button.label.label-pill.label-info{type: :button, data: { toggle: :modal, target: "#explain_#{@group}_#{@key}" }} ?
+  %button.btn.btn-info.btn-xs{type: :button, data: { toggle: :modal, target: "#explain_#{@group}_#{@key}" }}
+    .glyphicon.glyphicon-question-sign

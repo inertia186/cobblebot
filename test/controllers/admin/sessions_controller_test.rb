@@ -5,8 +5,8 @@ class Admin::SessionsControllerTest < ActionController::TestCase
   end
 
   def test_routings
-    assert_routing({ method: 'get', path: 'admin/sessions/new' }, controller: 'admin/sessions', action: 'new')
-    assert_routing({ method: 'post', path: 'admin/sessions' }, controller: 'admin/sessions', action: 'create')
+    assert_routing({ method: 'get', path: 'admin/session/new' }, controller: 'admin/sessions', action: 'new')
+    assert_routing({ method: 'post', path: 'admin/session' }, controller: 'admin/sessions', action: 'create')
     assert_routing({ method: 'delete', path: 'admin/session' }, controller: 'admin/sessions', action: 'destroy')
   end
   

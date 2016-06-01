@@ -4,6 +4,9 @@ gem 'bundler', '>= 1.12.5'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.2.6'
 
+# Rescue an error and then re-raise your own nested exceptions.
+gem 'nesty'
+
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3', require: false, platforms: :ruby
 
@@ -24,29 +27,14 @@ gem 'uglifier', '~> 3.0.0'
 # Use CoffeeScript for .coffee assets and views
 gem 'coffee-rails', '~> 4.1.1'
 
-# A great Javascript framework.
-gem 'angularjs-rails', '~> 1.5.6'
-
-# Parse, validate, manipulate, and display dates in JavaScript.
-gem 'momentjs-rails', '~> 2.11.1'
-
 # See https://github.com/sstephenson/execjs#readme for more supported runtimes
 # gem 'therubyracer', platforms: :ruby, require: false
-
-# Used to make HMTL select tags nicer.
-gem 'chosen-rails', '~> 1.5.2'
-
-# Required by chosen-rails
-gem 'sprockets', '~> 3.6.0'
-gem 'compass-rails', '~> 3.0.2'
 
 # Mainly to cache images.
 gem 'actionpack-action_caching', '~> 1.1.1'
 
 # Use jquery as the JavaScript library
 gem 'jquery-rails', '~> 4.1.1'
-# Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
-gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.5.0'
@@ -108,6 +96,32 @@ gem 'dentaku', '~> 2.0.8'
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
+
+# Assets
+
+# Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
+gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
+# Bootstrap 4 ruby gem for Ruby on Rails (Sprockets) and Compass.
+gem 'bootstrap', '~> 4.0.0.alpha2'
+gem 'bootstrap-glyphicons'
+# Wraps the Angular.js UI Bootstrap library.
+gem 'angular-ui-bootstrap-rails', '~> 1.3.2'
+
+source 'https://rails-assets.org' do
+  gem 'rails-assets-angular', '~> 1.5.6'
+  gem 'rails-assets-angular-inview', '~> 1.5.7'
+  gem 'rails-assets-angular-animate', '~> 1.5.6'
+  gem 'rails-assets-angular-resource', '~> 1.5.6'
+  gem 'rails-assets-angular-flash-alert', '~> 1.1.1'
+  gem 'rails-assets-angular-cancel-on-navigate', '~> 0.1.0'
+  gem 'rails-assets-ngclipboard', '~> 1.0.0'
+  gem 'rails-assets-clipboard', '~> 1.5.10'
+  gem 'rails-assets-nprogress', '~> 0.2.0'
+  gem 'rails-assets-moment', '~> 2.13.0'
+  gem 'rails-assets-chosen', '~> 1.5.1'
+  # Tooltips and popovers depend on tether for positioning.
+  gem 'rails-assets-tether', '>= 1.3.2'
+end
 
 group :development do
   # Access an IRB console on exception pages or by using <%= console %> in views

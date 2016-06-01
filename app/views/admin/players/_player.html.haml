@@ -61,13 +61,13 @@
     
     
 .modal-footer
-  %span{style: 'float: left;'}
+  .pull-xs-left
     - if defined? modal
       = link_remote_delete(admin_player_path(player))
     - else
       = link_delete(admin_player_path(player))
     = link_remote_toggle_autolink(player)
-  %span{style: 'float: right;'}
+  .pull-xs-right
     - if defined? modal
       = modal_nav_links(admin_players_path, "player")
       %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close

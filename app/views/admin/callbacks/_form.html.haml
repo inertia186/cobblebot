@@ -1,17 +1,7 @@
 .row{ng_controller: 'CallbackCtrl'}
   = form_for [:admin, @callback.becomes(ServerCallback)], role: :form do |f|
     - if @callback.errors.any?
-      .alert.alert-danger
-        %h4 #{pluralize((@callback.errors.keys - [:base]).size, "error")} prohibited this template from being saved:
-        %ul>
-        - @callback.errors.keys.each do |key|
-          - if key == :base
-            %pre.alert-warning>~ @callback.errors.messages[key].uniq.join(" ")
-          - else
-            %li>
-              = key.to_s.titleize
-              %span>:&nbsp;
-              = @callback.errors.messages[key].join(" and/or ")
+      %form-errors{data: {errors: @callback.errors.full_messages.to_json}}
 
     .row
       .input-group

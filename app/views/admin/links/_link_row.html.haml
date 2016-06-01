@@ -1,26 +1,25 @@
 %tr{id: "link_tr_#{link.id}", data: { id: link.id } }
   %td
-    = link_to link.title, link.url, target: link.to_param
+    = link_to truncate(link.title, length: 75), link.url, target: link.to_param
   - unless @player
     - if link.actor_type == 'Player' && !!link.actor
       %td=link_to(best_actor_name(link.actor_type, link.actor), admin_player_links_path(player_id: link.actor))
     - else
       %td N/A
-  %td=relative_time(link.created_at)
-  %td
-    %span{style: 'float: right'}
-      - if link.can_embed?
-        = link_to 'Show', admin_link_path(link), class: 'btn btn-info btn-xs', data: { remote: true, toggle: :modal, target: '#show_link'}
-        .modal.fade{id: :show_link, tabindex: -1, role: :dialog, 'aria-labelledby' => 'show_link_label', 'aria-hidden' => true}
-          .modal-dialog.modal-lg
-            .modal-content
-              .modal-header
-                %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-                  %span{'aria-hidden' => true} &times;
-                %h4.modal-title#show_link_label Loading ...
-              .modal-body{id: 'show_link_body'}
-                %center
-                  %img{src: '/images/large_spinner.gif'}
-      - else
-        = link_to 'Show', link.url, class: 'btn btn-info btn-xs', target: link.to_param
-      = link_remote_delete(admin_link_path(link), class: 'btn btn-danger btn-xs', confirm: 'Are you sure?')
+  %td{style: 'width: 11rem;'}=relative_time(link.created_at)
+  %td.btn-group.pull-xs-right{style: 'width: 7rem;'}
+    - if link.can_embed?
+      = link_to 'Show', admin_link_path(link), class: 'btn btn-info btn-xs', data: { remote: true, toggle: :modal, target: '#show_link'}
+      .modal.fade{id: :show_link, tabindex: -1, role: :dialog, 'aria-labelledby' => 'show_link_label', 'aria-hidden' => true}
+        .modal-dialog.modal-lg
+          .modal-content
+            .modal-header
+              %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+                %span{'aria-hidden' => true} &times;
+              %h4.modal-title#show_link_label Loading ...
+            .modal-body{id: 'show_link_body'}
+              %center
+                %img{src: '/images/large_spinner.gif'}
+    - else
+      = link_to 'Show', link.url, class: 'btn btn-info btn-xs', target: link.to_param
+    = link_remote_delete(admin_link_path(link), class: 'btn btn-danger btn-xs', confirm: 'Are you sure?')

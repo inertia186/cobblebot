@@ -16,12 +16,12 @@
     %td= relative_time(message.created_at)
     
 .modal-footer
-  %span{style: 'float: left;'}
+  .pull-xs-left
     - if defined? modal
       = link_remote_delete(admin_message_path(message))
     - else
       = link_delete(admin_message_path(message))
-  %span{style: 'float: right;'}
+  .pull-xs-right
     - if defined? modal
       = modal_nav_links(admin_messages_path, "message")
       %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close

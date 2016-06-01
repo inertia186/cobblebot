@@ -4,29 +4,28 @@
   %td.clickable-cell=callback_ran(callback)
   %td.clickable-cell=callback_status(callback)
   %td.clickable-cell=relative_time(callback.created_at)
-  %td
-    %span{style: 'float: right'}
-      = link_to 'Show', admin_server_callback_path(callback), class: 'btn btn-info btn-xs', data: { remote: true, toggle: :modal, target: '#show_callback'}
-      .modal.fade{id: :show_callback, tabindex: -1, role: :dialog, 'aria-labelledby' => 'show_callback_label', 'aria-hidden' => true}
-        .modal-dialog.modal-lg
-          .modal-content
-            .modal-header
-              %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
-                %span{'aria-hidden' => true} &times;
-              %h4.modal-title#show_callback_label Loading ...
-            .modal-body{id: 'show_callback_body'}
-              %center
-                %img{src: '/images/large_spinner.gif'}
-      = callback_run_link(callback, class: 'btn btn-success btn-xs')
-      = callback_edit_link(callback, class: 'btn btn-info btn-xs')
-      %wbr
-      = callback_reset_link(callback, class: 'btn btn-warning btn-xs')
-      = callback_enable_link(callback, class: 'btn btn-info btn-xs')
-      = link_remote_delete(admin_server_callback_path(callback), class: 'btn btn-danger btn-xs', confirm: 'Are you sure?')
+  %td.btn-group.pull-xs-right{style: 'width: 17rem;'}
+    = link_to 'Show', admin_server_callback_path(callback), class: 'btn btn-info btn-xs', data: { remote: true, toggle: :modal, target: '#show_callback'}
+    .modal.fade{id: :show_callback, tabindex: -1, role: :dialog, 'aria-labelledby' => 'show_callback_label', 'aria-hidden' => true}
+      .modal-dialog.modal-lg
+        .modal-content
+          .modal-header
+            %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+              %span{'aria-hidden' => true} &times;
+            %h4.modal-title#show_callback_label Loading ...
+          .modal-body{id: 'show_callback_body'}
+            %center
+              %img{src: '/images/large_spinner.gif'}
+    = callback_run_link(callback, class: 'btn btn-success btn-xs')
+    = callback_edit_link(callback, class: 'btn btn-info btn-xs')
+    %wbr
+    = callback_reset_link(callback, class: 'btn btn-warning btn-xs')
+    = callback_enable_link(callback, class: 'btn btn-info btn-xs')
+    = link_remote_delete(admin_server_callback_path(callback), class: 'btn btn-danger btn-xs', confirm: 'Are you sure?')
 
-    :javascript
-      jQuery(document).ready(function($) {
-        $("#callback_tr_#{callback.id} .clickable-cell").click(function() {
-          window.document.location = '#{admin_server_callback_path(callback)}';
-        });
+  :javascript
+    jQuery(document).ready(function($) {
+      $("#callback_tr_#{callback.id} .clickable-cell").click(function() {
+        window.document.location = '#{admin_server_callback_path(callback)}';
       });
+    });

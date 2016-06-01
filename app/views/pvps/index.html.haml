@@ -6,6 +6,7 @@
 .row{ng_controller: 'PvpCtrl'}
   .col-sm-2
     %h3
+      %span.glyphicon.glyphicon-fire
       PVPs
       %span{ng_if: 'filteredPvps.length > 0 && showCount'}
         = surround '(', ')' do
@@ -13,7 +14,7 @@
   .col-sm-6
     %suggestion{group: 'pvps', key: 'main', verbose: 'false'}
   
-  .col-sm-4.pull-right
+  .col-sm-4.pull-xs-right
     = form_tag url_for(action: controller.action_name), method: :get do
       = hidden_field_tag :sort_field, @sort_field
       = hidden_field_tag :sort_order, @sort_order

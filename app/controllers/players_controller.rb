@@ -11,7 +11,7 @@ class PlayersController < ApplicationController
       
       after = Time.at(@after.to_i + 1)
 
-      head 204 and return if Server.latest_log_entry_at < after
+      head 204 and return if Server.latest_log_entry_at.nil? || Server.latest_log_entry_at < after
       
       if Player.activity_after(after).last_chat_before(after).any?
         # Player logged out, so we should allow one update to the page.

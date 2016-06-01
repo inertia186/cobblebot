@@ -1,10 +1,12 @@
 .row{ng_controller: 'CallbackCtrl'}
   .row
     .col-sm-2
-      %h3 Callbacks
+      %h3
+        %span.glyphicon.glyphicon-wrench
+        Callbacks
     .col-sm-10
       %suggestion{module: 'admin', group: 'callbacks', key: 'main', verbose: 'false'}
-  .row.pull-right
+  .row.pull-xs-right
     = form_tag url_for(action: controller.action_name), method: :get do
       = hidden_field_tag :sort_field, @sort_field
       = hidden_field_tag :sort_order, @sort_order
@@ -17,12 +19,12 @@
 
   .row
     %ul.nav.nav-tabs
-      %li{class: @filter == 'all' ? 'active' : ''}
-        = link_to 'All', admin_server_callbacks_path, 'aria-controls' => "all"
-      %li{class: @filter == 'exclude_system' ? 'active' : ''}
-        = link_to 'Non-system', admin_server_callbacks_path(filter: 'exclude_system'), 'aria-controls' => "non-system"
-      %li{class: @filter == 'only_system' ? 'active' : ''}
-        = link_to 'System', admin_server_callbacks_path(filter: 'only_system'), 'aria-controls' => "system"
+      %li.nav-item
+        = link_to 'All', admin_server_callbacks_path, 'aria-controls' => "all", class: @filter == 'all' ? 'nav-link active' : 'nav-link'
+      %li.nav-item
+        = link_to 'Non-system', admin_server_callbacks_path(filter: 'exclude_system'), 'aria-controls' => "non-system", class: @filter == 'exclude_system' ? 'nav-link active' : 'nav-link'
+      %li.nav-item
+        = link_to 'System', admin_server_callbacks_path(filter: 'only_system'), 'aria-controls' => "system", class: @filter == 'only_system' ? 'nav-link active' : 'nav-link'
 
     .tab-contents
       .tab-panel.tab-pane.active

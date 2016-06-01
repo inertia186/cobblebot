@@ -88,7 +88,7 @@ Rails.application.routes.draw do
     end
     get 'suggestion/:group/:key' => 'suggestions#show'
     
-    resources :sessions, only: [:new, :create]
+    resource :session, only: [:new, :create]
     delete 'session' => 'sessions#destroy', as: :destroy_session
     
     get 'config/server_properties' => 'config#show_server_properties'

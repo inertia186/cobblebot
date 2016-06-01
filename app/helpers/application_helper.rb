@@ -5,7 +5,7 @@ module ApplicationHelper
   end
 
   def version
-    content_tag(:pre, class: "version", style: "float: right;") do
+    content_tag(:pre, class: "card card-block version pull-xs-right") do
       ("CobbleBot version: #{COBBLEBOT_VERSION}").html_safe
     end
   end
@@ -13,10 +13,18 @@ module ApplicationHelper
   def sortable_header_link(name, field)
     sort_order = params[:sort_order] == 'asc' ? 'desc' : 'asc'
     current_field = params[:sort_field] || @sort_field
-    name = "#{name} #{sort_order == 'desc' ? '⬆︎' : '⬇︎'}" if !!current_field && current_field == field
+    name = if !!current_field && current_field == field
+      if sort_order == 'desc'
+        "#{name} <span class=\"glyphicon glyphicon-arrow-down\" />"
+      else
+        "#{name} <span class=\"glyphicon glyphicon-arrow-up\" />"
+      end
+    else
+      name
+    end
     options = params.merge(action: controller.action_name, sort_field: field, page: nil, query: params[:query], sort_order: sort_order)
     
-    link_to name, url_for(options)
+    link_to name.html_safe, url_for(options)
   end
   
   def relative_time(date)

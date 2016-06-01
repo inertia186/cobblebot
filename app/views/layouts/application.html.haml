@@ -2,7 +2,7 @@
 %html
   %head
     %title CobbleBot
-    = stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true
+    = stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track' => true
     = javascript_include_tag 'application', 'data-turbolinks-track' => true
     = csrf_meta_tags
     %meta{name: :viewport, content: "width=380, initial-scale=0.75, minimum-scale=0.75"}
@@ -11,69 +11,95 @@
     = yield :head 
 %body{role: :document}
 
-  %nav.navbar.navbar-inverse.navbar-static-top
-    .container-fluid
-      .navbar-header
-        %button.navbar-toggle.collapsed{type: 'button', 'data-toggle' => 'collapse', 'data-target' => '#cobblebot-navbar', 'aria-expanded' => "false"}
-          %span.sr-only Toggle navigation
-          %span.icon-bar
-          %span.icon-bar
-          %span.icon-bar
-        %a.navbar-brand{href: "#"} CobbleBot
-      
-      .collapse.navbar-collapse#cobblebot-navbar
-        %ul.nav.navbar-nav
-          %li{class: active_nav('players')}= link_to 'Players', players_path
-          %li{class: active_nav('topics')}= link_to 'Topics', topics_path
-          %li{class: active_nav('pvps')}= link_to 'PVP', pvps_path
-          %li{class: active_nav('donations')}= link_to 'Donations', donations_path
-          %li{class: active_nav('status')}= link_to 'Server Status', status_index_path
-          - if show_irc_web_chat?
-            %li{class: active_nav('irc_web_chat')}
-              = link_to 'IRC' + ((c = Preference.active_in_irc.to_i) > 0 ? " (#{c})" : ''), Preference.irc_web_chat_url, target: 'irc', id: 'irc-link'
-          %li.dropdown{class: active_nav('admin')}
-            = link_to '#', class: 'dropdown-toggle', data: { toggle: :dropdown }, role: :button do
-              Admin
-              %span.caret
-            %ul.dropdown-menu
-              - if admin_signed_in?
-                %li{class: active_nav('admin_preferences')}
-                  = link_to 'Preferences', admin_preferences_path
-                %li{class: active_nav('admin_players')}
-                  = link_to 'Players', admin_players_path
-                %li{class: active_nav('admin_message_donations')}
-                  = link_to 'Donations', admin_message_donations_path
-                %li{class: active_nav('admin_callbacks')}
-                  = link_to 'Callbacks', admin_server_callbacks_path
-                %li{class: active_nav('admin_links')}
-                  = link_to 'Links', admin_links_path
-                %li{class: active_nav('admin_messages')}
-                  = link_to 'Messages', admin_messages_path
-                %li{class: active_nav('admin_ips')}
-                  = link_to 'IPs', admin_ips_path
-                %li{class: active_nav('admin_config_server_properties')}
-                  = link_to 'Server Properties', admin_config_server_properties_path
-                - if Rails.env == 'development'
-                  %li{class: active_nav('admin_config_console')}
-                    = link_to 'Console', admin_config_console_path, data: { remote: true }
-                %li
-                  = link_to 'Resque', "http://admin:#{Preference.web_admin_password}@#{admin_resque_server_url.split('://')[1]}", target: '_new'
-                %li
-                  = link_to 'Admin Log Out', admin_destroy_session_path, method: :delete, data: { confirm: 'Are you sure?' }
-              - else
-                %li
-                  = link_to 'Log In', new_admin_session_path
-        %ul.nav.navbar-nav.navbar-right
-          %li
-            %a{href: '#'}= image_tag server_icon_path, width: 24, height: 24, data: { toggle: :modal, target: '#expand_server_icon' } if !!Server.server_icon
-          %li
-            %a{href: '#'}= ServerProperties.level_name.titleize
+  %nav.navbar.navbar-fixed-top.navbar-light.bg-faded.navbar-inverse
+    %ul.nav.navbar-nav
+      %li.nav-item
+        %a.navbar-brand{href: "#"}
+          %img{src: '/assets/logo-24.png', alt: 'CobbleBot', height: 24}
+    %button.navbar-toggler.hidden-sm-up#main_toggle_nav{type: 'button', 'data-toggle' => 'collapse', 'data-target' => '#cobblebot-navbar', 'aria-expanded' => "false"}
+      &#9776;
+      %span.sr-only Toggle navigation
+      %span.icon-bar
+      %span.icon-bar
+      %span.icon-bar
+    
+    .collapse.navbar-toggleable-xs#cobblebot-navbar
+      %ul.nav.navbar-nav
+        %li.nav-item{class: active_nav('players')}
+          %span.glyphicon.glyphicon-user
+          = link_to 'Players', players_path
+        %li.nav-item{class: active_nav('topics')}
+          %span.glyphicon.glyphicon-book
+          = link_to 'Topics', topics_path
+        %li.nav-item{class: active_nav('pvps')}
+          %span.glyphicon.glyphicon-fire
+          = link_to 'PVP', pvps_path
+        %li.nav-item{class: active_nav('donations')}
+          %span.glyphicon.glyphicon-gift
+          = link_to 'Donations', donations_path
+        %li.nav-item{class: active_nav('status')}
+          %span.glyphicon.glyphicon-dashboard
+          = link_to 'Server Status', status_index_path
+        - if show_irc_web_chat?
+          %li.nav-item{class: active_nav('irc_web_chat')}
+            %span.glyphicon.glyphicon-comment
+            = link_to 'IRC' + ((c = Preference.active_in_irc.to_i) > 0 ? " (#{c})" : ''), Preference.irc_web_chat_url, target: 'irc', id: 'irc-link'
+        %li.nav-item.dropdown{class: active_nav('admin')}
+          %span.glyphicon.glyphicon-briefcase
+          = link_to '#', class: 'dropdown-toggle', data: { toggle: :dropdown }, role: :button do
+            Admin
+            %span.caret
+          %ul.dropdown-menu
+            - if admin_signed_in?
+              %li.dropdown-item{class: active_nav('admin_preferences')}
+                %span.glyphicon.glyphicon-cog
+                = link_to 'Preferences', admin_preferences_path
+              %li.dropdown-item{class: active_nav('admin_players')}
+                %span.glyphicon.glyphicon-user
+                = link_to 'Players', admin_players_path
+              %li.dropdown-item{class: active_nav('admin_message_donations')}
+                %span.glyphicon.glyphicon-gift
+                = link_to 'Donations', admin_message_donations_path
+              %li.dropdown-item{class: active_nav('admin_callbacks')}
+                %span.glyphicon.glyphicon-wrench
+                = link_to 'Callbacks', admin_server_callbacks_path
+              %li.dropdown-item{class: active_nav('admin_links')}
+                %span.glyphicon.glyphicon-link
+                = link_to 'Links', admin_links_path
+              %li.dropdown-item{class: active_nav('admin_messages')}
+                %span.glyphicon.glyphicon-envelope
+                = link_to 'Messages', admin_messages_path
+              %li.dropdown-item{class: active_nav('admin_ips')}
+                %span.glyphicon.glyphicon-list-alt
+                = link_to 'IPs', admin_ips_path
+              %li.dropdown-item{class: active_nav('admin_config_server_properties')}
+                %span.glyphicon.glyphicon-folder-open
+                = link_to 'Server Properties', admin_config_server_properties_path
+              - if Rails.env == 'development'
+                %li.dropdown-item{class: active_nav('admin_config_console')}
+                  %span.glyphicon.glyphicon-comment
+                  = link_to 'Console', admin_config_console_path, data: { remote: true }
+              %li.dropdown-item
+                %span.glyphicon.glyphicon-dashboard
+                = link_to 'Resque', "http://admin:#{Preference.web_admin_password}@#{admin_resque_server_url.split('://')[1]}", target: '_new'
+              %li.dropdown-item
+                %span.glyphicon.glyphicon-minus-sign
+                = link_to 'Admin Log Out', admin_destroy_session_path, method: :delete, data: { confirm: 'Are you sure?' }
+            - else
+              %li.dropdown-item
+                %span.glyphicon.glyphicon-plus-sign
+                = link_to 'Log In', new_admin_session_path
+      %ul.nav.navbar-nav.pull-xs-right{style: 'padding-right: 24px'}
+        %li.nav-item
+          %a{href: '#'}= image_tag server_icon_path, width: 24, height: 24, data: { toggle: :modal, target: '#expand_server_icon' } if !!Server.server_icon
+        %li.nav-item
+          %a{href: '#'}= ServerProperties.level_name.titleize
 
 .modal.fade#expand_server_icon{tabindex: -1, role: :dialog, 'aria-labelledby' => 'expand_server_icon_label', 'aria-hidden' => true}
   .modal-dialog
     .modal-content
       .modal-header
-        %button.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
+        %button.btn.close{type: :button, 'aria-label' => 'Close', data: { dismiss: :modal }}
           %span{'aria-hidden' => true} &times;
         %h4.modal-title#expand_server_icon_label server-icon.png
       .modal-body
@@ -81,8 +107,11 @@
 
 .container.theme-showcase{role: :main}
   .starter-template
+    
+    %p &nbsp;
+    %p &nbsp;
 
-    %flash{data: {messages: flash.to_json}}
+    %flash{'flash-message' => 5000, data: {messages: flash.to_json}}
 
     = yield
 

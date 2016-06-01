@@ -5,6 +5,7 @@
 .row{ng_controller: 'DonationCtrl'}
   .col-sm-3
     %h3
+      %span.glyphicon.glyphicon-gift
       Donations
       %span{ng_if: 'filteredDonations.length > 0 && showCount'}
         = surround '(', ')' do
@@ -12,7 +13,7 @@
   .col-sm-9
     %suggestion{group: 'donations', key: 'main', verbose: 'false'}
 
-  .col-sm-4.pull-right
+  .col-sm-4.pull-xs-right
     = text_field_tag :query, @query, placeholder: 'Query Text', 'ng-model' => 'searchString', 'ng-change' => 'didSearch()', autofocus: true
     
   .row

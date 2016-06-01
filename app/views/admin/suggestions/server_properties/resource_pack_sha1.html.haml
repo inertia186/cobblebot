@@ -7,10 +7,10 @@
           %span{'aria-hidden' => true} &times;
         %h4.modal-title#explain_command_label Resource Pack Hash Suggestion
       .modal-body
-        %p The ressource-pack-hash key is depricated.  You should set ressource-pack-sha1 to the correct hash value to match the resource-pack.  Doing so helps players log in faster by allowing them to skip the download if the hash hasn't changed.
+        %p You should set this to the correct hash value to match the resource-pack.  Doing so helps players log in faster by allowing them to skip the download if the hash hasn't changed.
         %p Suggestion:
         %code resource-pack-sha1=#{Preference.latest_resource_pack_hash}
         - if ServerProperties.send(@key).present?
           %p
           %p ... instead of what you have:
-          %code resource-pack-hash=#{ServerProperties.send(@key)}
+          %code resource-pack-sha1=#{ServerProperties.send(@key)}

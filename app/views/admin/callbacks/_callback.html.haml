@@ -46,7 +46,7 @@
       %code{id: "callback_last_command_output_#{callback.id}"}= callback.last_command_output
 
 .modal-footer
-  %span{style: 'float: left;'}
+  .pull-xs-left
     = callback_edit_link(callback)
     = callback_enable_link(callback)
     - if defined? modal
@@ -54,7 +54,7 @@
     - else
       = link_delete(admin_server_callback_path(callback))
     = callback_gist_link(callback)
-  %span{style: 'float: right;'}
+  .pull-xs-right
     - if defined? modal
       = modal_nav_links(admin_server_callbacks_path, "callback")
       %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close
