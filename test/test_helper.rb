@@ -8,7 +8,6 @@ require File.expand_path('../../config/environment', __FILE__)
 require 'rcon/rcon'
 require 'rails/test_help'
 require 'webmock/minitest'
-require "codeclimate-test-reporter"
 require 'capybara/rails'
 require 'capybara/poltergeist'
 require 'capybara-screenshot/minitest'
@@ -19,8 +18,7 @@ else
   require "minitest/pride"
 end
 
-WebMock.disable_net_connect!(allow_localhost: true, allow: 'codeclimate.com:443')
-CodeClimate::TestReporter.start
+WebMock.disable_net_connect!(allow_localhost: true)
 
 phantomjs_logger = if ENV['TESTOPTS'].to_s.include?('--verbose')
   $stdout
