@@ -1,0 +1,8 @@
+:beechat:
+  :frienships:
+    :accept: 'auto'
+:chain:
+  :hive_account: social
+  :hive_public_key: STM5ctejUsoZ9FwfCaVbNvWYYgNMBo9TVsHSE8wHrqAmNJi6sDctt
+  :hive_posting_wif: 5JrvPrQeBBvCRdjv29iDvkwn3EQYZ9jqfAHzrCyUvfbEbRkrYFC
+  :hive_api_url: https://api.openhive.network

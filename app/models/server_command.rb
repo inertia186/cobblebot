@@ -135,4 +135,8 @@ class ServerCommand
   def self.slack_bot
     @slack_bot = SlackBot.instance
   end
+  
+  def self.beechat_bot
+    @beechat_bot = BeechatBot.instance
+  end
 end

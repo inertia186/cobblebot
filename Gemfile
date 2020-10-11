@@ -5,7 +5,7 @@ gem 'bundler', '>= 1.12'
 gem 'rails', '4.2.10'
 
 # Needed by activesupport
-gem 'json', '1.8.5'
+gem 'json'
 
 # Rescue an error and then re-raise your own nested exceptions.
 gem 'nesty'
@@ -44,7 +44,7 @@ gem 'jbuilder', '~> 2.5'
 gem 'responders', '~> 2.2'
 
 # bundle exec rake doc:rails generates the API under doc/api.
-gem 'sdoc', '~> 0.4', group: :doc
+# gem 'sdoc', group: :doc#, '~> 0.4'
 
 # CobbleBot uses java_properties to read the Mineraft Server server.properites.
 gem 'java_properties', '~> 0.0.4'
@@ -60,6 +60,9 @@ gem 'mechanize', '~> 2.7'
 
 # CobbleBot uses slack-api to communicate with slack.com for servers that would like such integration.  Get an API token here: http://slack.com/
 gem 'slack-api', '~> 1.2'
+
+# CobbleBot uses beeline-rb to communicate with beechat.hive-engine.com
+gem 'beeline-rb', path: '../beeline-rb', require: 'beeline'#, '~> 0.0'
 
 # Can be used by callbacks.
 gem 'mc-slap', git: 'git://gist.github.com/5002463.git'
