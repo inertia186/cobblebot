@@ -22,7 +22,8 @@ gem 'jruby-openssl', platform: :jruby
 gem 'activerecord-jdbcsqlite3-adapter', platform: :jruby
 
 # Use SCSS for stylesheets
-gem 'sass-rails', '~> 5.0'
+# TEMP spike cut: disabled to expose the next non-Sass blocker.
+# gem 'sass-rails', '~> 5.0'
 
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '~> 3.0'
@@ -37,7 +38,8 @@ gem 'coffee-rails', '~> 4.1'
 gem 'actionpack-action_caching', '~> 1.1'
 
 # Use jquery as the JavaScript library
-gem 'jquery-rails', '~> 4.1'
+# TEMP vendor cut: vendored jquery2.js and jquery_ujs.js now satisfy the asset side.
+# gem 'jquery-rails', '~> 4.1'
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.5'
@@ -62,7 +64,7 @@ gem 'mechanize', '~> 2.7'
 gem 'slack-api', '~> 1.2'
 
 # Can be used by callbacks.
-gem 'mc-slap', git: 'git://gist.github.com/5002463.git'
+gem 'mc-slap', git: 'git@gist.github.com:5002463.git'
 # Used to translate in-game chat.
 gem 'google-translate', '~> 1.1'
 
@@ -102,29 +104,30 @@ gem 'dentaku', '~> 2.0'
 
 # Assets
 
-# Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
-gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
 # Bootstrap 4 ruby gem for Ruby on Rails (Sprockets) and Compass.
-gem 'bootstrap', '~> 4.0'
-gem 'bootstrap-glyphicons'
+# TEMP spike cut: disabled alongside Sass to avoid the old asset/ffi branch.
+# gem 'bootstrap', '~> 4.0'
+# gem 'bootstrap-glyphicons'
 # Wraps the Angular.js UI Bootstrap library.
-gem 'angular-ui-bootstrap-rails', '~> 1.3'
+# TEMP vendor cut: vendored JS/CSS now satisfies the asset side.
+# gem 'angular-ui-bootstrap-rails', '~> 1.3'
 
-source 'https://rails-assets.org' do
-  gem 'rails-assets-angular', '~> 1.5'
-  gem 'rails-assets-angular-inview', '~> 1.5'
-  gem 'rails-assets-angular-animate', '~> 1.5'
-  gem 'rails-assets-angular-resource', '~> 1.5'
-  gem 'rails-assets-angular-flash-alert', '~> 1.1'
-  gem 'rails-assets-angular-cancel-on-navigate', '~> 0.1'
-  gem 'rails-assets-ngclipboard', '~> 1.0'
-  gem 'rails-assets-clipboard', '~> 1.5'
-  gem 'rails-assets-nprogress', '~> 0.2'
-  gem 'rails-assets-moment', '~> 2.13'
-  gem 'rails-assets-chosen', '~> 1.5'
-  # Tooltips and popovers depend on tether for positioning.
-  gem 'rails-assets-tether', '>= 1.3'
-end
+# TEMP vendor cut: vendored JS/CSS now satisfies the asset side.
+# source 'https://rails-assets.org' do
+#   gem 'rails-assets-angular', '~> 1.5'
+#   gem 'rails-assets-angular-inview', '~> 1.5'
+#   gem 'rails-assets-angular-animate', '~> 1.5'
+#   gem 'rails-assets-angular-resource', '~> 1.5'
+#   gem 'rails-assets-angular-flash-alert', '~> 1.1'
+#   gem 'rails-assets-angular-cancel-on-navigate', '~> 0.1'
+#   gem 'rails-assets-ngclipboard', '~> 1.0'
+#   gem 'rails-assets-clipboard', '~> 1.5'
+#   gem 'rails-assets-nprogress', '~> 0.2'
+#   gem 'rails-assets-moment', '~> 2.13'
+#   gem 'rails-assets-chosen', '~> 1.5'
+#   # Tooltips and popovers depend on tether for positioning.
+#   gem 'rails-assets-tether', '>= 1.3'
+# end
 
 group :development do
   # Access an IRB console on exception pages or by using <%= console %> in views
@@ -156,7 +159,6 @@ group :development, :test do
   gem 'byebug', '~> 9.0', platforms: :ruby
 
   gem 'pry-rails', '~> 0.3'
-  gem 'malp', github: 'inertia186/malp'#, ref: 'b0d172c'
   # For quick dumps: https://github.com/yamldb/yaml_db
   #gem 'yaml_db'
 end
