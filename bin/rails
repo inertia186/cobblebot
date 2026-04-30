@@ -5,4 +5,6 @@ rescue LoadError
 end
 APP_PATH = File.expand_path('../../config/application', __FILE__)
 require_relative '../config/boot'
+# TEMP Ruby 3 / Rails 6.1 spike cut: ensure stdlib Logger is loaded before railties command boot.
+require 'logger'
 require 'rails/commands'

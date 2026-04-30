@@ -1,5 +1,5 @@
 class Admin::SessionsController < Admin::AdminController
-  before_filter :authenticate_admin!, except: [:new, :create]
+  before_action :authenticate_admin!, except: [:new, :create]
 
   def new
   end

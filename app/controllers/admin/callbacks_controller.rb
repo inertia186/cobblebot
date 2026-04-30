@@ -1,6 +1,6 @@
 class Admin::CallbacksController < Admin::AdminController
-  before_filter :authenticate_admin!
-  before_filter :setup_params, only: :index
+  before_action :authenticate_admin!
+  before_action :setup_params, only: :index
 
   def index
     @status = params[:status]
