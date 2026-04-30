@@ -1,7 +1,7 @@
 require 'digest/md5'
 
 class Admin::ConfigController < Admin::AdminController
-  before_filter :authenticate_admin!
+  before_action :authenticate_admin!
 
   def suggestions
     @key = params[:key]

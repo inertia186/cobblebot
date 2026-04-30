@@ -1,5 +1,5 @@
 class PvpsController < ApplicationController
-  before_filter :setup_params, only: :index
+  before_action :setup_params, only: :index
   respond_to :json
   
   def index

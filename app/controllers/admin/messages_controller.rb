@@ -1,7 +1,7 @@
 class Admin::MessagesController < Admin::AdminController
-  before_filter :http_authenticate_feed, only: :index
-  before_filter :authenticate_admin!
-  before_filter :setup_params, only: :index
+  before_action :http_authenticate_feed, only: :index
+  before_action :authenticate_admin!
+  before_action :setup_params, only: :index
   
   def index
     cache_key = request.env["HTTP_IF_NONE_MATCH"]

@@ -1,8 +1,8 @@
 require 'digest/md5'
 
 class Admin::PlayersController < Admin::AdminController
-  before_filter :authenticate_admin!
-  before_filter :setup_params, only: :index
+  before_action :authenticate_admin!
+  before_action :setup_params, only: :index
   
   respond_to :json
   

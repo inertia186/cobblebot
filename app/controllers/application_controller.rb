@@ -15,8 +15,8 @@ class ApplicationController < ActionController::Base
 
   helper_method :setup_params
 
-  before_filter :check_server_status, unless: Proc.new {
-    [Admin, Api::V1].include? self.class.parent
+  before_action :check_server_status, unless: proc {
+    [Admin, Api::V1].include?(self.class.module_parent)
   }
 
   def check_server_status

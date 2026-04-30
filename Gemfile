@@ -1,20 +1,24 @@
 source 'https://rubygems.org'
 
-gem 'bundler', '>= 1.12'
+# TEMP Ruby 3 spike cut: let a modern Bundler drive resolution so we can expose the next real blocker.
+# gem 'bundler', '>= 1.12'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '4.2.10'
+# TEMP Ruby 3 spike cut: next plausible Rails shelf above 5.2.
+gem 'rails', '~> 6.1.7', '>= 6.1.7.10'
 
-# Needed by activesupport
-gem 'json', '1.8.5'
+# TEMP Ruby 3 / Rails 6.1 spike cut: old json 1.8.5 is not viable on this stack.
+gem 'json', '>= 2.6'
 
 # Rescue an error and then re-raise your own nested exceptions.
 gem 'nesty'
 
 # Use sqlite3 as the database for Active Record
-gem 'sqlite3', require: false, platforms: :ruby
+# TEMP Ruby 3 spike cut: old sqlite3 1.3.x does not build on Ruby 3.
+gem 'sqlite3', '~> 1.6', require: false, platforms: :ruby
 
 # Use postgresql if you're tired of SQLite errors.
-gem 'pg', platforms: :ruby
+# TEMP Ruby 3 spike cut: old pg 1.0.x still calls removed taint APIs on Ruby 3.
+gem 'pg', '~> 1.5', platforms: :ruby
 # gem 'pg', platforms: :jruby, git: 'git://github.com/headius/jruby-pg.git', :branch => :master
 
 # Enables sqlite3 on jruby
@@ -23,7 +27,8 @@ gem 'activerecord-jdbcsqlite3-adapter', platform: :jruby
 
 # Use SCSS for stylesheets
 # TEMP spike cut: disabled to expose the next non-Sass blocker.
-# gem 'sass-rails', '~> 5.0'
+# TEMP Ruby 3 / Rails 6.1 spike cut: legacy .scss assets still need a Sass engine on the modern stack.
+gem 'sassc-rails', '~> 2.1'
 
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '~> 3.0'
@@ -43,10 +48,12 @@ gem 'actionpack-action_caching', '~> 1.1'
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.5'
-gem 'responders', '~> 2.2'
+# TEMP Ruby 3 / Rails 6.1 spike cut: responders 2.x tops out below this Rails shelf.
+gem 'responders', '~> 3.1'
 
 # bundle exec rake doc:rails generates the API under doc/api.
-gem 'sdoc', '~> 0.4', group: :doc
+# TEMP Ruby 3 / Rails 6.1 spike cut: sdoc pins json below a viable modern version.
+# gem 'sdoc', '~> 0.4', group: :doc
 
 # CobbleBot uses java_properties to read the Mineraft Server server.properites.
 gem 'java_properties', '~> 0.0.4'
@@ -58,10 +65,14 @@ gem 'minecraft-query', '~> 1.0'
 gem 'file-tail', '~> 1.1.1'
 
 # CobbleBot uses mechanize to get the HTML Title when displaying a link to players.
-gem 'mechanize', '~> 2.7'
+# TEMP Ruby 3 spike cut: old mechanize/mime-types stack is not Ruby-3-clean.
+gem 'mechanize', '~> 2.9'
+# TEMP Ruby 3 spike cut: WEBrick is no longer bundled with Ruby stdlib.
+gem 'webrick', '~> 1.8'
 
 # CobbleBot uses slack-api to communicate with slack.com for servers that would like such integration.  Get an API token here: http://slack.com/
-gem 'slack-api', '~> 1.2'
+# TEMP Ruby 3 spike cut: old slack-api/faraday stack is not Ruby-3-clean.
+# gem 'slack-api', '~> 1.2'
 
 # Can be used by callbacks.
 gem 'mc-slap', git: 'git@gist.github.com:5002463.git'
@@ -86,9 +97,11 @@ gem 'summer', '~> 1.0'
 # Use this if there are problems with the latest version.
 #gem 'rufus-scheduler', '~> 2.0.24'
 
-gem 'haml', '~> 4.0'
+# TEMP Ruby 3 / Rails 5.2 spike cut: Haml 4 expects old Erubis handler APIs.
+gem 'haml', '~> 5.2'
 
-gem 'will_paginate', '~> 3.1'
+# TEMP Ruby 3 / Rails 5.2 spike cut: older will_paginate hits Proc.new semantics removed by Ruby 3.
+gem 'will_paginate', '~> 3.3'
 
 # For 'Calc' callback
 gem 'dentaku', '~> 2.0'
@@ -131,13 +144,15 @@ gem 'dentaku', '~> 2.0'
 
 group :development do
   # Access an IRB console on exception pages or by using <%= console %> in views
-  gem 'web-console', '~> 2.2', platforms: :ruby
+  # TEMP Ruby 3 / Rails 5.2 spike cut: old web-console stack is not worth saving here.
+  # gem 'web-console', '~> 2.2', platforms: :ruby
 
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
 #  gem 'spring'
 
   gem 'better_errors', '~> 2.1', require: false, platforms: :ruby
-  gem 'binding_of_caller', '~> 0.7', require: false, platforms: :ruby
+  # TEMP Ruby 3 / Rails 5.2 spike cut: old binding_of_caller native extension is not worth saving here.
+  # gem 'binding_of_caller', '~> 0.7', require: false, platforms: :ruby
   gem 'rack-mini-profiler', '~> 0.10', require: false
 end
 
@@ -151,14 +166,17 @@ group :test do
   gem 'simplecov-csv', '~> 0.1', require: false
   gem 'webmock', '~> 2.0', require: false
   gem 'database_cleaner', '~> 1.5', require: false
-  gem 'memory_test_fix', '~> 1.3'
+  # TEMP Ruby 3 / Rails 6.1 spike cut: memory_test_fix does not support this Rails shelf.
+  # gem 'memory_test_fix', '~> 1.3'
 end
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
-  gem 'byebug', '~> 9.0', platforms: :ruby
+  # TEMP Ruby 3 spike cut: old byebug 9.x native extension does not build on Ruby 3.2.
+  gem 'byebug', '~> 11.1', platforms: :ruby
 
-  gem 'pry-rails', '~> 0.3'
+  # TEMP Ruby 3 / Rails 5.2 spike cut: old pry/pry-rails stack is not worth saving here.
+  # gem 'pry-rails', '~> 0.3'
   # For quick dumps: https://github.com/yamldb/yaml_db
   #gem 'yaml_db'
 end

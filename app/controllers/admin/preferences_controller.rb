@@ -1,5 +1,5 @@
 class Admin::PreferencesController < Admin::AdminController
-  before_filter :authenticate_admin!
+  before_action :authenticate_admin!
 
   respond_to :json
 

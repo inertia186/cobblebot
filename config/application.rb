@@ -1,5 +1,7 @@
 require File.expand_path('../boot', __FILE__)
 
+# TEMP Ruby 3 / Rails 6.1 spike cut: ensure stdlib Logger is loaded before ActiveSupport touches it.
+require 'logger'
 require 'rails/all'
 
 # Require the gems listed in Gemfile, including any gems
@@ -8,6 +10,9 @@ Bundler.require(*Rails.groups)
 
 module Cobblebot
   class Application < Rails::Application
+    # TEMP Ruby 3 / Rails 6.1 spike cut: keep legacy constant loading semantics while the app is still pre-Zeitwerk.
+    config.autoloader = :classic
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
@@ -20,8 +25,7 @@ module Cobblebot
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
 
-    # Do not swallow errors in after_commit/after_rollback callbacks.
-    config.active_record.raise_in_transactional_callbacks = true
+    # TEMP Ruby 3 / modern Rails spike: this old Rails 4 callback setting is obsolete on newer Rails.
     config.middleware.use Rack::Deflater
   end
 end
