@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'minitest/mock'
 
 class ServerCommandTest < ActiveSupport::TestCase
   def setup
@@ -9,6 +10,23 @@ class ServerCommandTest < ActiveSupport::TestCase
     assert_command_executed do
       ServerCommand.say('@a', 'This is Server.')
     end
+  end
+
+  def test_execute_strips_surrounding_command_whitespace
+    commands = []
+    rcon = Object.new
+    rcon.define_singleton_method(:command) do |command|
+      commands << command
+      ''
+    end
+
+    ServerCommand.stub(:command_scheme, 'rcon') do
+      ServerCommand.stub(:rcon, rcon) do
+        ServerCommand.execute("\n  tellraw @a {\"text\":\"test\"}\n", try_max: 1)
+      end
+    end
+
+    assert_equal ['tellraw @a {"text":"test"}'], commands
   end
 
   def test_say_anonymous
