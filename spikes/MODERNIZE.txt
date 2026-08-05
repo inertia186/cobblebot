@@ -165,6 +165,11 @@ What the modernization spike established
   Zeitwerk with the original phrase data and deterministic sampling coverage;
   clean installs and rollback bundles no longer require GitHub SSH host-key
   trust, and Rails/test boot no longer emits the Gist's stderr banner.
+- ai4r 2.0 preserves CobbleBot's ID3 dataset and evaluation API on Ruby 3.2.
+  Prediction classifiers now handle empty and unseen training data explicitly,
+  rebuild from current database rows instead of leaking a process-global cache,
+  and retain the in-game `Cannot predict` response without hiding programming
+  errors behind broad callback rescues.
 
 Completed migration slice
 -------------------------
@@ -256,13 +261,21 @@ Translate callback, `google-translate`, and its `json_pure`/`resource_accessor`
 dependencies are gone. The deployment migration removes only the persisted
 system Translate callback. Unused `nesty` and `simplecov-csv` are also absent.
 
+The ai4r slice is complete locally: ai4r 2.0 is locked, reputation and death
+classifiers use stable training-row order and explicit unknown-value behavior,
+empty datasets return no prediction, and classifier state cannot outlive the
+database rows that trained it. Model and seeded command coverage protects both
+successful and insufficient-data responses. The complete PostgreSQL gate is
+405 tests and 3046 assertions with no failures or errors, six intentional
+skips, and 77.31% line coverage.
+
 Likely follow-on order
 ----------------------
-1. Deploy the obsolete dependency cleanup and confirm the system Translate
-   callback migration removes only the intended row.
-2. Audit the live `ai4r` prediction boundary for its 2.0 upgrade. Keep the
-   working `minecraft-query` boundary and its Ruby 3 compatibility test
-   unchanged unless production evidence calls for a replacement.
+1. Deploy the obsolete dependency and ai4r slices and confirm the system
+   Translate callback migration removes only the intended row. Live ai4r
+   command verification is deferred until Bolger has suitable prediction data.
+2. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
+   test unchanged unless production evidence calls for a replacement.
 3. Decide whether optional IRC remains supported before upgrading or retiring
    the legacy `summer` client.
 4. Modernize or retire the obsolete God process definition now that systemd is

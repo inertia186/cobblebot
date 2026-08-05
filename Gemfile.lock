@@ -78,7 +78,7 @@ GEM
       tzinfo (~> 2.0)
     addressable (2.9.0)
       public_suffix (>= 2.0.2, < 8.0)
-    ai4r (1.13)
+    ai4r (2.0)
     base64 (0.3.0)
     benchmark (0.5.0)
     better_errors (2.4.0)
@@ -346,7 +346,7 @@ PLATFORMS
 
 DEPENDENCIES
   actionpack-action_caching (~> 1.1)
-  ai4r (~> 1.13)
+  ai4r (~> 2.0)
   better_errors (~> 2.1)
   byebug (~> 11.1)
   capybara (~> 3.40)

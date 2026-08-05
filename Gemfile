@@ -62,7 +62,7 @@ gem 'webrick', '~> 1.8'
 # gem 'cabalist'
 
 # Adds general machine learning capabilities.
-gem 'ai4r', '~> 1.13'
+gem 'ai4r', '~> 2.0'
 
 # CobbleBot uses redis/resque to kick off the log monitor and other stuff.
 gem 'redis', '~> 5.4', '>= 5.4.1', require: false
