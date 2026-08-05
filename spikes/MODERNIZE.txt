@@ -170,6 +170,13 @@ What the modernization spike established
   rebuild from current database rows instead of leaking a process-global cache,
   and retain the in-game `Cannot predict` response without hiding programming
   errors behind broad callback rescues.
+- The repository no longer ships an incomplete God process definition or a
+  server-specific tmux recipe. README records one supervisor-neutral command
+  for each web, scheduler, bootstrap, watchdog, monitor, and optional IRC
+  process; deployment-specific systemd policy remains outside the application.
+- Summer remains the supported optional IRC integration. Sting chat is deferred
+  as a separate feature rather than replacing or reshaping Summer during
+  dependency modernization.
 
 Completed migration slice
 -------------------------
@@ -269,6 +276,14 @@ successful and insufficient-data responses. The complete PostgreSQL gate is
 405 tests and 3046 assertions with no failures or errors, six intentional
 skips, and 77.31% line coverage.
 
+The supervisor-contract slice is complete locally: the obsolete God definition
+and server-specific tmux recipe are gone, every application process has one
+portable `bundle exec` command, graceful Resque termination is explicit, and
+CobbleBot does not claim ownership of systemd or Minecraft server supervision.
+Summer remains available unchanged; Sting chat is later feature work. The
+complete PostgreSQL gate passes 407 tests and 3065 assertions with no failures
+or errors, six intentional skips, and 77.28% line coverage.
+
 Likely follow-on order
 ----------------------
 1. Deploy the obsolete dependency and ai4r slices and confirm the system
@@ -276,10 +291,10 @@ Likely follow-on order
    command verification is deferred until Bolger has suitable prediction data.
 2. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
    test unchanged unless production evidence calls for a replacement.
-3. Decide whether optional IRC remains supported before upgrading or retiring
-   the legacy `summer` client.
-4. Modernize or retire the obsolete God process definition now that systemd is
-   the proven production supervisor.
+3. Add Sting chat as a separate integration when its protocol, authentication,
+   and worker ownership are defined; keep Summer available in the meantime.
+4. Resolve the product-direction and historical-admin-UI decisions before
+   undertaking another broad modernization front.
 
 Open decisions
 --------------

@@ -32,6 +32,10 @@ Operational sequence
 4. Start the `minecraft_watchdog` and `minecraft_server_log_monitor` workers.
 5. Start the optional IRC worker when configured.
 
+README records each long-running component as its own supervisor-neutral
+command. The application does not ship systemd paths, service users, restart
+policy, or a competing process manager.
+
 Rails web, console, routes, migrations, and asset commands may boot without
 Redis. Scheduler, bootstrap, worker, and Resque administration operations still
 require it.
@@ -52,6 +56,5 @@ mutation tests so validation does not disturb unrelated live queues.
 
 Deferred work
 -------------
-- Modernize or replace `config/cobblebot.god`.
-- Rework the watchdog's historical queue-depth/self-replenishment design only as
-  a separate worker-runtime change.
+- Add Sting chat as a separate integration when its worker and queue ownership
+  are defined. The existing optional Summer IRC worker remains supported.
