@@ -58,6 +58,14 @@ Implemented boundary
   retired. A data migration removes only the persisted system callback; custom
   callbacks with the same name remain. Unused `nesty` and `simplecov-csv`
   dependencies are absent as well.
+- The obsolete God definition is retired. It combined the scheduler and monitor
+  in one incomplete process while omitting the web, watchdog bootstrap, and
+  watchdog worker. README now defines one supervisor-neutral command per
+  process; deployment-specific systemd users, paths, and restart policy remain
+  infrastructure concerns.
+- Summer remains the supported optional IRC client. A future Sting chat
+  integration is a separate feature and does not change the current IRC worker
+  or queue contract.
 
 Validation
 ----------
@@ -91,4 +99,5 @@ rollback.
 
 Deferred work
 -------------
-- Modernize or replace `config/cobblebot.god`.
+- Add Sting chat as a separate integration when its protocol and operational
+  requirements are defined.

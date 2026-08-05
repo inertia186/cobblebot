@@ -34,10 +34,11 @@ There is also an optional IRC bot that allows players to interact.
     $ cd cobblebot
     $ git clone https://github.com/inertia186/cobblebot.git .
     $ bundle install
-    $ rake db:migrate
-    $ rake db:seed
-    $ rails s
-    $ open http://localhost:3000/admin/sessions/new
+    $ bundle exec rails db:migrate
+    $ bundle exec rails db:seed
+    $ bundle exec rails server
+
+Open `http://localhost:3000/admin/session/new`.
 
 Now, use the default admin password to log in: `123456`
 
@@ -61,12 +62,28 @@ Ubuntu:
     $ apt-get install redis-server
     $ redis-server /etc/redis/redis.conf
 
-Once Redis is up and running, start the CobbleBot scheduler and workers:
+Once Redis is running, operate CobbleBot as separate processes. These production
+examples are supervisor-neutral; substitute the appropriate Rails environment.
 
-    $ BACKGROUND=yes RAILS_ENV='development' rake resque:scheduler
-    $ RAILS_ENV='development' bundle exec rake cobblebot:workers:bootstrap
-    $ TERM_CHILD=1 RAILS_ENV='development' QUEUE='minecraft_watchdog' rake resque:work
-    $ TERM_CHILD=1 RAILS_ENV='development' QUEUE='minecraft_server_log_monitor' rake resque:work
+| Process | Command | Required |
+| --- | --- | --- |
+| Web | `RAILS_ENV=production bundle exec rails server` | Yes |
+| Scheduler | `RAILS_ENV=production bundle exec rake resque:scheduler` | Yes |
+| Watchdog bootstrap | `RAILS_ENV=production bundle exec rake cobblebot:workers:bootstrap` | One shot |
+| Watchdog worker | `TERM_CHILD=1 RAILS_ENV=production QUEUE=minecraft_watchdog bundle exec rake resque:work` | Yes |
+| Log-monitor worker | `TERM_CHILD=1 RAILS_ENV=production QUEUE=minecraft_server_log_monitor bundle exec rake resque:work` | Yes |
+| IRC worker | `TERM_CHILD=1 RAILS_ENV=production QUEUE=irc_bot bundle exec rake resque:work` | Only when IRC is configured |
+
+Start Redis first, then the scheduler. Run the watchdog bootstrap once, and
+start the watchdog and log-monitor workers. The web process may start anywhere
+after its database is ready. Each long-running command must have its own process
+under the operator's supervisor. The application repository intentionally does
+not prescribe systemd paths, users, environment files, or restart policy.
+
+Stop workers with `TERM`; `TERM_CHILD=1` allows Resque to terminate a forked job
+cleanly. Stop scheduler and worker processes before switching releases, then
+restart them in the same order. CobbleBot does not supervise the Minecraft
+server itself.
 
 The bootstrap task immediately enqueues the watchdog unless one is already
 queued or running. It exits with an error if Redis is unavailable; the scheduler
@@ -104,45 +121,6 @@ pending standby for the five-minute log monitor and, when enabled, IRC. Active
 jobs are deliberately not counted toward that pending standby. If IRC is
 disabled, pending IRC jobs are cleared, but an already-running IRC worker is not
 terminated.
-
-If you've configured IRC, you need to start a worker for that as well:
-
-    $ TERM_CHILD=1 RAILS_ENV='development' QUEUE='irc_bot' rake resque:work
-
-### tmux - optional
-
-If you like to use `tmux`, you can manage the various CobbleBot processes in a single `tmux` console.  Here's one way to go about that:
-
-	#!/bin/bash
-
-	BASE="$HOME/cobblebot"
-	cd $BASE
-
-	tmux start-server
-	tmux new-session -d -s CobbleBot -n Project
-	tmux new-window -t CobbleBot:1 -n resque-scheduler
-	tmux new-window -t CobbleBot:2 -n watchdog
-	tmux new-window -t CobbleBot:3 -n monitor
-	tmux new-window -t CobbleBot:4 -n irc
-	tmux new-window -t CobbleBot:5 -n server
-	tmux new-window -t CobbleBot:6 -n dev-log
-
-	tmux send-keys -t CobbleBot:0 "cd $BASE;" C-m
-	tmux send-keys -t CobbleBot:1 "cd $BASE; RAILS_ENV='development' rake resque:scheduler" C-m
-	tmux send-keys -t CobbleBot:2 "cd $BASE; RAILS_ENV='development' bundle exec rake cobblebot:workers:bootstrap && TERM_CHILD=1 RAILS_ENV='development' QUEUE='minecraft_watchdog' rake resque:work" C-m
-	tmux send-keys -t CobbleBot:3 "cd $BASE; TERM_CHILD=1 RAILS_ENV='development' QUEUE='minecraft_server_log_monitor' rake resque:work" C-m
-	tmux send-keys -t CobbleBot:4 "cd $BASE; TERM_CHILD=1 RAILS_ENV='development' QUEUE='irc_bot' rake resque:work" C-m
-	tmux send-keys -t CobbleBot:5 "sudo su steve" C-m
-	tmux send-keys -t CobbleBot:6 "cd $BASE; tail -200 -f log/development.log" C-m
-
-	tmux select-window -t CobbleBot:0
-	tmux attach-session -t CobbleBot
-
-Please note, the `CobbleBot:5` window is intended to kick off the actual Minecraft Server.  If you use the same user as CobbleBot to run your Minecraft Server, instead of `sudo su steve` you can just use `cd /path/to/minecraft_server`.
-
-Once `CobbleBot:5` is there, you can execute the Minecraft Server:
-
-    $ java -jar minecraft_server.jar
 
 ### Take it for a spin
 
