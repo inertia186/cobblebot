@@ -177,6 +177,12 @@ What the modernization spike established
 - Summer remains the supported optional IRC integration. Sting chat is deferred
   as a separate feature rather than replacing or reshaping Summer during
   dependency modernization.
+- The remaining Rails-7.0-compatible dependency set is current under Bundler's
+  strict resolver. Better Errors, Jbuilder, JSON, Responders, Crack, ExecJS,
+  Launchy, NKF, Public Suffix, Tilt, and Tins are refreshed without moving
+  Rails, Summer, ai4r, Redis/Resque, file-tail, or Minecraft Query. Tins' larger
+  Ruby-3.2-compatible support graph is accepted and covered at the real file
+  rotation boundary.
 
 Completed migration slice
 -------------------------
@@ -283,6 +289,13 @@ CobbleBot does not claim ownership of systemd or Minecraft server supervision.
 Summer remains available unchanged; Sting chat is later feature work. The
 complete PostgreSQL gate passes 407 tests and 3065 assertions with no failures
 or errors, six intentional skips, and 77.28% line coverage.
+
+The remaining strict dependency refresh is complete locally. Real file-tail
+rotation, Mechanize/link handling, JSON/API rendering, production assets, and
+all 21 headless-browser acceptance tests pass on the refreshed lockfile. The
+complete PostgreSQL gate remains 407 tests and 3065 assertions with no failures
+or errors, six intentional skips, and 77.31% line coverage. Rails and the other
+explicitly excluded runtime shelves did not move.
 
 Likely follow-on order
 ----------------------
