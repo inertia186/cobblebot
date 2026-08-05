@@ -35,6 +35,31 @@ class ServerCommandTest < ActiveSupport::TestCase
     end
   end
 
+  def test_say_slap_with_target
+    McSlap.stub(:slap, 'slaps Dinnerbone with a large piece of cobble') do
+      assert_command_executed do
+        ServerCommand.say_slap('@a', 'Server', 'Dinnerbone')
+      end
+    end
+
+    assert_equal 1, ServerCommand.commands_executed.size
+    command = ServerCommand.commands_executed.keys.first
+    assert_includes command, 'slaps Dinnerbone with a large piece of cobble'
+  end
+
+  def test_say_slap_without_target
+    assert_no_difference -> { Link.count } do
+      assert_command_executed do
+        ServerCommand.say_slap('@a', 'Server')
+      end
+    end
+
+    assert_equal 1, ServerCommand.commands_executed.size
+    command = ServerCommand.commands_executed.keys.first
+    assert_includes command, 'has 46116 slap combinations.'
+    refute_includes command, 'gist.github.com'
+  end
+
   def test_say_link
     cobblebot = Link.where(url: 'http://github.com/inertia186/cobblebot').first
     cobblebot.update_attribute(:expires_at, 2.days.from_now)

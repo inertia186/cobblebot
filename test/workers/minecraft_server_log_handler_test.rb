@@ -362,9 +362,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
 
   def test_slap_no_target
     assert_callback_ran 'Slap' do
-      stub_gist do
-        ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server slap', debug: true)
-      end
+      ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> @server slap', debug: true)
     end
     # Make sure the "pretend" option reaches the callback for simulated chat.
     assert_equal '@server slap', Player.find_by_nick('inertia186').last_chat, 'expect last chat to be @server slap'

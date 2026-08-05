@@ -210,7 +210,7 @@ and requires at least 75% line coverage:
 
 Focused test commands continue to produce mergeable coverage reports without
 enforcing the aggregate floor. On Rails 7.0.10, the current complete-suite
-baseline is 76.33%.
+baseline is 76.37%.
 
 ## Export/Import
 
