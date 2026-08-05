@@ -195,8 +195,8 @@ and requires at least 75% line coverage:
     $ RAILS_ENV=test bundle exec rake cobblebot:test:coverage
 
 Focused test commands continue to produce mergeable coverage reports without
-enforcing the aggregate floor. On Rails 7.0.10, the current complete-suite
-baseline is 76.37%.
+enforcing the aggregate floor. On Rails 7.1.6 with Rails 7.0 configuration
+defaults, the current complete-suite baseline is 77.31%.
 
 ## Export/Import
 

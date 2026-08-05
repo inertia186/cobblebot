@@ -9,7 +9,8 @@ is evidence for choosing the next migration step, not a final project roadmap.
 Current baseline (2026-08-05)
 -----------------------------
 - Branch: `develop`.
-- Ruby `3.2.7`, Bundler `2.6.6`, and Rails `7.0.10` resolve and boot.
+- Ruby `3.2.7`, Bundler `2.6.6`, and Rails `7.1.6` resolve and boot while
+  configuration defaults remain intentionally pinned to Rails 7.0.
 - `bundle check` passes.
 - The Rails environment boots when the configured local Redis is available.
 - Normal Rails initialization no longer inspects or mutates Resque, so web,
@@ -23,8 +24,7 @@ Current baseline (2026-08-05)
   Action View, Rails test-unit, and Sprockets railties it uses. Unused framework
   engines no longer contribute boot requirements or routes.
 - `Gemfile.lock` contains the native `arm64-darwin-24` platform variants for
-  Nokogiri, FFI, PostgreSQL, and SQLite. That lockfile change is currently
-  unstaged.
+  Nokogiri, PostgreSQL, and SQLite.
 - Static web dependencies are vendored under `vendor/assets/`; the old live
   `rails-assets.org` path is disabled.
 
@@ -183,6 +183,13 @@ What the modernization spike established
   Rails, Summer, ai4r, Redis/Resque, file-tail, or Minecraft Query. Tins' larger
   Ruby-3.2-compatible support graph is accepted and covered at the real file
   rotation boundary.
+- Rails 7.1.6 is a compatibility bridge rather than a defaults migration.
+  `config.load_defaults 7.0`, selective railties, Redis-independent boot, and
+  the public route surface remain unchanged. The deprecated secrets-file path
+  is retired in favor of `SECRET_KEY_BASE` and Rails local secrets, test
+  exception handling uses `:none`, and Resque task coverage now observes a
+  clean Rake process. PostgreSQL, real Redis, assets, and headless Chrome remain
+  green.
 
 Completed migration slice
 -------------------------
@@ -297,16 +304,27 @@ complete PostgreSQL gate remains 407 tests and 3065 assertions with no failures
 or errors, six intentional skips, and 77.31% line coverage. Rails and the other
 explicitly excluded runtime shelves did not move.
 
+The Rails 7.1 compatibility bridge is complete locally: Rails 7.1.6 runs with
+Rails 7.0 defaults, test boot raises no application-owned deprecations,
+production secrets continue through `SECRET_KEY_BASE`, and ordinary boot stays
+Redis-independent. The complete PostgreSQL gate passes 407 tests and 3147
+assertions with no failures or errors, six intentional skips, and 77.31% line
+coverage. Production assets, all 21 browser acceptance tests, and the two-test
+real-Redis integration are green.
+
 Likely follow-on order
 ----------------------
-1. Deploy the obsolete dependency and ai4r slices and confirm the system
-   Translate callback migration removes only the intended row. Live ai4r
-   command verification is deferred until Bolger has suitable prediction data.
-2. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
+1. Review and adopt Rails 7.1 configuration defaults as a separate behavior
+   slice, then advance the framework to Rails 7.2 before the next Bolger
+   deployment.
+2. Deploy the accumulated obsolete-dependency, ai4r, supervisor, strict-package,
+   and Rails 7.1 slices. Live ai4r command verification remains deferred until
+   Bolger has suitable prediction data.
+3. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
    test unchanged unless production evidence calls for a replacement.
-3. Add Sting chat as a separate integration when its protocol, authentication,
+4. Add Sting chat as a separate integration when its protocol, authentication,
    and worker ownership are defined; keep Summer available in the meantime.
-4. Resolve the product-direction and historical-admin-UI decisions before
+5. Resolve the product-direction and historical-admin-UI decisions before
    undertaking another broad modernization front.
 
 Open decisions

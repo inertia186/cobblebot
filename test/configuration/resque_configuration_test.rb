@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'open3'
 require 'rake'
 
 class ResqueConfigurationTest < ActiveSupport::TestCase
@@ -73,11 +74,16 @@ class ResqueConfigurationTest < ActiveSupport::TestCase
   end
 
   def test_supported_resque_tasks_are_loaded_without_the_retired_pool_hook
-    Rails.application.load_tasks unless Rake::Task.task_defined?('resque:work')
+    output, errors, status = Open3.capture3(
+      {'RAILS_ENV' => 'test'},
+      'bundle', 'exec', 'rake', '-P',
+      chdir: Rails.root.to_s
+    )
 
-    assert Rake::Task.task_defined?('resque:work')
-    assert Rake::Task.task_defined?('resque:scheduler')
-    refute Rake::Task.task_defined?('resque:pool:setup')
+    assert status.success?, errors
+    assert_includes output, 'rake resque:work'
+    assert_includes output, 'rake resque:scheduler'
+    refute_includes output, 'rake resque:pool:setup'
   end
 
   def test_resque_serialization_uses_the_current_multi_json_api
