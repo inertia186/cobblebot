@@ -1,4 +1,4 @@
-class DenormalizeStats < ActiveRecord::Migration
+class DenormalizeStats < ActiveRecord::Migration[4.2]
   def up
     add_column :players, :leave_game, :integer, default: 0, null: false
     add_column :players, :deaths, :integer, default: 0, null: false

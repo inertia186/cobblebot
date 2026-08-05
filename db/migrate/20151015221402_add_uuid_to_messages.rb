@@ -1,4 +1,4 @@
-class AddUuidToMessages < ActiveRecord::Migration
+class AddUuidToMessages < ActiveRecord::Migration[4.2]
   def up
     add_column :messages, :uuid, :string
     

@@ -1,4 +1,4 @@
-class CreateMessagesManagement < ActiveRecord::Migration
+class CreateMessagesManagement < ActiveRecord::Migration[4.2]
   def up
     add_column :messages, :deleted_at, :timestamp
     
