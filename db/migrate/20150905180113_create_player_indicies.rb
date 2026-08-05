@@ -1,4 +1,4 @@
-class CreatePlayerIndicies < ActiveRecord::Migration
+class CreatePlayerIndicies < ActiveRecord::Migration[4.2]
   def change
     add_index :links, [:actor_type, :actor_id], name: 'index_links_on_actor_type_and_actor_id'
     add_index :messages, :author_id, name: 'index_messages_on_author_id'

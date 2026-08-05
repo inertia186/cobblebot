@@ -1,4 +1,4 @@
-class CreateReputations < ActiveRecord::Migration
+class CreateReputations < ActiveRecord::Migration[4.2]
   def change
     create_table :reputations do |t|
       t.integer :truster_id

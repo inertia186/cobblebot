@@ -1,4 +1,4 @@
-class CreateIps < ActiveRecord::Migration
+class CreateIps < ActiveRecord::Migration[4.2]
   def change
     create_table :ips do |t|
       t.string :address, null: false

@@ -1,6 +1,6 @@
 include ActionView::Helpers::TextHelper
 
-class AddCcToIps < ActiveRecord::Migration
+class AddCcToIps < ActiveRecord::Migration[4.2]
   def up
     add_column :ips, :cc, :string
     add_index :ips, [:cc, :player_id], name: :index_ips_on_cc_and_player_id

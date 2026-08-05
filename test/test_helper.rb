@@ -516,7 +516,7 @@ File.open(fake_server_properties, 'a') do |f|
   #Thu Apr 09 07:38:13 PDT 2015
   spawn-protection=16
   max-tick-time=60000
-  query.port=25565
+  query.port=65534
   generator-settings=
   force-gamemode=false
   allow-nether=true
@@ -538,7 +538,7 @@ File.open(fake_server_properties, 'a') do |f|
   network-compression-threshold=256
   max-world-size=29999984
   rcon.port=25575
-  server-port=25565
+  server-port=65534
   debug=false
   server-ip=
   spawn-npcs=true

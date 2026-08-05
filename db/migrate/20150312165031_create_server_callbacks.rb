@@ -1,4 +1,4 @@
-class CreateServerCallbacks < ActiveRecord::Migration
+class CreateServerCallbacks < ActiveRecord::Migration[4.2]
   def change
     create_table :server_callbacks do |t|
       t.string :type

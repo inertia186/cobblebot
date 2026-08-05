@@ -1,4 +1,4 @@
-class AddLastChatAtToPlayers < ActiveRecord::Migration
+class AddLastChatAtToPlayers < ActiveRecord::Migration[4.2]
   def up
     add_column :players, :last_chat_at, :timestamp
     
