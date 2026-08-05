@@ -14,6 +14,16 @@ class PreferenceTest < ActiveSupport::TestCase
     assert Preference.web_admin_password, "did expect web admin to be set"
   end
 
+  def test_retired_slack_keys_are_not_supported
+    refute_includes Preference::ALL_KEYS, 'slack_api_key'
+    refute_includes Preference::ALL_KEYS, 'slack_group'
+
+    Preference.find_or_create_all
+
+    refute Preference.exists?(key: 'slack_api_key')
+    refute Preference.exists?(key: 'slack_group')
+  end
+
   def test_path_to_server
     sleep 1 if Preference.path_to_server.nil?
     skip 'race condition' if Preference.path_to_server.nil?

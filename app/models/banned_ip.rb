@@ -1,4 +1,4 @@
-class BannedIP
+class BannedIp
   attr_accessor :ip, :source, :reason, :expires_at, :created_at
   
   def self.banned_ips_path
@@ -6,13 +6,13 @@ class BannedIP
   end
   
   def self.banned_ips_data
-    JSON[File.read banned_ips_path] if File.exists? banned_ips_path
+    JSON[File.read banned_ips_path] if File.exist? banned_ips_path
   end
   
   def self.find(options = {})
     banned_ips_data.each do |data|
       if options[:ip] == data['ip']
-        return BannedIP.new(ip: data['uuid'], source: data['source'], reason: data['reason'], expires_at: data['expires'], created_at: data['created'])
+        return BannedIp.new(ip: data['uuid'], source: data['source'], reason: data['reason'], expires_at: data['expires'], created_at: data['created'])
       end
     end
     

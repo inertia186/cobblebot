@@ -1,6 +1,6 @@
 require "test_helper"
 
-class PvpsTest < ActionDispatch::IntegrationTest
+class PvpsTest < AcceptanceTest
   def setup
   end
 
@@ -17,14 +17,13 @@ class PvpsTest < ActionDispatch::IntegrationTest
 
       index = 0
 
-      pvps.find_each do |pvp|
+      pvps.each do |pvp|
         nth = index = index + 1
 
         assert page.has_no_content?('Searching ...'), 'did not expect "Searching ..." text showing'
         assert page.has_content?(pvp.body), "expect results to contain: #{pvp.body}"
 
         within :css, "table > tbody > tr:nth-child(#{nth}) > td:nth-child(2)" do
-          skip "expected result ##{nth} to contain loser: #{pvp.recipient.nick}" if page.has_no_content?(pvp.recipient.nick)
           assert page.has_content?(pvp.recipient.nick), "expected result ##{nth} to contain loser: #{pvp.recipient.nick}"
         end
 
@@ -47,11 +46,12 @@ class PvpsTest < ActionDispatch::IntegrationTest
 
   def test_basic_json
     Server.mock_mode(up: true) do
-      visit '/pvps.json'
-      assert_equal 'application/json; charset=utf-8', page.response_headers['Content-Type']
-      refute_match '[]', page.source
-      assert_match 'Dinnerbone', page.source
-      assert_match 'resnullius', page.source
+      get pvps_path(format: :json)
+      assert_response :success
+      assert_equal 'application/json', response.media_type
+      refute_equal [], JSON.parse(response.body)
+      assert_match 'Dinnerbone', response.body
+      assert_match 'resnullius', response.body
     end
   end
 end

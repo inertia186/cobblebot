@@ -6,19 +6,19 @@
  */
 angular
   .module('angularCancelOnNavigateModule', [])
-  .config(function($httpProvider) {
+  .config(['$httpProvider', function($httpProvider) {
     $httpProvider.interceptors.push('HttpRequestTimeoutInterceptor');
-  })
-  .run(function ($rootScope, HttpPendingRequestsService) {
+  }])
+  .run(['$rootScope', 'HttpPendingRequestsService', function ($rootScope, HttpPendingRequestsService) {
     $rootScope.$on('$locationChangeSuccess', function (event, newUrl, oldUrl) {
       if (newUrl != oldUrl) {
         HttpPendingRequestsService.cancelAll();
       }
     })
-  });
+  }]);
 
 angular.module('angularCancelOnNavigateModule')
-  .service('HttpPendingRequestsService', function ($q) {
+  .service('HttpPendingRequestsService', ['$q', function ($q) {
     var cancelPromises = [];
 
     function newTimeout() {
@@ -39,10 +39,10 @@ angular.module('angularCancelOnNavigateModule')
       newTimeout: newTimeout,
       cancelAll: cancelAll
     };
-  });
+  }]);
 
 angular.module('angularCancelOnNavigateModule')
-  .factory('HttpRequestTimeoutInterceptor', function ($q, HttpPendingRequestsService) {
+  .factory('HttpRequestTimeoutInterceptor', ['$q', 'HttpPendingRequestsService', function ($q, HttpPendingRequestsService) {
     return {
       request: function (config) {
         config = config || {};
@@ -59,4 +59,4 @@ angular.module('angularCancelOnNavigateModule')
         return $q.reject(response);
       }
     };
-  });
+  }]);

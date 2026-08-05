@@ -32,13 +32,13 @@ class PlayersControllerTest < ActionController::TestCase
   end
 
   def test_index_js_server_down
-    get :index, format: :js, after: Time.now.to_i.to_s
+    get :index, params: { format: :js, after: Time.now.to_i.to_s }
 
     assert_response 204
   end
 
   def test_index_js_after_undefined
-    get :index, format: :js, after: 'undefined'
+    get :index, params: { format: :js, after: 'undefined' }
 
     assert_response 204
   end
@@ -47,7 +47,7 @@ class PlayersControllerTest < ActionController::TestCase
     Server.mock_mode(up: true, latest_log_entry_at: Time.now, player_nicks: Player.limit(1).pluck(:nick)) do
       ServerQuery.mock_mode(full_query: {numplayers: "1", maxplayers: "20"}) do
 
-        get :index, format: :js, after: Time.now.to_i.to_s
+        get :index, params: { format: :js, after: Time.now.to_i.to_s }
 
         assert_response 204
       end
@@ -58,11 +58,11 @@ class PlayersControllerTest < ActionController::TestCase
     after = 10.minutes.ago
     
     player = Player.limit(1).last
-    player.update_attributes(last_logout_at: after, last_chat: 'bye', last_chat_at: after)
+    player.update!(last_logout_at: after, last_chat: 'bye', last_chat_at: after)
     
     Server.mock_mode(up: true, latest_log_entry_at: Time.now, player_nicks: Player.limit(1).pluck(:nick)) do
       ServerQuery.mock_mode(full_query: {numplayers: "1", maxplayers: "20"}) do
-        xhr :get, :index, format: :js, after: after.to_i.to_s
+        get :index, params: { format: :js, after: after.to_i.to_s }, xhr: true
         assert assigns(:new_chat).empty?, 'expect empty new chat'
     
         assert_response 200
@@ -74,12 +74,12 @@ class PlayersControllerTest < ActionController::TestCase
     after = 10.minutes.ago
     
     Player.find_each do |player|
-      player.update_attributes(last_login_at: after, last_chat_at: after, last_logout_at: after, updated_at: after)
+      player.update!(last_login_at: after, last_chat_at: after, last_logout_at: after, updated_at: after)
     end
     
     Server.mock_mode(up: true, latest_log_entry_at: Time.now, player_nicks: Player.limit(1).pluck(:nick)) do
       ServerQuery.mock_mode(full_query: {numplayers: "1", maxplayers: "20"}) do
-        xhr :get, :index, format: :js, after: after.to_i.to_s
+        get :index, params: { format: :js, after: after.to_i.to_s }, xhr: true
     
         assert_response 204
       end
@@ -89,11 +89,11 @@ class PlayersControllerTest < ActionController::TestCase
   def test_index_js_after_with_last_chat
     after = 10.minutes.ago
     player = Player.last
-    player.update_attributes last_chat: 'Hello.', last_chat_at: Time.now
+    player.update!(last_chat: 'Hello.', last_chat_at: Time.now)
 
     Server.mock_mode(up: true, latest_log_entry_at: Time.now, player_nicks: [player.nick]) do
       ServerQuery.mock_mode(full_query: {numplayers: "1", maxplayers: "20"}) do
-        xhr :get, :index, format: :js, after: after.to_i.to_s
+        get :index, params: { format: :js, after: after.to_i.to_s }, xhr: true
 
         assert_response 200
       end
@@ -103,7 +103,7 @@ class PlayersControllerTest < ActionController::TestCase
   def test_index_js
     Server.mock_mode(up: true, latest_log_entry_at: Time.now, player_nicks: Player.limit(1).pluck(:nick)) do
       ServerQuery.mock_mode(full_query: {numplayers: "1", maxplayers: "20"}) do
-        get :index, format: :js, after: Time.now.to_i.to_s
+        get :index, params: { format: :js, after: Time.now.to_i.to_s }
         players = assigns :players
         assert players, 'expect players'
         new_chat = assigns :new_chat

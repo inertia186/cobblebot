@@ -1,8 +1,8 @@
 require "test_helper"
 
-class Admin::PreferencesTest < ActionDispatch::IntegrationTest
+class Admin::PreferencesTest < AcceptanceTest
   def setup
-    preferences(:path_to_server).update_attribute(:value, "#{Rails.root}/tmp")
+    preferences(:path_to_server).update!(value: "#{Rails.root}/tmp")
 
   end
 
@@ -104,36 +104,4 @@ class Admin::PreferencesTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_slack_group
-    Preference.slack_api_key = "ID12345678"
-    stub_auth_test(Preference.slack_api_key) do
-      stub_groups_list(Preference.slack_api_key) do
-        Server.mock_mode(up: true, player_nicks: []) do
-          ServerQuery.mock_mode(full_query: {numplayers: "0", maxplayers: "20"}) do
-            admin_sign_in
-            # cheaty way to prime the pump
-            visit '/admin/preferences/slack_group_element' rescue 'Ignored'
-            assert page.has_no_content?('Please configure Slack and restart CobbleBot.'), 'did not expect warning about configuring Slack.'
-            visit '/admin/preferences'
-
-            skip 'expect Preference.  Did not load in time.' if page.has_no_content?('Preferences')
-            assert page.has_content?('Preferences'), 'expect Preferences.  We should now be on the Preferences page.'
-
-            within(:css, '#slack_group') do
-              click_on('Edit')
-              within(:css, 'slack-group-element') do
-                ajax_sync(tries: 4, wait_for: 5, message: 'AngularJS is taking a while to handle slack group list directive.')
-                select('cobblebot', from: 'preference.value')
-              end
-              click_on('Save')
-              assert page.has_no_content?('Internal Server Error'), 'did not expect Internal Server Error.  Check for "param is missing or the value is empty: preference" in controller response'
-
-              skip 'expect valid slack group in table.  Did not load in time.' if page.has_no_content?('G12345678')
-              assert page.has_content?('G12345678'), 'expect valid slack group in table'
-            end
-          end
-        end
-      end
-    end
-  end
 end

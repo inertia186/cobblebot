@@ -19,7 +19,7 @@ class Admin::DonationsControllerTest < ActionController::TestCase
   end
 
   def test_index_sort_by_donation_given_by
-    get :index, sort_field: 'donation_author_nick'
+    get :index, params: { sort_field: 'donation_author_nick' }
     donations = assigns :donations
     refute_equal donations.count(:all), 0, 'did not expect zero count'
 
@@ -33,7 +33,7 @@ class Admin::DonationsControllerTest < ActionController::TestCase
     request.headers['Authorization'] = credentials
 
     skip 'Donations index.atom not implemented.'
-    get :index, format: :atom
+    get :index, params: { format: :atom }
     donations = assigns :donations
     refute_equal donations.count(:all), 0, 'did not expect zero count'
 
@@ -56,7 +56,7 @@ class Admin::DonationsControllerTest < ActionController::TestCase
       Message::Donation.first.update_attribute(:author, player)
     end
 
-    get :index, player_id: player
+    get :index, params: { player_id: player }
     donations = assigns :donations
     refute_equal donations.count(:all), 0, 'did not expect zero count'
 
@@ -66,7 +66,7 @@ class Admin::DonationsControllerTest < ActionController::TestCase
 
   def test_show
     skip 'Donations show.html not implemented.'
-    get :show, id: Message::Donation.first
+    get :show, params: { id: Message::Donation.first }
 
     assert_template :_donation
     assert_template :show
@@ -85,7 +85,7 @@ class Admin::DonationsControllerTest < ActionController::TestCase
   end
 
   def test_edit
-    get :edit, id: Message::Donation.first
+    get :edit, params: { id: Message::Donation.first }
     assert assigns :donation
 
     assert_template :_form
@@ -96,7 +96,7 @@ class Admin::DonationsControllerTest < ActionController::TestCase
 
   def test_create
     assert_difference -> { Message::Donation.count }, 1, 'expect different count' do
-      post :create, message_donation: donation_params
+      post :create, params: { message_donation: donation_params }
     end
     assert assigns :donation
 
@@ -106,7 +106,7 @@ class Admin::DonationsControllerTest < ActionController::TestCase
 
   def test_create_failure
     assert_no_difference -> { Message::Donation.count }, 'did not expect different count' do
-      post :create, message_donation: donation_params.merge(body: Preference.stop_words)
+      post :create, params: { message_donation: donation_params.merge(body: Preference.stop_words) }
     end
     assert assigns :donation
 
@@ -119,7 +119,7 @@ class Admin::DonationsControllerTest < ActionController::TestCase
   def test_update
     donation = Message::Donation.first
     assert_difference -> { Player.first.donations.count }, 1, 'expect different count' do
-      patch :update, id: donation.id, message_donation: donation_params
+      patch :update, params: { id: donation.id, message_donation: donation_params }
     end
     assert assigns :donation
 
@@ -130,7 +130,7 @@ class Admin::DonationsControllerTest < ActionController::TestCase
   def test_update_failure
     donation = Message::Donation.first
     assert_no_difference -> { Player.first.donations.count }, 'did not expect different count' do
-      patch :update, id: donation.id, message_donation: donation_params.merge(body: Preference.stop_words)
+      patch :update, params: { id: donation.id, message_donation: donation_params.merge(body: Preference.stop_words) }
     end
     assert assigns :donation
 
@@ -142,7 +142,7 @@ class Admin::DonationsControllerTest < ActionController::TestCase
 
   def test_destroy
     assert_difference -> { Message::Donation.count }, -1, 'expect different count' do
-      delete :destroy, id: Message::Donation.first
+      delete :destroy, params: { id: Message::Donation.first }
     end
 
     assert_template nil

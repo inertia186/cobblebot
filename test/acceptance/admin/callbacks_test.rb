@@ -1,8 +1,8 @@
 require "test_helper"
 
-class Admin::CallbacksTest < ActionDispatch::IntegrationTest
+class Admin::CallbacksTest < AcceptanceTest
   def setup
-    preferences(:path_to_server).update_attribute(:value, "#{Rails.root}/tmp")
+    preferences(:path_to_server).update!(value: "#{Rails.root}/tmp")
   end
 
   def test_basic_workflow

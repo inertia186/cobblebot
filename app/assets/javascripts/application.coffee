@@ -92,8 +92,6 @@ $ ->
     speed: 100,
     minimum: 0.08
 
-  # Turbolinks.enableTransitionCache() # Causes momenary jump while new page loads.
-  Turbolinks.ProgressBar.disable() if Turbolinks.ProgressBar
   $(document).on 'ajaxStart page:fetch', -> NProgress.start()
   $(document).on 'submit', 'form', -> NProgress.start()
   $(document).on 'ajaxStop page:change', -> NProgress.done()

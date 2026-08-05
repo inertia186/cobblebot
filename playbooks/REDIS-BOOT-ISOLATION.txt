@@ -1,0 +1,57 @@
+Redis boot isolation and worker bootstrap playbook
+==================================================
+
+Purpose
+-------
+Keep ordinary Rails initialization independent from Redis while retaining an
+immediate, explicit way for operators to seed CobbleBot's watchdog worker.
+
+Implemented boundary
+--------------------
+- `config/environment.rb` initializes Rails and view error handling only. It no
+  longer reads or writes Resque queues.
+- `MinecraftWatchdogBootstrap` checks both the pending watchdog queue and active
+  Resque worker payloads before enqueueing one watchdog.
+- `RAILS_ENV=<environment> bundle exec rake cobblebot:workers:bootstrap` is the
+  supported immediate-start command. Repeated calls report that the watchdog is
+  already present instead of enqueueing another.
+- Redis connection failures become a concise `CobbleBotError` and leave the rake
+  command nonzero for process supervision.
+- MultiJson is constrained to a Ruby-3-compatible 1.x release so Resque can
+  serialize the watchdog payload during a real enqueue.
+- The `*/5 * * * *` Resque schedule remains unchanged as a periodic safety net.
+- Resque configuration now has one owner. `config/resque.yml` supplies lazy URL
+  defaults, while `COBBLEBOT_REDIS_URL` and `COBBLEBOT_RESQUE_NAMESPACE` provide
+  operational overrides without introducing a boot-time connection.
+
+Operational sequence
+--------------------
+1. Start Redis.
+2. Start `resque:scheduler`.
+3. Run `cobblebot:workers:bootstrap` once.
+4. Start the `minecraft_watchdog` and `minecraft_server_log_monitor` workers.
+5. Start the optional IRC worker when configured.
+
+Rails web, console, routes, migrations, and asset commands may boot without
+Redis. Scheduler, bootstrap, worker, and Resque administration operations still
+require it.
+
+Validation
+----------
+```text
+bundle check
+bundle exec ruby -e 'require "./config/environment"; puts "RAILS_OK #{Rails.version}"'
+RAILS_ENV=test bundle exec rails zeitwerk:check
+RAILS_ENV=test bundle exec rake -T cobblebot:workers
+RAILS_ENV=test bundle exec rails test test/services/minecraft_watchdog_bootstrap_test.rb test/tasks/cobblebot_workers_task_test.rb test/workers/minecraft_watchdog_test.rb
+```
+
+Run the development boot probe once where localhost Redis connections are
+denied, and again with local Redis available. Use fakes for bootstrap queue
+mutation tests so validation does not disturb unrelated live queues.
+
+Deferred work
+-------------
+- Modernize or replace `config/cobblebot.god`.
+- Rework the watchdog's historical queue-depth/self-replenishment design only as
+  a separate worker-runtime change.

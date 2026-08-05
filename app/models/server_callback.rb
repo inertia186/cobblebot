@@ -15,7 +15,7 @@ class ServerCallback < ActiveRecord::Base
   REGEX_PLAYER_CHAT_OR_EMOTE = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: [\* ]*[ ]*[<]*[^<]+[>]* .*$}
   REGEX_USER_AUTHENTICATOR = %r{^\[\d{2}:\d{2}:\d{2}\] \[User Authenticator #\d+/INFO\]: .*$}
   REGEX_ACHIEVEMENT_ANNOUNCEMENT = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread/INFO\]: .* has just earned the achievement.*$}
-  REGEX_RUNNING_BEHIND = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread/WARN\]: Can't keep up! Did the system time change, or is the server overloaded? Running [0-9]+ms behind, skipping [0-9]+ tick.*$}
+  REGEX_RUNNING_BEHIND = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread/WARN\]: Can't keep up! Did the system time change, or is the server overloaded\? Running [0-9]+ms behind, skipping [0-9]+ tick.*$}
   REGEX_PLAYER_AUTHENTICATED = %r{^\[\d{2}:\d{2}:\d{2}\] \[User Authenticator #\d+/INFO\]: UUID of player ([a-zA-Z0-9_]+) is ([a-fA-Z0-9-]+)$}
 
   validates :name, presence: true
@@ -131,7 +131,7 @@ class ServerCallback < ActiveRecord::Base
 
     unless allowed_types.include? type
       if command =~ /%nick%/
-        errors[:command] << "cannot reference %nick% in a #{type.titleize} callback.  Try %1% if you intend to capture the nick yourself."
+        errors.add(:command, "cannot reference %nick% in a #{type.titleize} callback.  Try %1% if you intend to capture the nick yourself.")
       end
     end
   end
@@ -139,8 +139,8 @@ class ServerCallback < ActiveRecord::Base
   def eval_check key
     catch(:x) { eval("throw :x; #{send(key)};", Proc.new{}.binding) }
   rescue SyntaxError => e
-    errors[key] << 'has syntax error(s)'
-    errors[:base] << e
+    errors.add(key, 'has syntax error(s)')
+    errors.add(:base, e.message)
   end
 
   def player_input?(input = nil)

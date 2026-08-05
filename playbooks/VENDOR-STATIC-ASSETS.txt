@@ -1,0 +1,91 @@
+Vendor static assets playbook
+=============================
+
+Status
+------
+Complete on both the Ruby 2.6/Rails 4 preservation lane and the Ruby 3/Rails 6
+modernization lane.
+
+Purpose
+-------
+Preserve the usable CobbleBot web UI without depending on the historical
+Sass/bootstrap/rails-assets restore path or the live `rails-assets.org` source.
+
+Implemented shape
+-----------------
+- `app/assets/stylesheets/application.css` is the active plain-CSS manifest.
+- The former SCSS entrypoint is reference material at
+  `docs/archive/application.legacy.css.scss`, outside Sprockets load paths.
+- `sassc-rails` and `sassc` are absent from the modern bundle. Removing them also
+  removes native FFI from the Ruby platform dependency graph.
+- Third-party payloads are stored in:
+  - `vendor/assets/stylesheets/`
+  - `vendor/assets/javascripts/`
+  - `vendor/assets/fonts/`
+  - `vendor/assets/images/`
+- Preserved UI dependencies include Bootstrap, Glyphicons, Chosen, NProgress,
+  jQuery/UJS, Tether, Angular and its referenced helpers, Moment, and Clipboard.
+- The Rails 6 asset manifest explicitly publishes vendored fonts and images.
+- Glyphicons and Chosen stylesheets use Sprockets ERB helpers so production CSS
+  references the emitted digested font and sprite filenames.
+- The cancel-on-navigate Angular module uses explicit dependency arrays so
+  Uglifier cannot rename injected service names. The obsolete unconditional
+  Turbolinks reference is gone because Turbolinks is not in the modern bundle.
+
+Important implementation details
+--------------------------------
+Several historical `rails-assets-*` top-level JavaScript files were only
+Sprockets wrapper manifests. The vendored files contain the actual nested
+payloads, not those wrapper stubs.
+
+Merely linking vendor font and image trees is insufficient in production. Plain
+`/assets/...` URLs inside CSS do not follow the digested filenames emitted by
+Sprockets. The two stylesheets containing external URLs therefore remain CSS
+payloads but use `.css.erb` extensions and `asset_path` for digest rewriting.
+
+Verified preservation result
+----------------------------
+Under Ruby `2.6.10`, Bundler `1.16.1`, and Rails `4.2.10`:
+- bundle restore succeeds without the old Sass/bootstrap/rails-assets branch
+- Rails boots and production assets precompile
+- the admin login surface remains usable in a live server smoke test
+
+Verified modernization result
+------------------------------
+Under Ruby `3.2.7`, Bundler `2.6.6`, and Rails `6.1.7.10`:
+- `bundle install` and `bundle check` succeed without `sassc-rails`
+- Rails boot and Zeitwerk checks succeed
+- a clean production precompile succeeds in an isolated output directory
+- `application.css`, `application.js`, Glyphicons fonts, and Chosen sprites all
+  appear in the production manifest
+- every external font/sprite URL in compiled CSS uses its digested manifest path
+- the unauthenticated admin layout, authenticated preferences page, and callback
+  form render through the isolated production manifest; their CSS, JavaScript,
+  logo, font, and sprite requests return successfully
+- the minified production JavaScript bootstraps Angular successfully under the
+  headless-Chrome acceptance suite
+
+Regression coverage
+-------------------
+`test/configuration/static_asset_pipeline_test.rb` proves that:
+- SassC is absent from the lockfile
+- no `.sass` or `.scss` source remains under runtime asset load paths
+- application CSS and JavaScript compile
+- all referenced Glyphicons and Chosen assets resolve with digested URLs
+- the asset manifest continues to publish vendor fonts and images
+- cancel-on-navigate dependency annotations remain safe for minification
+
+Known boundary
+--------------
+Removing SassC also removes its incidental CSS compression. The compiled CSS is
+larger but preserves the vendored payloads and references. JavaScript compression
+continues through Uglifier in production. Reintroducing a CSS compressor should
+be a separate performance decision, not a reason to restore Sass compilation.
+
+Deferred work
+-------------
+- Deeper browser-level interaction coverage for navbar collapse, dropdowns,
+  modals, Chosen controls, NProgress/flash behavior, and glyph rendering belongs
+  with the test-harness modernization slice.
+- Updating or replacing the historical vendored frontend libraries is a separate
+  dependency/security project.

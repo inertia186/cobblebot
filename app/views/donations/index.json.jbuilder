@@ -3,7 +3,7 @@ json.(@donations) do |donation|
   json.body donation.body
   json.created_at donation.created_at
 
-  if !!json.author
+  if donation.author
     json.author do
       json.nick donation.author.nick
       json.quote donation.author.last_chat

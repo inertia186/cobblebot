@@ -1,10 +1,10 @@
 require "test_helper"
 
-class Admin::LinksTest < ActionDispatch::IntegrationTest
+class Admin::LinksTest < AcceptanceTest
   include WebStubs
 
   def setup
-    preferences(:path_to_server).update_attribute(:value, "#{Rails.root}/tmp")
+    preferences(:path_to_server).update!(value: "#{Rails.root}/tmp")
   end
 
   def test_basic_workflow

@@ -9,6 +9,6 @@ class Api::V1::ReputationsController < Api::V1::ApiController
   end
   
   def show
-    @reputation = Reputation.find(params[:id])
+    @reputation = Reputation.with_trustables.find(params[:id])
   end
 end

@@ -1,16 +1,22 @@
 ENV['RAILS_ENV'] ||= 'test'
 
 require 'simplecov'
+if ENV['COBBLEBOT_COVERAGE_GATE'] == '1'
+  SimpleCov.use_merging false
+  SimpleCov.minimum_coverage 75
+end
 SimpleCov.start 'rails'
+SimpleCov.command_name 'Rails Tests'
 SimpleCov.merge_timeout 3600
 
 require File.expand_path('../../config/environment', __FILE__)
 require 'rcon/rcon'
 require 'rails/test_help'
+require 'rails-controller-testing'
 require 'webmock/minitest'
 require 'capybara/rails'
-require 'capybara/poltergeist'
 require 'capybara-screenshot/minitest'
+require 'selenium/webdriver'
 
 if ENV["HELL_ENABLED"]
   require "minitest/hell"
@@ -20,28 +26,21 @@ end
 
 WebMock.disable_net_connect!(allow_localhost: true)
 
-phantomjs_logger = if ENV['TESTOPTS'].to_s.include?('--verbose')
-  $stdout
-else
-  File.open("log/test_phantomjs.log", "a")
+Rails::Controller::Testing.install
+
+Capybara.register_driver :selenium_chrome_headless do |app|
+  options = Selenium::WebDriver::Chrome::Options.new
+  options.add_argument('--headless=new')
+  options.add_argument('--no-sandbox')
+  options.add_argument('--disable-dev-shm-usage')
+  options.add_argument('--window-size=1400,1200')
+
+  Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
 end
 
-Capybara.register_driver :poltergeist do |app|
-  Capybara::Poltergeist::Driver.new(app, {
-    phantomjs: Phantomjs.path,
-    phantomjs_logger: phantomjs_logger,
-    debug: false,
-    timeout: 15,
-    js_errors: true,
-    inspector: true,
-    extensions: [
-      'test/support/scripts/angular_errors.js'
-    ]
-  })
-end
-
-Capybara.javascript_driver = :poltergeist
-Capybara.default_driver = :poltergeist
+Capybara.javascript_driver = :selenium_chrome_headless
+Capybara.default_driver = :rack_test
+Capybara.server = :puma, { Silent: true }
 Capybara.default_max_wait_time = 15
 
 Capybara::Screenshot.prune_strategy = { keep: 20 }
@@ -237,70 +236,22 @@ module WebStubs
   end
 end
 
-module SlackStubs
-  def stub_auth_test(key, &block)
-    stub = stub_request(:post, "https://slack.com/api/auth.test").
-      with(body: {"token" => key}).
-      to_return status: 200, body: <<-DONE
-      {
-        "ok": true, "url": "https://cobblebot.dev/", "team": "CobbleBot Dev",
-        "user": "cobblebot", "team_id": "T12345678", "user_id": "U12345678"
-      }
-    DONE
-    yield block
-  ensure
-    remove_request_stub stub
-  end
-
-  def stub_groups_list(key, &block)
-    stub = stub_request(:post, "https://slack.com/api/groups.list").
-      with(body: {"token" => key}).
-      to_return status: 200, body: <<-DONE
-      {
-        "ok": true,
-        "groups": [{
-          "id": "G12345678",
-          "name": "cobblebot",
-          "is_group": true,
-          "created": 1446528312,
-          "creator": "U12345678",
-          "is_archived": false,
-          "is_mpim": false,
-          "members": ["U12345678", "U87654321"],
-          "topic": {
-            "value": "World players: 2 of 20",
-            "creator": "U0DN6Q60Y",
-            "last_set": 1448757448
-          },
-          "purpose": {
-            "value": "Current activity on the server.",
-            "creator": "U12345678",
-            "last_set": 1447018607
-          }
-        }]
-      }
-    DONE
-    yield block
-  ensure
-    remove_request_stub stub
-  end
-end
-
-class ActionDispatch::IntegrationTest
+class AcceptanceTest < ActionDispatch::IntegrationTest
   include TestTools
-  include SlackStubs
   include Capybara::DSL
-  include Capybara::Angular::DSL
   include Capybara::Screenshot::MiniTestPlugin
 
   # Never use transactional fixtures with integration tests due to having
   # multiple processess in play.
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   fixtures :all
 
   def before_setup
     super
+    @avatar_stub = stub_request(:get, %r{\Ahttps://minotar\.net/avatar/}).
+      to_return(status: 200)
+    Capybara.current_driver = Capybara.javascript_driver
   end
 
   def after_teardown
@@ -310,19 +261,16 @@ class ActionDispatch::IntegrationTest
 
   def admin_sign_in
     visit '/'
-    find_link('Admin').click
+    open_admin_menu
     find_link('Log In').click
     fill_in 'admin_password', with: preferences(:web_admin_password).value
     find_button('Login').click
+    assert_selector 'h3', text: 'Preferences'
   end
 
   def admin_navigate(link_name)
-    admin_dropdown_name = 'Admin'
-    assert page.has_content?(admin_dropdown_name), "expect link: #{admin_dropdown_name}"
-    find_link(admin_dropdown_name).click
-    dropdown_css = '#cobblebot-navbar > ul:nth-child(1) > li.dropdown.open'
-    skip "Expected CSS (#{dropdown_css}) has not loaded in time." if page.has_no_css?(dropdown_css)
-    within :css, dropdown_css do
+    open_admin_menu
+    within :css, 'ul.dropdown-menu', visible: true do
       assert page.has_content?(link_name), "expect link: #{link_name}"
       find_link(link_name).click
     end
@@ -334,10 +282,15 @@ class ActionDispatch::IntegrationTest
     options[:tries].times do
       break unless still_running
 
-      # May become 'jQuery.ajax.active' in future releases.
-      jquery_active = page.evaluate_script('jQuery.active')
+      jquery_active = page.evaluate_script('window.jQuery ? window.jQuery.active : 0')
       jquery_not_active = jquery_active.zero?
-      angular_active = page.evaluate_script("angular.element(document.body).injector().get('$http').pendingRequests.length")
+      angular_active = page.evaluate_script(<<~JAVASCRIPT)
+        (function() {
+          if (!window.angular) { return 0; }
+          var injector = window.angular.element(document.body).injector();
+          return injector ? injector.get('$http').pendingRequests.length : 0;
+        })()
+      JAVASCRIPT
       angular_not_active = angular_active.zero?
 
       if jquery_not_active && angular_not_active
@@ -357,8 +310,23 @@ class ActionDispatch::IntegrationTest
 
   def admin_sign_out
     visit '/'
-    find_link('Admin').click
-    find_link('Admin Log Out').click
+    open_admin_menu
+    accept_confirm { find_link('Admin Log Out').click }
+  end
+
+  def open_admin_menu
+    page.execute_script(<<~JAVASCRIPT)
+      var navbar = document.getElementById('cobblebot-navbar');
+      navbar.classList.add('in');
+      navbar.style.display = 'block';
+      var adminLink = Array.from(navbar.querySelectorAll('a')).find(function(link) {
+        return link.textContent.trim().indexOf('Admin') === 0;
+      });
+      var dropdown = adminLink.parentElement;
+      dropdown.classList.add('open');
+      dropdown.querySelector('ul.dropdown-menu').style.display = 'block';
+    JAVASCRIPT
+    assert_selector 'ul.dropdown-menu', visible: true
   end
 
   def save_screenshot(filename = '')
@@ -380,9 +348,8 @@ end
 
 class ActiveSupport::TestCase
   include TestTools
-  include SlackStubs
 
-  self.use_transactional_fixtures = true
+  self.use_transactional_tests = true
 
   fixtures :all
 
@@ -400,7 +367,7 @@ class ActiveSupport::TestCase
     }
 
     delete admin_destroy_session_url
-    post admin_session_url(params)
+    post admin_session_url, params: params
   end
 
   def ServerCommand.kick(nick, message = "Have A Nice Day")
@@ -409,7 +376,7 @@ class ActiveSupport::TestCase
     kicked[nick] = message
   end
 
-  def ServerCommand.execute(command)
+  def ServerCommand.execute(command, options = {})
     commands_executed[command] = !!super
   end
 
@@ -465,11 +432,20 @@ class ActiveSupport::TestCase
 
     ran_at = c.ran_at
     yield block
+    current_ran_at = c.reload.ran_at
     if !!options[:inverted]
-      assert_equal ran_at, c.reload.ran_at, "did not expect callback \"#{c.name}\" to run"
-      assert ran_at == c.reload.ran_at || c.error_flag_at, "callback ran or got error: #{c.last_command_output}"
+      if ran_at.nil?
+        assert_nil current_ran_at, "did not expect callback \"#{c.name}\" to run"
+      else
+        assert_equal ran_at, current_ran_at, "did not expect callback \"#{c.name}\" to run"
+      end
+      assert ran_at == current_ran_at || c.error_flag_at, "callback ran or got error: #{c.last_command_output}"
     else
-      refute_equal ran_at, c.reload.ran_at, "expect callback \"#{c.name}\" to run"
+      if ran_at.nil?
+        refute_nil current_ran_at, "expect callback \"#{c.name}\" to run"
+      else
+        refute_equal ran_at, current_ran_at, "expect callback \"#{c.name}\" to run"
+      end
       refute c.error_flag_at, "callback \"#{c.name}\" ran, but got error: #{c.last_command_output}"
     end
   end
@@ -496,13 +472,13 @@ class ActiveRecord::Base
 end
 
 tmp = Preference.path_to_server = "#{Rails.root}/tmp"
-Dir.mkdir(tmp) unless File.exists?(tmp)
+Dir.mkdir(tmp) unless File.exist?(tmp)
 
 fake_logs = "#{tmp}/logs"
-Dir.mkdir(fake_logs) unless File.exists?(fake_logs)
+Dir.mkdir(fake_logs) unless File.exist?(fake_logs)
 fake_latest_log = "#{fake_logs}/latest.log"
 
-File.delete(fake_latest_log) if File.exists?(fake_latest_log)
+File.delete(fake_latest_log) if File.exist?(fake_latest_log)
 File.open(fake_latest_log, 'a') do |f|
   startup_event = <<-DONE
     [07:38:13] [Server thread/INFO]: Starting minecraft server version 1.8.3
@@ -533,7 +509,7 @@ end
 
 fake_server_properties = "#{tmp}/server.properties"
 
-File.delete(fake_server_properties) if File.exists?(fake_server_properties)
+File.delete(fake_server_properties) if File.exist?(fake_server_properties)
 File.open(fake_server_properties, 'a') do |f|
   server_properties = <<-DONE
   #Minecraft server properties
@@ -587,12 +563,12 @@ File.open(fake_server_properties, 'a') do |f|
 end
 
 fake_world = "#{tmp}/world"
-Dir.mkdir(fake_world) unless File.exists?(fake_world)
+Dir.mkdir(fake_world) unless File.exist?(fake_world)
 fake_stats = "#{fake_world}/stats"
-Dir.mkdir(fake_stats) unless File.exists?(fake_stats)
+Dir.mkdir(fake_stats) unless File.exist?(fake_stats)
 fake_inertia186_stats = "#{fake_stats}/d6edf996-6182-4d58-ac1b-4ca0321fb748.json"
 
-File.delete(fake_inertia186_stats) if File.exists?(fake_inertia186_stats)
+File.delete(fake_inertia186_stats) if File.exist?(fake_inertia186_stats)
 File.open(fake_inertia186_stats, 'a') do |f|
   inertia186_stats = <<-DONE
   {
@@ -697,7 +673,7 @@ File.open(fake_inertia186_stats, 'a') do |f|
 end
 
 fake_banned_players = "#{tmp}/banned-players.json"
-File.delete(fake_banned_players) if File.exists?(fake_banned_players)
+File.delete(fake_banned_players) if File.exist?(fake_banned_players)
 File.open(fake_banned_players, 'a') do |f|
   banned_players = <<-DONE
   [
@@ -718,7 +694,7 @@ File.open(fake_banned_players, 'a') do |f|
 end
 
 fake_banned_ips = "#{tmp}/banned-ips.json"
-File.delete(fake_banned_ips) if File.exists?(fake_banned_ips)
+File.delete(fake_banned_ips) if File.exist?(fake_banned_ips)
 File.open(fake_banned_ips, 'a') do |f|
   banned_ips = <<-DONE
   [
@@ -745,7 +721,7 @@ File.open(fake_banned_ips, 'a') do |f|
 end
 
 fake_ops = "#{tmp}/ops.json"
-File.delete(fake_ops) if File.exists?(fake_ops)
+File.delete(fake_ops) if File.exist?(fake_ops)
 File.open(fake_ops, 'a') do |f|
   ops = <<-DONE
   [
@@ -763,7 +739,7 @@ File.open(fake_ops, 'a') do |f|
 end
 
 fake_whitelist = "#{tmp}/whitelist.json"
-File.delete(fake_whitelist) if File.exists?(fake_whitelist)
+File.delete(fake_whitelist) if File.exist?(fake_whitelist)
 File.open(fake_whitelist, 'a') do |f|
   whitelist = <<-DONE
   [

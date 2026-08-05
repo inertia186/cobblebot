@@ -8,7 +8,8 @@ class IrcBot < SummerBot
 
   attr_accessor :bot_started_at
   
-  @queue = :irc_bot
+  QUEUE = :irc_bot
+  @queue = QUEUE
   
   def self.before_perform_log_job(*args)
     Rails.logger.info "About to perform #{self} with #{args.inspect}"

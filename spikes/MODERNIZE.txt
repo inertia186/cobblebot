@@ -1,0 +1,200 @@
+CobbleBot modernization spike
+============================
+
+Purpose
+-------
+Record the conclusions from the preservation and modernization experiments. This
+is evidence for choosing the next migration step, not a final project roadmap.
+
+Current baseline (2026-08-04)
+-----------------------------
+- Branch: `develop`.
+- Ruby `3.2.7`, Bundler `2.6.6`, and Rails `6.1.7.10` resolve and boot.
+- `bundle check` passes.
+- The Rails environment boots when the configured local Redis is available.
+- Normal Rails initialization no longer inspects or mutates Resque, so web,
+  console, route, migration, and asset commands can boot when Redis is absent.
+  Operators seed the watchdog explicitly with
+  `rake cobblebot:workers:bootstrap`; the existing five-minute schedule remains
+  the periodic safety net.
+- Rails explicitly uses Zeitwerk, and `RAILS_ENV=test bundle exec rails
+  zeitwerk:check` passes.
+- CobbleBot loads only the Rails, Active Model, Active Record, Action Controller,
+  Action View, Rails test-unit, and Sprockets railties it uses. Unused framework
+  engines no longer contribute boot requirements or routes.
+- `Gemfile.lock` contains the native `arm64-darwin-24` platform variants for
+  Nokogiri, FFI, PostgreSQL, and SQLite. That lockfile change is currently
+  unstaged.
+- Static web dependencies are vendored under `vendor/assets/`; the old live
+  `rails-assets.org` path is disabled.
+
+What the preservation spike established
+----------------------------------------
+- Ruby 3.2 cannot use Bundler 1.16.1 because the old Bundler calls removed taint
+  APIs. Modern Bundler also cannot resolve the original Rails 4.2 dependency
+  boundary unchanged.
+- Ruby `2.7.8` gets through old Bundler resolution but cannot compile
+  `nokogiri 1.8.4` with the current Apple toolchain, even with system libraries.
+- Ruby `2.6.10` is the viable preservation lane on this host. Nokogiri 1.8.4 can
+  be installed with system libraries there.
+- The next old-stack failure was `ffi 1.9.25`, pulled through the Sass asset
+  branch rather than the Minecraft log-monitor runtime.
+- Vendoring the required CSS, JavaScript, fonts, and images allowed the old
+  Sass/bootstrap/rails-assets branch to be removed.
+- On the preservation lane, bundle restore, Rails 4.2 boot, asset precompile,
+  database migration, seeding, and a live server/admin-login smoke test all
+  succeeded.
+- The root page then reached ordinary application behavior: it rendered the
+  server-down path because no live Minecraft server was configured.
+
+What the modernization spike established
+-----------------------------------------
+- Rails can advance to `6.1.7.10` on Ruby `3.2.7` without first redesigning the
+  application.
+- Several dependencies needed upgrades (`json`, `sqlite3`, `pg`, `mechanize`,
+  `responders`, `haml`, `will_paginate`, and `byebug`). Obsolete development,
+  documentation, and test gems were disabled where preserving them added no
+  value.
+- Requiring `logger` before the explicit Rails railties remains a compatibility
+  shim.
+- Zeitwerk found one confirmed naming mismatch: `banned_ip.rb` now defines
+  `BannedIp`. No compatibility alias was needed because the repository had no
+  callers of the old constant.
+- The obsolete Slack integration was retired instead of carrying its disabled
+  client dependency into the new baseline. Its model, worker hooks, controller
+  endpoint, route, admin UI, JavaScript handling, preference keys, stubs, and
+  feature coverage are gone. Migration `20260802000000` irreversibly deletes
+  persisted `slack_api_key` and `slack_group` rows.
+- Rails test support on Ruby 3.2 now pins Minitest 5 and supplies REXML. Focused
+  preference, migration, watchdog, gametick, and routing tests pass against a
+  disposable SQLite database.
+- The authenticated admin preferences smoke exposed the old Jbuilder template
+  handler boundary; Jbuilder 2.13 resolves it without widening the existing 2.x
+  Gemfile constraint.
+- Adding the native macOS arm64 platform to the lockfile avoids unnecessary
+  source builds for Nokogiri and other native gems.
+- The modern stack no longer includes `sassc-rails`, `sassc`, or native FFI.
+  The historical SCSS entrypoint is archived under `docs/archive`, outside the
+  asset load path. A clean production precompile exposed and fixed missing
+  digested Glyphicons/Chosen references by publishing vendor font/image trees
+  and using Sprockets ERB asset paths in the two affected stylesheets.
+- `MinecraftWatchdogBootstrap` now owns immediate, repeatable watchdog seeding.
+  It skips a watchdog that is already queued or running and fails clearly when
+  an operator invokes it without Redis.
+- Resque job serialization now uses a Ruby-3-compatible MultiJson release; the
+  previously locked 1.13 release failed before a job could reach Redis.
+- Redis configuration now has one lazy owner with explicit URL and namespace
+  overrides. Operational environments retain database 1, tests use database 3,
+  and a process-specific namespace proves real enqueue serialization without
+  disturbing unrelated queues.
+- Dentaku 3.5 restores the Calc callback on Ruby 3. Whole-number results retain
+  the concise historical display, and the complete worker suite passes without
+  the former `BigDecimal.new` failure or nil-assertion deprecation flood.
+- The watchdog is now a one-shot scheduled maintenance job. A Redis-independent
+  `MinecraftWorkerQueuePolicy` converges the log-monitor and optional IRC queues
+  to one canonical pending standby without inspecting or changing unrelated
+  queues. The monitor's five-minute managed lifetime is bounded only by ticks;
+  watchdog self-replenishment, sleeps, and queue-depth loops are gone.
+- The Rails-internal SQLite transaction monkey patch is retired. Development
+  and production now preserve its `BEGIN IMMEDIATE` intent through sqlite3's
+  supported `default_transaction_mode`, with the existing 15-second native busy
+  timeout. PostgreSQL test configuration remains free of SQLite-only options.
+- The Rails 6 controller harness is restored: 90 controller tests run without
+  failures or errors, with only the two intentional donation skips. Modern
+  request keywords and `rails-controller-testing` preserve the focused
+  assertions.
+- PhantomJS, Poltergeist, capybara-angular, and their install/log side effects
+  are retired. Capybara defaults to `rack_test`; the 21 acceptance tests use
+  Selenium with headless Chrome only when explicitly selected, and pass without
+  failures, errors, or skips on disposable SQLite.
+- Restoring browser coverage also confirmed the current Angular bootstrap,
+  permitted sort/status parameters, donation author JSON, and explicit JSON
+  template-format boundaries.
+- The complete 329-test suite passes against PostgreSQL with 2827 assertions,
+  no failures or errors, and six existing skips. Test-only SQLite connection
+  pools are removed—not merely disconnected—so they cannot leak into later
+  PostgreSQL fixture transactions.
+- Production minification exposed and fixed unannotated dependency injection in
+  the vendored cancel-on-navigate Angular module. The minified bundle now boots
+  Angular through all 21 headless-Chrome acceptance tests.
+- Application-owned Rails and Minitest deprecations are removed. The test
+  environment raises on future Active Support deprecations, nil JSON values use
+  the Minitest 6-compatible assertion path, and the seeded callback sweep no
+  longer starts delayed production threads that outlive the test. SimpleCov has
+  an explicit suite name while retaining the existing coverage dependency set.
+- Rails 6.1 still passes a positional coder hash to modern pg. Those adapter
+  warnings remain visible by design until a later Rails upgrade; CobbleBot does
+  not suppress them or patch Active Record's private PostgreSQL adapter methods.
+- Reachable controller and supporting-model coverage now protects admin IPs and
+  server properties, the public IRC count and server icon, reputation API
+  projections, IP queries, IRC reply retention, and active callback parsing.
+  The incomplete API session and obsolete development console routes were
+  retired. `rake cobblebot:test:coverage` disables result merging and enforces a
+  75% complete-suite floor; the measured PostgreSQL baseline is 368 tests, 2957
+  assertions, six skips, and 79.22% coverage.
+
+Completed migration slice
+-------------------------
+The Rails 6 autoload/config playbook is complete for its defined scope:
+selective railties boot, Zeitwerk validation passes, CobbleBot routes remain,
+unused engine and Slack routes are absent, and the admin login/preferences smoke
+succeeds. Rails 6.1 defaults were intentionally not adopted wholesale.
+
+The Redis boot-isolation slice is also complete: normal Rails initialization is
+side-effect free with respect to Resque, while the explicit worker bootstrap
+preserves immediate watchdog startup for operators.
+
+The SQLite transaction slice is complete: Rails owns transaction lifecycle and
+savepoints again, while sqlite3 owns immediate transaction mode and lock waits.
+
+The static-asset cleanup is complete on the modern lane: the active stylesheet
+stack is plain CSS, SassC is absent, production precompile succeeds, and external
+font/sprite references resolve to emitted digested assets.
+
+The Rails 6 test-harness slice is complete: ordinary tests are browser-free,
+controller coverage is green, and the acceptance suite runs on headless Chrome.
+
+The worker-runtime baseline is complete: Resque configuration is consolidated,
+ordinary boot remains Redis-independent, an isolated real-Redis enqueue is
+verified, and the fixture-log-to-captured-command boundary is green on Ruby 3.
+
+The worker queue-policy slice is complete: watchdog jobs are deterministic
+one-shot passes, managed long-running workers retain one pending standby, and
+disabled IRC cleanup removes pending work without terminating an active worker.
+
+The PostgreSQL validation slice is complete: schema load, configuration tests,
+production assets, browser acceptance coverage, and the entire Rails suite pass
+against the local PostgreSQL 14 service.
+
+The deprecation cleanup slice is complete: application-owned Active Model and
+Minitest warnings are fixed, future Active Support deprecations fail tests, and
+the seeded callback syntax sweep leaves no background threads behind. The known
+Rails 6.1/pg compatibility warning is explicitly deferred. The expanded
+PostgreSQL baseline is 329 tests and 2827 assertions with no failures or errors
+and the same six intentional skips.
+
+The reachable-surface coverage slice is complete: routed admin, public, and API
+behavior has focused regression coverage, content-sensitive server-icon caching
+and reputation joins are correct, dead session/console surfaces are absent, and
+the deterministic PostgreSQL coverage task passes its 75% floor at 79.22%.
+
+Likely follow-on order
+----------------------
+1. Prepare a controlled Bolger deployment and smoke checklist, keeping host
+   paths, RCON details, and credentials outside the repository.
+2. Validate boot, migrations, Redis scheduling, and log ingestion before
+   enabling outbound Minecraft commands or IRC.
+
+Open decisions
+--------------
+- Is the desired outcome an archived preservation build, a live resurrection,
+  an actively maintained Rails app, or extraction into Galactica Actual?
+- Should the preservation and modernization environments remain reproducible in
+  parallel, or is the Rails 6 branch now the only supported lane?
+- How much of the historical admin UI must remain pixel/behavior compatible?
+
+Project boundary
+----------------
+CobbleBot should remain Minecraft-server agnostic. Swim-specific migration facts
+belong in the Swim project; CobbleBot should contain only reusable server
+automation behavior and human-facing historical context.

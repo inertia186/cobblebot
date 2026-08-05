@@ -65,8 +65,26 @@ Ubuntu:
 Once Redis is up and running, start the CobbleBot scheduler and workers:
 
     $ BACKGROUND=yes RAILS_ENV='development' rake resque:scheduler
+    $ RAILS_ENV='development' bundle exec rake cobblebot:workers:bootstrap
     $ TERM_CHILD=1 RAILS_ENV='development' QUEUE='minecraft_watchdog' rake resque:work
     $ TERM_CHILD=1 RAILS_ENV='development' QUEUE='minecraft_server_log_monitor' rake resque:work
+
+The bootstrap task immediately enqueues the watchdog unless one is already
+queued or running. It exits with an error if Redis is unavailable; the scheduler
+continues to provide the existing five-minute safety net. Rails itself no longer
+contacts Redis while booting, so web, console, route, migration, and asset
+commands can initialize without Redis. Redis is required for the scheduler,
+bootstrap task, and workers. Development, beta, and production use Redis database
+1 by default; tests use database 3. Set `COBBLEBOT_REDIS_URL` to override the
+connection URL and `COBBLEBOT_RESQUE_NAMESPACE` to isolate CobbleBot's Resque
+keys from other applications using the same Redis database.
+
+Each scheduled watchdog job is a one-shot maintenance pass; it does not sleep or
+replenish its own queue. During that pass, the worker queue policy keeps one
+pending standby for the five-minute log monitor and, when enabled, IRC. Active
+jobs are deliberately not counted toward that pending standby. If IRC is
+disabled, pending IRC jobs are cleared, but an already-running IRC worker is not
+terminated.
 
 If you've configured IRC, you need to start a worker for that as well:
 
@@ -92,7 +110,7 @@ If you like to use `tmux`, you can manage the various CobbleBot processes in a s
 
 	tmux send-keys -t CobbleBot:0 "cd $BASE;" C-m
 	tmux send-keys -t CobbleBot:1 "cd $BASE; RAILS_ENV='development' rake resque:scheduler" C-m
-	tmux send-keys -t CobbleBot:2 "cd $BASE; TERM_CHILD=1 RAILS_ENV='development' QUEUE='minecraft_watchdog' rake resque:work" C-m
+	tmux send-keys -t CobbleBot:2 "cd $BASE; RAILS_ENV='development' bundle exec rake cobblebot:workers:bootstrap && TERM_CHILD=1 RAILS_ENV='development' QUEUE='minecraft_watchdog' rake resque:work" C-m
 	tmux send-keys -t CobbleBot:3 "cd $BASE; TERM_CHILD=1 RAILS_ENV='development' QUEUE='minecraft_server_log_monitor' rake resque:work" C-m
 	tmux send-keys -t CobbleBot:4 "cd $BASE; TERM_CHILD=1 RAILS_ENV='development' QUEUE='irc_bot' rake resque:work" C-m
 	tmux send-keys -t CobbleBot:5 "sudo su steve" C-m
@@ -168,6 +186,20 @@ Note, if you have trouble with the simple migrate, use the rake export commands 
 
 In early stages of development, migrations were non-cumulative.  This meant that early migrations required you to drop the database and start from scratch.  To mitigate this, CobbleBot can export data to CSV for re-import after the database is recreated.  As development progressed toward beta, migrations became cumulative so that export/import is not required during update.
 
+## Testing and coverage
+
+The test environment is configured for PostgreSQL. Run the complete suite with:
+
+    $ RAILS_ENV=test bundle exec rails test
+
+The coverage gate runs that same suite from a clean, unmerged SimpleCov result
+and requires at least 75% line coverage:
+
+    $ RAILS_ENV=test bundle exec rake cobblebot:test:coverage
+
+Focused test commands continue to produce mergeable coverage reports without
+enforcing the aggregate floor. The current complete-suite baseline is 79.22%.
+
 ## Export/Import
 
 To export CobbleBot's database, make sure the rails server is stopped.  Also stop the resque scheduler and workers.  Once everything has been stopped:
@@ -202,7 +234,11 @@ Now you can start rails and resque.
 
 ## Switching DBMS
 
-The default DBMS for CobbleBot is SQLite3.  If you are getting IO errors or busy timeouts, this is due to the fact that CobbleBot is running multiple processes and SQLite3 isn't the right fit.  For light traffic servers, these errors are mitigated but not totally eliminated.
+The default DBMS for CobbleBot is SQLite3. SQLite connections use immediate
+transactions and a 15-second native busy timeout so separate CobbleBot processes
+serialize writes before doing transactional work. These settings mitigate light
+contention but do not make SQLite a good fit for sustained concurrent or threaded
+writes. If you are getting IO errors or busy timeouts, use a server database.
 
 To avoid the problems associated with SQLite3, you should consider Postgres or MySQL.
 

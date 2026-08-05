@@ -34,9 +34,4 @@ directive('editCell', -> {
   controller: 'PreferenceCtrl',
   restrict: 'E',
   templateUrl: 'preferences/edit_cell'
-}).
-directive('slackGroupElement', -> {
-  controller: 'PreferenceCtrl',
-  restrict: 'E',
-  templateUrl: 'preferences/slack_group_element'
 })

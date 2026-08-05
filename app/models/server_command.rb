@@ -39,7 +39,7 @@ class ServerCommand
     if player.nil?
       player = Player.create(uuid: uuid, nick: nick, last_login_at: Time.now)
     else
-      player.update_attributes(nick: nick, last_login_at: Time.now)
+      player.update(nick: nick, last_login_at: Time.now)
     end
 
     player
@@ -53,7 +53,7 @@ class ServerCommand
     player = Player.find_by_nick(nick)
     return unless !!player
 
-    player.update_attributes(last_chat: message, last_chat_at: Time.now)
+    player.update(last_chat: message, last_chat_at: Time.now)
 
     player
   end
@@ -132,7 +132,4 @@ class ServerCommand
     end
   end
 
-  def self.slack_bot
-    @slack_bot = SlackBot.instance
-  end
 end

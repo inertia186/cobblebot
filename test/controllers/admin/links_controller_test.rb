@@ -23,7 +23,7 @@ class Admin::LinksControllerTest < ActionController::TestCase
   def test_index_sort_by_link_linked_by
     stub_mit do
       stub_github do
-        get :index, sort_field: 'link_linked_by'
+        get :index, params: { sort_field: 'link_linked_by' }
       end
     end
     links = assigns :links
@@ -40,7 +40,7 @@ class Admin::LinksControllerTest < ActionController::TestCase
 
     stub_mit do
       stub_github do
-        get :index, format: :atom
+        get :index, params: { format: :atom }
       end
     end
     links = assigns :links
@@ -52,7 +52,7 @@ class Admin::LinksControllerTest < ActionController::TestCase
 
   def test_index
     stub_mit do
-      get :index, query: 'mit'
+      get :index, params: { query: 'mit' }
     end
     links = assigns :links
     refute_equal links.count(:all), 0, 'did not expect zero count'
@@ -68,7 +68,7 @@ class Admin::LinksControllerTest < ActionController::TestCase
     end
 
     stub_mit do
-      get :index, player_id: player
+      get :index, params: { player_id: player }
     end
     links = assigns :links
     refute_equal links.count(:all), 0, 'did not expect zero count'
@@ -79,7 +79,7 @@ class Admin::LinksControllerTest < ActionController::TestCase
 
   def test_show
     stub_mit do
-      get :show, id: Link.first
+      get :show, params: { id: Link.first }
     end
 
     assert_template :_link
@@ -90,7 +90,7 @@ class Admin::LinksControllerTest < ActionController::TestCase
 
   def test_destroy
     assert_difference -> { Link.count }, -1, 'expect different count' do
-      delete :destroy, id: Link.first
+      delete :destroy, params: { id: Link.first }
     end
 
     assert_template nil

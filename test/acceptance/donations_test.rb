@@ -1,6 +1,6 @@
 require "test_helper"
 
-class DonationsTest < ActionDispatch::IntegrationTest
+class DonationsTest < AcceptanceTest
   def setup
   end
 
@@ -28,10 +28,11 @@ class DonationsTest < ActionDispatch::IntegrationTest
 
   def test_basic_json
     Server.mock_mode(up: true) do
-      visit '/donations.json'
-      assert_equal 'application/json; charset=utf-8', page.response_headers['Content-Type']
-      refute_match '[]', page.source
-      assert_match 'resnullius', page.source
+      get donations_path(format: :json)
+      assert_response :success
+      assert_equal 'application/json', response.media_type
+      refute_equal [], JSON.parse(response.body)
+      assert_match 'resnullius', response.body
     end
   end
 end

@@ -1,8 +1,8 @@
 require "test_helper"
 
-class Admin::DonationsTest < ActionDispatch::IntegrationTest
+class Admin::DonationsTest < AcceptanceTest
   def setup
-    preferences(:path_to_server).update_attribute(:value, "#{Rails.root}/tmp")
+    preferences(:path_to_server).update!(value: "#{Rails.root}/tmp")
   end
 
   def test_basic_workflow

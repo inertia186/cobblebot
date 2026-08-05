@@ -1,6 +1,6 @@
 require "test_helper"
 
-class TopicsTest < ActionDispatch::IntegrationTest
+class TopicsTest < AcceptanceTest
   def setup
   end
 

@@ -12,7 +12,7 @@ class Ip < ActiveRecord::Base
       ips.address LIKE ?
       OR ips.origin LIKE ?
       OR (player_id IN (?))
-      OR ips.cc IN (?)
+      OR ips.cc LIKE ?
     DONE
     where(clause, q, q, Player.query(query).select(:id), q)
   }
