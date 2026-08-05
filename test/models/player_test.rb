@@ -184,6 +184,50 @@ class PlayerTest < ActiveSupport::TestCase
     assert_equal "0.00 hours", players(:inertia186).hours_since_death
   end
 
+  def test_reputation_prediction_tracks_current_training_data
+    truster = players(:inertia186)
+    trustee = players(:resnullius)
+    reputation = Reputation.create!(truster: truster, trustee: trustee, rate: 4)
+
+    classifier = Player.id3_reputations
+    assert_equal :nil, classifier.on_unknown
+    assert_equal 4, truster.predict_reputation(trustee.nick)
+
+    reputation.update!(rate: -3)
+    assert_equal(-3, truster.predict_reputation(trustee.nick))
+  end
+
+  def test_reputation_prediction_returns_nil_without_training_data
+    Reputation.delete_all
+
+    assert_nil Player.id3_reputations
+    assert_nil players(:inertia186).predict_reputation(players(:resnullius).nick)
+  end
+
+  def test_reputation_prediction_returns_nil_for_unseen_classifier_values
+    trustee = players(:Dinnerbone)
+    Reputation.create!(truster: players(:inertia186), trustee: trustee, rate: 4)
+    Reputation.create!(truster: players(:resnullius), trustee: trustee, rate: -3)
+    unseen_truster = Player.create!(uuid: '4f60a470-f592-43ed-8cee-d922467efe82', nick: 'UnseenTruster')
+
+    assert_nil unseen_truster.predict_reputation(trustee.nick)
+  end
+
+  def test_death_prediction_uses_other_players_as_training_data
+    subject = players(:inertia186)
+    players(:Dinnerbone).update!(time_since_death: 86_400)
+
+    classifier = Player.id3_hours_since_deaths(Player.where.not(id: subject))
+    assert_equal :nil, classifier.on_unknown
+    assert_equal '1.00 hours', subject.predict_death
+  end
+
+  def test_death_prediction_returns_nil_without_training_data
+    Player.update_all(time_since_death: 0)
+
+    assert_nil players(:inertia186).predict_death
+  end
+
   def test_total_kills
     assert_equal 0, players(:inertia186).total_kills
   end

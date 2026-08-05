@@ -247,25 +247,12 @@ class Player < ActiveRecord::Base
   end
   
   def self.id3_reputations
-    return @id3_reputations if !!@id3_reputations
     data_labels = %w(truster trustee rate)
-    data_items = Reputation.all.map do |reputation|
+    data_items = Reputation.order(:id).map do |reputation|
       [reputation.truster.nick, reputation.trustee.nick, reputation.rate]
     end
-    
-    data_set = Ai4r::Data::DataSet.new data_labels: data_labels, data_items: data_items
-    @id3_reputations = Ai4r::Classifiers::ID3.new.build data_set
-  end
-  
-  def self.hyperpipes_reputations
-    return @hyperpipes_reputations if !!@hyperpipes_reputations
-    data_labels = %w(truster trustee rate)
-    data_items = Reputation.all.map do |reputation|
-      [reputation.truster.nick, reputation.trustee.nick, reputation.rate]
-    end
-    
-    data_set = Ai4r::Data::DataSet.new data_labels: data_labels, data_items: data_items
-    @hyperpipes_reputations = Ai4r::Classifiers::ID3.new.build data_set
+
+    build_id3_classifier(data_labels, data_items)
   end
   
   def self.id3_hours_since_deaths(players = Player.all)
@@ -273,7 +260,7 @@ class Player < ActiveRecord::Base
       spam_ratio play_sounds biomes_explored registered? may_autolink?
       leave_game deaths mob_kills player_kills hours_since_death
     )
-    data_items = players.where.not(time_since_death: [nil, 0]).map do |player|
+    data_items = players.where.not(time_since_death: [nil, 0]).order(:id).map do |player|
       [
         player.spam_ratio, player.play_sounds?, player.biomes_explored,
         player.registered?, player.may_autolink?, player.leave_game,
@@ -282,8 +269,14 @@ class Player < ActiveRecord::Base
       ]
     end
     
-    data_set = Ai4r::Data::DataSet.new data_labels: data_labels, data_items: data_items
-    Ai4r::Classifiers::ID3.new.build data_set
+    build_id3_classifier(data_labels, data_items)
+  end
+
+  def self.build_id3_classifier(data_labels, data_items)
+    return if data_items.empty?
+
+    data_set = Ai4r::Data::DataSet.new(data_labels: data_labels, data_items: data_items)
+    Ai4r::Classifiers::ID3.new.set_parameters(on_unknown: :nil).build(data_set)
   end
   
   # Level I trust is the sum of direct trust for this player by a truster.
@@ -632,11 +625,11 @@ class Player < ActiveRecord::Base
   end
   
   def predict_reputation trustee
-    Player.id3_reputations.eval([nick, trustee])
+    Player.id3_reputations&.eval([nick, trustee])
   end
   
   def predict_death
-    Player.id3_hours_since_deaths(Player.where.not(id: self)).eval([
+    Player.id3_hours_since_deaths(Player.where.not(id: self))&.eval([
       spam_ratio, play_sounds?, biomes_explored, registered?, may_autolink?,
       leave_game, deaths, mob_kills, player_kills
     ])

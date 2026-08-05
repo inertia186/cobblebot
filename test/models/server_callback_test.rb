@@ -15,6 +15,55 @@ class ServerCallbackTest < ActiveSupport::TestCase
     refute ServerCommand.respond_to?(:say_translation)
   end
 
+  def test_predict_rate_callback_reports_a_prediction
+    truster = players(:inertia186)
+    trustee = players(:resnullius)
+    Reputation.create!(truster: truster, trustee: trustee, rate: 4)
+
+    execute_seeded_callback('Predict Rate', "@server predict rate #{truster.nick} #{trustee.nick}")
+
+    assert_includes ServerCommand.commands_executed.keys.last,
+      "Predicting #{truster.nick} to rate #{trustee.nick} 4"
+  end
+
+  def test_predict_rate_callback_reports_insufficient_data
+    Reputation.delete_all
+    truster = players(:inertia186)
+    trustee = players(:resnullius)
+
+    execute_seeded_callback('Predict Rate', "@server predict rate #{truster.nick} #{trustee.nick}")
+
+    assert_includes ServerCommand.commands_executed.keys.last,
+      "Cannot predict what #{truster.nick} would rate #{trustee.nick}."
+  end
+
+  def test_predict_death_callback_reports_a_prediction
+    player = players(:inertia186)
+    players(:Dinnerbone).update!(time_since_death: 86_400)
+
+    Server.mock_mode(player_nicks: []) do
+      execute_seeded_callback('Predict Death', "@server predict death #{player.nick}")
+    end
+
+    assert_includes ServerCommand.commands_executed.keys.last,
+      "Predicting #{player.nick} to die 1.00 hours after logging in."
+  end
+
+  def test_predict_death_callback_reports_insufficient_data
+    Player.update_all(time_since_death: 0)
+    player = players(:inertia186)
+
+    execute_seeded_callback('Predict Death', "@server predict death #{player.nick}")
+
+    assert_includes ServerCommand.commands_executed.keys.last,
+      "Cannot predict when #{player.nick} will die."
+  end
+
+  def test_prediction_callbacks_do_not_hide_programming_errors
+    assert_no_match(/rescue nil/, ServerCallback.find_by!(name: 'Predict Rate').command)
+    assert_no_match(/rescue nil/, ServerCallback.find_by!(name: 'Predict Death').command)
+  end
+
   def setup
   end
 
@@ -175,5 +224,13 @@ class ServerCallbackTest < ActiveSupport::TestCase
     callbacks = callbacks.where.not(name: ['Unregister', 'Set Topic', 'Predict Death'])
 
     refute callbacks.any?, "The following callbacks need help docs: #{callbacks.map(&:name).join(', ')}"
+  end
+
+  private
+
+  def execute_seeded_callback(name, message)
+    ServerCommand.reset_commands_executed
+    ServerCallback.find_by!(name: name).execute_command('@a', message)
+    refute_empty ServerCommand.commands_executed
   end
 end
