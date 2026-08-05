@@ -3,6 +3,8 @@ require 'rcon/rcon'
 class Server
   TRY_MAX = 5
   RETRY_SLEEP = 5
+  MAX_ENTITY_DATA_RESPONSE_PACKETS = 128
+  EMPTY_RCON_COMMAND_RESPONSE = /\A(?:Unknown command|Unknown or incomplete command)\b/i
   
   @mock_options = nil
 
@@ -99,7 +101,6 @@ class Server
   def self.entity_data(options = {selector: "@e[c=1]", near_player: nil, radius: 0, only: []})
     return @mock_options[:entity_data] if !!@mock_options
     
-    end_response = 'Unknown command. Try /help for a list of commands'
     error_response = 'The entity UUID provided is in an invalid format'
     rcon = RCON::Minecraft.new(ServerProperties.server_ip, ServerProperties.rcon_port)
     rcon.auth(ServerProperties.rcon_password)
@@ -146,19 +147,23 @@ class Server
 
     response << rcon.command("entitydata #{selector} {}")
     begin
-      response << r = rcon.command('') until r == end_response
+      MAX_ENTITY_DATA_RESPONSE_PACKETS.times do
+        r = rcon.command('')
+        break if r.to_s.match?(EMPTY_RCON_COMMAND_RESPONSE)
+
+        response << r
+      end
     rescue StandardError => e
       Rails.logger.warn "#{self} :: #{e.inspect}"
+    ensure
+      rcon.disconnect
     end
-    response -= [end_response]
     response -= [error_response]
 
     response = response.map do |r|
       r unless r =~ /.* is a player and cannot be changed/
     end
 
-    rcon.disconnect
-    
     entities = response.join.split('The data tag did not change: ').reject(&:empty?)
     only = options[:only]
     
