@@ -10,9 +10,6 @@ gem 'rails', '~> 7.0.10'
 # TEMP Ruby 3 / Rails 6.1 spike cut: old json 1.8.5 is not viable on this stack.
 gem 'json', '>= 2.6'
 
-# Rescue an error and then re-raise your own nested exceptions.
-gem 'nesty'
-
 # Use sqlite3 as the database for Active Record
 # TEMP Ruby 3 spike cut: old sqlite3 1.3.x does not build on Ruby 3.
 gem 'sqlite3', '~> 1.6', '>= 1.6.9', require: false, platforms: :ruby
@@ -60,9 +57,6 @@ gem 'file-tail', '~> 1.4'
 gem 'mechanize', '~> 2.9'
 # TEMP Ruby 3 spike cut: WEBrick is no longer bundled with Ruby stdlib.
 gem 'webrick', '~> 1.8'
-
-# Used to translate in-game chat.
-gem 'google-translate', '~> 1.1'
 
 # Adds machine learning capabilities directly to models.
 # gem 'cabalist'
@@ -153,7 +147,6 @@ group :test do
   gem 'rails-controller-testing', '~> 1.0'
   gem 'selenium-webdriver', '~> 4.40'
   gem 'simplecov', '~> 0.22', require: false
-  gem 'simplecov-csv', '~> 0.1', require: false
   gem 'webmock', '~> 3.25', require: false
   gem 'rexml', '~> 3.4', require: false
   # TEMP Ruby 3 / Rails 6.1 spike cut: memory_test_fix does not support this Rails shelf.

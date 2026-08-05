@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20260802000000) do
+ActiveRecord::Schema.define(version: 20260805000000) do
 
   create_table "ips", force: :cascade do |t|
     t.string  "address",    null: false

@@ -10,6 +10,11 @@ class ServerCallbackTest < ActiveSupport::TestCase
 
   # Many of these tests require the true seeds, not fixtures.  These are marked with "IMPORTANT!"
 
+  def test_retired_translate_callback_is_not_seeded
+    refute ServerCallback.where(name: 'Translate', system: true).exists?
+    refute ServerCommand.respond_to?(:say_translation)
+  end
+
   def setup
   end
 
