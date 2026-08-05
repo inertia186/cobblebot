@@ -1,0 +1,37 @@
+Rails 7 configuration defaults
+==============================
+
+Baseline
+--------
+CobbleBot loads `config.load_defaults 7.0` on Rails 7.0.10. Zeitwerk remains
+explicit, and only the framework railties used by the application are loaded.
+
+Compatibility declarations
+--------------------------
+- Message recipient, author, and parent associations remain optional because
+  worker-generated IRC replies and other historical records may omit them.
+- Link actor remains optional because standalone discovered links are valid.
+- The Gist helper and Minotar fallback are intentional cross-host redirects and
+  opt in with `allow_other_host: true`.
+- JSON parameter wrapping remains in the existing initializer.
+- Cookie serialization now comes from the Rails 7 JSON default; the redundant
+  application initializer was removed.
+
+Deployment note
+---------------
+Rails 7 changes the application key-generator digest from SHA-1 to SHA-256.
+Existing encrypted admin session cookies cannot survive that transition, so the
+first deployment logs current admins out once. Operators should simply sign in
+again. Preferences, Minecraft state, and other persisted application data are
+not changed.
+
+Validation
+----------
+- Redis-denied development and test boot.
+- Zeitwerk and route checks.
+- Production asset compilation.
+- Disposable-SQLite controller, model, worker, service, task, migration, and
+  configuration tests.
+- Full PostgreSQL coverage gate: 376 tests, 2973 assertions, no failures or
+  errors, six intentional skips, and 76.23% line coverage.
+- Namespaced real-Redis integration: 2 tests and 15 assertions.

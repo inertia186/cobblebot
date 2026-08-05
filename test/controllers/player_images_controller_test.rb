@@ -20,8 +20,12 @@ class PlayerImagesControllerTest < ActionController::TestCase
   end
 
   def test_show_redirected
-    stub_minotar('jeb_', '16', 'png') do
-      get :show, params: { id: 'jeb_', size: '16', format: :png }
+    File.stub(:read, nil) do
+      stub_minotar('Notch', '16', 'png') do
+        get :show, params: { id: 'Notch', size: '16', format: :png }
+      end
     end
+
+    assert_redirected_to 'https://minotar.net/avatar/Notch/16.png'
   end
 end

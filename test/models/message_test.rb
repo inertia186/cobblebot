@@ -17,6 +17,15 @@ class MessageTest < ActiveSupport::TestCase
     
     assert_equal player, message.recipient, 'expect player to be recipient'
   end
+
+  def test_worker_messages_allow_missing_associations
+    message = Message::IrcReply.new(body: 'Server relay without a known player')
+
+    assert message.valid?
+    assert_nil message.author
+    assert_nil message.recipient
+    assert_nil message.parent
+  end
   
   def test_query
     Rails.application.load_seed

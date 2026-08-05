@@ -12,6 +12,7 @@ SimpleCov.merge_timeout 3600
 require File.expand_path('../../config/environment', __FILE__)
 require 'rcon/rcon'
 require 'rails/test_help'
+require 'minitest/mock'
 require 'rails-controller-testing'
 require 'webmock/minitest'
 require 'capybara/rails'

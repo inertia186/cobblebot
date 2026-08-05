@@ -68,9 +68,9 @@ class Message < ActiveRecord::Base
     end
   }
 
-  belongs_to :recipient, polymorphic: true
-  belongs_to :author, polymorphic: true
-  belongs_to :parent, class_name: 'Message', foreign_key: :reply_id
+  belongs_to :recipient, polymorphic: true, optional: true
+  belongs_to :author, polymorphic: true, optional: true
+  belongs_to :parent, class_name: 'Message', foreign_key: :reply_id, optional: true
 
   has_many :replies, class_name: 'Message', foreign_key: :reply_id
   

@@ -10,4 +10,11 @@ class LinkTest < ActiveSupport::TestCase
     
     assert_equal cobblebot.title, 'inertia186/cobblebot - GitHub', 'expect title not to expire'
   end
+
+  def test_actor_is_optional
+    link = links(:cobblebot)
+
+    assert link.valid?
+    assert_nil link.actor
+  end
 end

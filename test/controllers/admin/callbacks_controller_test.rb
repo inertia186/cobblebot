@@ -165,6 +165,12 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_gist_callback_allows_its_intentional_external_redirect
+    get :gist_callback, params: { id: ServerCallback.first }
+
+    assert_redirected_to 'https://gist.github.com/'
+  end
+
   def test_destroy
     assert_difference -> { ServerCallback.count }, -1, 'expect different count' do
       delete :destroy, params: { id: ServerCallback.first }

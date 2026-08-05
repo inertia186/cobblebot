@@ -12,7 +12,7 @@ class PlayerTest < ActiveSupport::TestCase
   end
 
   def test_to_selector
-    expected_selector = '@p[name=inertia186,name=Dinnerbone,name=resnullius]'
+    expected_selector = '@p[name=Dinnerbone,name=inertia186,name=resnullius]'
     assert_equal expected_selector, Player.all.to_selector
   end
 

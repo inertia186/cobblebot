@@ -6,10 +6,10 @@ Purpose
 Record the conclusions from the preservation and modernization experiments. This
 is evidence for choosing the next migration step, not a final project roadmap.
 
-Current baseline (2026-08-04)
+Current baseline (2026-08-05)
 -----------------------------
 - Branch: `develop`.
-- Ruby `3.2.7`, Bundler `2.6.6`, and Rails `6.1.7.10` resolve and boot.
+- Ruby `3.2.7`, Bundler `2.6.6`, and Rails `7.0.10` resolve and boot.
 - `bundle check` passes.
 - The Rails environment boots when the configured local Redis is available.
 - Normal Rails initialization no longer inspects or mutates Resque, so web,
@@ -120,18 +120,40 @@ What the modernization spike established
 - Application-owned Rails and Minitest deprecations are removed. The test
   environment raises on future Active Support deprecations, nil JSON values use
   the Minitest 6-compatible assertion path, and the seeded callback sweep no
-  longer starts delayed production threads that outlive the test. SimpleCov has
-  an explicit suite name while retaining the existing coverage dependency set.
-- Rails 6.1 still passes a positional coder hash to modern pg. Those adapter
-  warnings remain visible by design until a later Rails upgrade; CobbleBot does
-  not suppress them or patch Active Record's private PostgreSQL adapter methods.
+  longer starts delayed production threads that outlive the test. SimpleCov 0.22
+  has an explicit suite name and metric-based coverage-floor configuration.
+- The Rails 6.1 positional-coder warning against modern pg was left visible
+  rather than suppressed or patched through private adapter methods. Advancing
+  to Rails 7.0.10 subsequently removed it.
 - Reachable controller and supporting-model coverage now protects admin IPs and
   server properties, the public IRC count and server icon, reputation API
   projections, IP queries, IRC reply retention, and active callback parsing.
   The incomplete API session and obsolete development console routes were
   retired. `rake cobblebot:test:coverage` disables result merging and enforces a
-  75% complete-suite floor; the measured PostgreSQL baseline is 368 tests, 2957
-  assertions, six skips, and 79.22% coverage.
+  75% complete-suite floor; the measured PostgreSQL baseline is 372 tests, 2962
+  assertions, six skips, and 76.20% coverage on the Rails 7 relevant surface.
+- The supported package lane now targets CRuby only. Obsolete JRuby/JDBC
+  dependencies and the Java lock platform were nonfunctional on Rails 6.1 and
+  blocked modern Bundler resolution, so they were retired before a strict
+  patch-level dependency refresh. Resque Scheduler 4.11, Redis Namespace 1.8,
+  Redis Store 1.6, and their timing dependencies now pass real namespaced Redis
+  scheduling and queue-policy tests. Redis 3 and Resque 1 remain fixed for a
+  separate core compatibility slice; MultiJSON is capped below 1.21 until then
+  because Resque 1 calls aliases deprecated by that release.
+- Rails now runs on the final Rails 7.0 maintenance release. Sprockets Rails is
+  an explicit dependency because Rails 7 no longer supplies it through the
+  meta-gem, and Active Record uses the Rails 7 connection handler. The upgrade
+  removes the former Rails 6.1/pg coder warning.
+- Rails 7 configuration defaults are fully loaded. Optional historical
+  `Message` and `Link` associations and intentional cross-host redirects are
+  explicit, JSON parameter wrapping remains supported, and the obsolete cookie
+  serializer initializer is gone. The SHA-256 key-generator transition causes
+  a one-time admin-session cookie rollover on deployment but does not alter
+  persisted application data.
+- The complete Rails 7 PostgreSQL gate passes 376 tests and 2973 assertions
+  with no failures or errors and six intentional skips. SimpleCov measures
+  76.23% of the Rails 7 relevant surface, above both the documented 76% target
+  and the enforced 75% floor.
 
 Completed migration slice
 -------------------------
@@ -168,29 +190,49 @@ against the local PostgreSQL 14 service.
 
 The deprecation cleanup slice is complete: application-owned Active Model and
 Minitest warnings are fixed, future Active Support deprecations fail tests, and
-the seeded callback syntax sweep leaves no background threads behind. The known
-Rails 6.1/pg compatibility warning is explicitly deferred. The expanded
-PostgreSQL baseline is 329 tests and 2827 assertions with no failures or errors
-and the same six intentional skips.
+the seeded callback syntax sweep leaves no background threads behind. Its
+remaining Rails 6.1/pg compatibility warning was resolved by the later Rails 7
+framework slice. The expanded PostgreSQL baseline at that stage was 329 tests
+and 2827 assertions with no failures or errors and the same six intentional
+skips.
 
 The reachable-surface coverage slice is complete: routed admin, public, and API
 behavior has focused regression coverage, content-sensitive server-icon caching
 and reputation joins are correct, dead session/console surfaces are absent, and
-the deterministic PostgreSQL coverage task passes its 75% floor at 79.22%.
+the deterministic PostgreSQL coverage task passes its 75% floor. The current
+Rails 7 measurement is 76.20%.
+
+The first dependency refresh is complete: maintained gems are current within
+their existing patch boundaries, SimpleCov 0.22 preserves focused-result merging
+and the unmerged aggregate gate, and deterministic player selector ordering
+removes a seed-dependent PostgreSQL failure exposed during validation.
+
+The scheduler dependency slice is complete: Resque Scheduler 4.11 persists the
+unchanged five-minute watchdog schedule, the namespaced real-Redis integration
+remains isolated and idempotent, Redis-denied Rails boot remains green, and the
+Redis 3/Resque 1 major boundary is explicitly deferred.
+
+The Rails 7 framework slice is complete: Rails 7.0.10 boots without Redis,
+Zeitwerk and routes validate, PostgreSQL and Redis integration gates pass,
+production assets compile, and the Rails 6.1/pg warning is gone.
+
+The Rails 7 defaults slice is complete: `config.load_defaults 7.0` is active,
+intentional optional associations and external redirects are explicit, and the
+full local gate is green. Deploying this slice rolls existing encrypted admin
+sessions because the Rails 7 key generator uses SHA-256.
 
 Likely follow-on order
 ----------------------
-1. Prepare a controlled Bolger deployment and smoke checklist, keeping host
-   paths, RCON details, and credentials outside the repository.
-2. Validate boot, migrations, Redis scheduling, and log ingestion before
-   enabling outbound Minecraft commands or IRC.
+1. Deploy the Rails 7 baseline to Bolger and validate boot, migrations, Redis
+   scheduling, and log ingestion before enabling outbound commands or IRC.
+2. Choose the next isolated dependency boundary, likely Redis 3/Resque 1.
 
 Open decisions
 --------------
 - Is the desired outcome an archived preservation build, a live resurrection,
   an actively maintained Rails app, or extraction into Galactica Actual?
 - Should the preservation and modernization environments remain reproducible in
-  parallel, or is the Rails 6 branch now the only supported lane?
+  parallel, or is the Rails 7 branch now the only supported lane?
 - How much of the historical admin UI must remain pixel/behavior compatible?
 
 Project boundary
