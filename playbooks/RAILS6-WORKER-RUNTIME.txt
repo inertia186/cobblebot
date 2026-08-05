@@ -38,8 +38,15 @@ Implemented boundary
   reset, disabled IRC jobs are cleared without terminating active work, and
   unmanaged queues are neither inspected nor changed.
 - The managed log-monitor standby runs for 1200 quarter-second ticks (five
-  minutes). Direct/manual invocations retain the longer worker default, and
-  monitor termination no longer depends on Redis queue depth.
+  minutes). Direct/manual invocations retain the longer worker default. The
+  monitor delegates to `MinecraftServerLogTailer`, which keeps one file handle,
+  starts at EOF, and performs finite EOF polls so `max_ticks` bounds normal
+  active work instead of being suspended inside `tail(log_length)`.
+- file-tail 1.4 preserves the existing API and `tins` dependency while fixing
+  reopen behavior that could skip lines when a rotated log temporarily does not
+  exist. Real-file tests cover append, copy-truncate, and rename/recreate with a
+  missing-file window. The monitor no longer queries Minecraft status before
+  tailing an existing log.
 - Minecraft integration stops at the reusable log/callback/command boundary:
   fixture log lines are parsed and resulting RCON commands are captured without
   opening an RCON connection or requiring a running server.
@@ -56,6 +63,8 @@ RAILS_ENV=test bundle exec rails zeitwerk:check
 RAILS_ENV=test bundle exec rails test test/configuration/resque_configuration_test.rb
 RAILS_ENV=test bundle exec rails test test/services/minecraft_worker_queue_policy_test.rb
 RAILS_ENV=test bundle exec rails test test/services/mc_slap_test.rb
+RAILS_ENV=test bundle exec rails test test/services/minecraft_server_log_tailer_test.rb
+RAILS_ENV=test bundle exec rails test test/integration/file_tail_runtime_test.rb
 RAILS_ENV=test bundle exec rails test test/workers test/models/server_callback_test.rb
 REDIS_INTEGRATION=1 RAILS_ENV=test bundle exec rails test test/integration/resque_runtime_test.rb
 ```
@@ -79,4 +88,6 @@ passed `bundle check` without touching the live checkout or Redis.
 Deferred work
 -------------
 - Modernize or replace `config/cobblebot.god`.
-- Validate real RCON/file-tail operation against a disposable Minecraft server.
+- Deploy the file-tail 1.4 slice to Bolger and repeat the live
+  log-worker-to-RCON command check. Rotation semantics are covered locally with
+  real temporary files; do not force a Minecraft restart solely to test them.

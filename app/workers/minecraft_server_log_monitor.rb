@@ -20,40 +20,12 @@ class MinecraftServerLogMonitor
     tick_multiplier = options["tick_multiplier"] || DEFAULT_TICK_MULTIPLIER
     max_ticks = options["max_ticks"] || DEFAULT_MAX_TICKS
 
-    ticks = 0
-    latest_log_entry_at = nil
-    begin
-      new_latest_log_entry_at = Server.latest_log_entry_at
-
-      if latest_log_entry_at != new_latest_log_entry_at
-        latest_log_entry_at = new_latest_log_entry_at
-        File.open(server_log) do |log|
-          unique_lines = []
-          log.extend(File::Tail)
-          log.max_interval = monitor_tick * tick_multiplier
-          log.interval = monitor_tick
-          log.backward(0)
-          log.tail log_length do |line|
-            start = Time.now
-            unless unique_lines.include?(line)
-              unique_lines << line
-              MinecraftServerLogHandler.handle line
-            end
-            elapsed = Time.now - start
-            if elapsed > monitor_tick
-              Rails.logger.warn "Logging interval elapsed time greater than monitor tick: #{elapsed} seconds"
-            end
-          end
-        end
-      end
-
-      ticks = ticks + 1      
-      sleep monitor_tick
-    rescue Errno::ENOENT => e
-      Rails.logger.error "Need to finish setup: #{e.inspect}"
-      sleep 300
-    end while max_ticks > ticks
-  rescue Resque::TermException
-    Rails.logger.info "Detected ^C"
+    MinecraftServerLogTailer.call(
+      server_log: server_log,
+      log_length: log_length,
+      monitor_tick: monitor_tick,
+      tick_multiplier: tick_multiplier,
+      max_ticks: max_ticks
+    )
   end
 end

@@ -126,7 +126,7 @@ GEM
     et-orbi (1.4.1)
       tzinfo
     execjs (2.7.0)
-    file-tail (1.1.1)
+    file-tail (1.4.0)
       tins (~> 1.0)
     fugit (1.13.0)
       et-orbi (~> 1.4)
@@ -361,7 +361,7 @@ DEPENDENCIES
   capybara-screenshot (~> 1.0)
   coffee-rails (~> 5.0)
   dentaku (~> 3.5)
-  file-tail (~> 1.1.1)
+  file-tail (~> 1.4)
   google-translate (~> 1.1)
   haml (~> 5.2)
   java_properties (~> 0.0.4)

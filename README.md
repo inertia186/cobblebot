@@ -85,6 +85,15 @@ migrating Redis: queue names, the `class`/`args` payload shape, database 1, and
 the `resque` namespace remain unchanged. Stop scheduler and worker processes
 before switching releases, then restart them in the sequence above.
 
+The log monitor uses file-tail 1.4 and starts at the end of the existing
+`latest.log`, so starting a worker does not replay historical commands. It polls
+to EOF on one open handle for a bounded number of ticks and follows both
+copy-truncate and rename/recreate rotation. The managed standby runs for 1200
+quarter-second ticks (five minutes); the queue policy supplies its replacement.
+Log monitoring does not query Minecraft status before reading an existing log.
+If the log is absent at startup, the worker returns and the next scheduled
+standby retries.
+
 Rails 7 defaults use SHA-256 for the application key generator. The first
 deployment that includes those defaults invalidates existing encrypted admin
 session cookies, so operators should expect to sign in again after that deploy.
