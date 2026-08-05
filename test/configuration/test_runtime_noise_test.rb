@@ -2,9 +2,11 @@ require 'test_helper'
 
 class TestRuntimeNoiseTest < Minitest::Test
   def test_rails_7_defaults_are_loaded
+    assert_equal '7.1.6', Rails.version
     assert_equal 7.0, Rails.application.config.loaded_config_version
     assert Rails.application.config.action_controller.raise_on_open_redirects
     assert_equal :json, Rails.application.config.action_dispatch.cookies_serializer
+    assert_equal :none, Rails.application.config.action_dispatch.show_exceptions
   end
 
   def test_active_support_deprecations_raise

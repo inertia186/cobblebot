@@ -3,8 +3,11 @@ Rails 7 configuration defaults
 
 Baseline
 --------
-CobbleBot loads `config.load_defaults 7.0` on Rails 7.0.10. Zeitwerk remains
-explicit, and only the framework railties used by the application are loaded.
+CobbleBot runs Rails 7.1.6 while deliberately retaining
+`config.load_defaults 7.0`. This separates framework compatibility from default
+adoption so a later defaults slice can review behavior changes explicitly.
+Zeitwerk remains explicit, and only the framework railties used by the
+application are loaded.
 
 Compatibility declarations
 --------------------------
@@ -16,6 +19,14 @@ Compatibility declarations
 - JSON parameter wrapping remains in the existing initializer.
 - Cookie serialization now comes from the Rails 7 JSON default; the redundant
   application initializer was removed.
+- Test exception handling uses the Rails 7.1 `:none` setting instead of the
+  deprecated boolean form.
+- The legacy `config/secrets.yml` bridge is gone. Production reads
+  `SECRET_KEY_BASE` through Rails' supported configuration path; development
+  and test use Rails' generated local secret.
+- Resque task coverage inspects a clean operator-style Rake process because the
+  Rails test runner may reset its in-process task registry after task files have
+  already been required.
 
 Deployment note
 ---------------
@@ -32,6 +43,7 @@ Validation
 - Production asset compilation.
 - Disposable-SQLite controller, model, worker, service, task, migration, and
   configuration tests.
-- Full PostgreSQL coverage gate: 376 tests, 2973 assertions, no failures or
-  errors, six intentional skips, and 76.23% line coverage.
-- Namespaced real-Redis integration: 2 tests and 15 assertions.
+- Full PostgreSQL coverage gate: 407 tests, 3147 assertions, no failures or
+  errors, six intentional skips, and 77.31% line coverage.
+- All 21 headless-Chrome acceptance tests pass.
+- Namespaced real-Redis integration: 2 tests and 23 assertions.

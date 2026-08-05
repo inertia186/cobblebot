@@ -4,41 +4,41 @@ require 'csv'
 # WebMock.disable_net_connect! # We need to avoid making API calls during import/export.
 
 namespace :cobblebot do
-  PREFERENCE_KEYS = %w(key value system created_at updated_at)
+  preference_keys = %w(key value system created_at updated_at)
   
   # Note, SERVER_CALLBACK_KEYS excludes: pretty_pattern last_match pretty_command last_command_output ran_at error_flag_at
-  SERVER_CALLBACK_KEYS = %w(
+  server_callback_keys = %w(
     type name pattern command cooldown enabled system help_doc_key help_doc
     created_at updated_at
   )
 
   # Note, PLAYER_KEYS excludes shall_update_stats
-  PLAYER_KEYS = %w(uuid nick last_nick last_ip last_chat last_chat_at
+  player_keys = %w(uuid nick last_nick last_ip last_chat last_chat_at
     last_location last_login_at last_logout_at spam_ratio play_sounds
     biomes_explored may_autolink registered_at vetted_at created_at updated_at
     leave_game deaths mob_kills time_since_death player_kills
   )
   
   # Note, LINK_KEYS use actor_uuid instead of actor_id/actor_type.
-  LINK_KEYS = %w(
+  link_keys = %w(
     url title actor_uuid expires_at last_modified_at can_embed created_at
     updated_at
   )
   
   # Note, MESSAGE_KEYS use auhor_uuid instead of author_id/author_type; recipient_uuid instead of recipient_id/recipient_type; parent_uuid to re-link reply_id.
-  MESSAGE_KEYS = %w(
+  message_keys = %w(
     uuid type body keywords recipient_term recipient_uuid author_uuid read_at
     deleted_at created_at updated_at parent_uuid
   )
   
   # Note, IP_KEYS use player_uuid instead of player_id.
-  IP_KEYS = %w(address player_uuid origin cc state city created_at)
+  ip_keys = %w(address player_uuid origin cc state city created_at)
   
   # Note, MUTE_KEYS use player_uuid instead of player_id; muted_player_uuid instead of muted_player_id.
-  MUTE_KEYS = %w(player_uuid muted_player_uuid created_at)
+  mute_keys = %w(player_uuid muted_player_uuid created_at)
   
   # Note, REPUTATION_KEYS use truster_uuid instead of truster_id; trustee_uuid instead of trustee_id.
-  REPUTATION_KEYS = %w(truster_uuid trustee_uuid rate created_at updated_at)
+  reputation_keys = %w(truster_uuid trustee_uuid rate created_at updated_at)
   
   desc 'display the current information of rake'
   task :info do
@@ -55,11 +55,11 @@ namespace :cobblebot do
     desc 'dump out preferences to csv'
     task preferences: :environment do
       data = CSV.generate do |csv|
-        csv << PREFERENCE_KEYS
+        csv << preference_keys
         
         Preference.all.find_each do |preference|
           row = []
-          PREFERENCE_KEYS.each do |key|
+          preference_keys.each do |key|
             row << preference.send(key)
           end
           csv << row
@@ -73,11 +73,11 @@ namespace :cobblebot do
     desc 'dump out server callbacks to csv'
     task server_callbacks: :environment do
       data = CSV.generate do |csv|
-        csv << SERVER_CALLBACK_KEYS
+        csv << server_callback_keys
         
         ServerCallback.all.find_each do |server_callback|
           row = []
-          SERVER_CALLBACK_KEYS.each do |key|
+          server_callback_keys.each do |key|
             row << server_callback.send(key)
           end
           csv << row
@@ -91,11 +91,11 @@ namespace :cobblebot do
     desc 'dump out players to csv'
     task players: :environment do
       data = CSV.generate do |csv|
-        csv << PLAYER_KEYS
+        csv << player_keys
         
         Player.all.find_each do |player|
           row = []
-          PLAYER_KEYS.each do |key|
+          player_keys.each do |key|
             row << player.send(key)
           end
           csv << row
@@ -109,11 +109,11 @@ namespace :cobblebot do
     desc 'dump out links to csv'
     task links: :environment do
       data = CSV.generate do |csv|
-        csv << LINK_KEYS
+        csv << link_keys
 
         Link.all.find_each do |link|
           row = []
-          LINK_KEYS.each do |key|
+          link_keys.each do |key|
             case key
             when 'actor_uuid'
               if !!link.actor
@@ -136,14 +136,14 @@ namespace :cobblebot do
     desc 'dump out messages to csv'
     task messages: :environment do
       data = CSV.generate do |csv|
-        csv << MESSAGE_KEYS
+        csv << message_keys
         
         # Note, we do not export types: Message::IrcReply
         exported_message_types = ["Message::Tip", nil, "Message::Topic", "Message::Pvp", "Message::Donation", "Message::Quote"]
         
         Message.where(type: exported_message_types).find_each do |message|
           row = []
-          MESSAGE_KEYS.each do |key|
+          message_keys.each do |key|
             case key
             when 'parent_uuid'
               if message.parent
@@ -178,11 +178,11 @@ namespace :cobblebot do
     desc 'dump out ips to csv'
     task ips: :environment do
       data = CSV.generate do |csv|
-        csv << IP_KEYS
+        csv << ip_keys
         
         Ip.find_each do |ip|
           row = []
-          IP_KEYS.each do |key|
+          ip_keys.each do |key|
             case key
             when 'player_uuid'
               row << ip.player.uuid if ip.player
@@ -201,11 +201,11 @@ namespace :cobblebot do
     desc 'dump out mutes to csv'
     task mutes: :environment do
       data = CSV.generate do |csv|
-        csv << MUTE_KEYS
+        csv << mute_keys
         
         Mute.find_each do |mute|
           row = []
-          MUTE_KEYS.each do |key|
+          mute_keys.each do |key|
             case key
             when 'player_uuid'
               row << mute.player.uuid if mute.player
@@ -226,11 +226,11 @@ namespace :cobblebot do
     desc 'dump out reputations to csv'
     task reputations: :environment do
       data = CSV.generate do |csv|
-        csv << REPUTATION_KEYS
+        csv << reputation_keys
         
         Reputation.find_each do |reputation|
           row = []
-          REPUTATION_KEYS.each do |key|
+          reputation_keys.each do |key|
             case key
             when 'truster_uuid'
               row << reputation.truster.uuid if reputation.truster
@@ -254,7 +254,7 @@ namespace :cobblebot do
     task preferences: :environment do
       CSV.parse(STDIN, headers: true) do |row|
         preference_params = {}
-        PREFERENCE_KEYS.each do |key|
+        preference_keys.each do |key|
           preference_params[key] = row[key]
         end
 
@@ -266,7 +266,7 @@ namespace :cobblebot do
     task server_callbacks: :environment do
       CSV.parse(STDIN, headers: true) do |row|
         server_callback_params = {}
-        SERVER_CALLBACK_KEYS.each do |key|
+        server_callback_keys.each do |key|
           server_callback_params[key] = row[key]
         end
 
@@ -278,7 +278,7 @@ namespace :cobblebot do
     task players: :environment do
       CSV.parse(STDIN, headers: true) do |row|
         player_params = {}
-        PLAYER_KEYS.each do |key|
+        player_keys.each do |key|
           player_params[key] = row[key]
         end
 
@@ -293,7 +293,7 @@ namespace :cobblebot do
     task links: :environment do
       CSV.parse(STDIN, headers: true) do |row|
         link_params = {skip_populate_from_response: true}
-        LINK_KEYS.each do |key|
+        link_keys.each do |key|
           case key
           when 'actor_uuid'
             if (uuid = row[key]).present?
@@ -313,7 +313,7 @@ namespace :cobblebot do
     task messages: :environment do
       CSV.parse(STDIN, headers: true) do |row|
         message_params = {}
-        MESSAGE_KEYS.each do |key|
+        message_keys.each do |key|
           case key
           when 'type'
             if row[key].present?
@@ -349,7 +349,7 @@ namespace :cobblebot do
     task ips: :environment do
       CSV.parse(STDIN, headers: true) do |row|
         ip_params = {}
-        IP_KEYS.each do |key|
+        ip_keys.each do |key|
           case key
           when 'player_uuid'
             if (uuid = row[key]).present?
@@ -371,7 +371,7 @@ namespace :cobblebot do
     task mutes: :environment do
       CSV.parse(STDIN, headers: true) do |row|
         mute_params = {}
-        MUTE_KEYS.each do |key|
+        mute_keys.each do |key|
           case key
           when 'player_uuid'
             if (uuid = row[key]).present?
@@ -397,7 +397,7 @@ namespace :cobblebot do
     task reputations: :environment do
       CSV.parse(STDIN, headers: true) do |row|
         reputation_params = {}
-        REPUTATION_KEYS.each do |key|
+        reputation_keys.each do |key|
           case key
           when 'truster_uuid'
             if (uuid = row[key]).present?
