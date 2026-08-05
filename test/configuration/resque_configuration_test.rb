@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'rake'
 
 class ResqueConfigurationTest < ActiveSupport::TestCase
   FakeResque = Struct.new(:redis)
@@ -7,7 +8,7 @@ class ResqueConfigurationTest < ActiveSupport::TestCase
     class << self
       attr_reader :options
 
-      def connect(options)
+      def new(options)
         @options = options
         :redis_client
       end
@@ -65,9 +66,30 @@ class ResqueConfigurationTest < ActiveSupport::TestCase
       namespace_class: FakeNamespace
     )
 
-    assert_equal({url: 'redis://redis.example.test:6380/9', thread_safe: true}, FakeRedis.options)
+    assert_equal({url: 'redis://redis.example.test:6380/9'}, FakeRedis.options)
     assert_equal 'isolated', namespaced_client.name
     assert_equal({redis: :redis_client}, namespaced_client.options)
     assert_same namespaced_client, resque.redis
+  end
+
+  def test_supported_resque_tasks_are_loaded_without_the_retired_pool_hook
+    Rails.application.load_tasks unless Rake::Task.task_defined?('resque:work')
+
+    assert Rake::Task.task_defined?('resque:work')
+    assert Rake::Task.task_defined?('resque:scheduler')
+    refute Rake::Task.task_defined?('resque:pool:setup')
+  end
+
+  def test_resque_serialization_uses_the_current_multi_json_api
+    payload = {'class' => 'ExampleWorker', 'args' => [{'value' => 1}]}
+
+    _output, errors = capture_io do
+      assert_equal payload, Resque.decode(Resque.encode(payload))
+    end
+
+    assert_empty errors
+    assert_raises Resque::Helpers::DecodeException do
+      Resque.decode('{invalid json')
+    end
   end
 end

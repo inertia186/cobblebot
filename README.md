@@ -79,6 +79,12 @@ bootstrap task, and workers. Development, beta, and production use Redis databas
 connection URL and `COBBLEBOT_RESQUE_NAMESPACE` to isolate CobbleBot's Resque
 keys from other applications using the same Redis database.
 
+The supported worker client stack is redis-rb 5.4, Resque 3.0, Resque Scheduler
+5.0, and Redis Namespace 1.11. Upgrading these gems does not require flushing or
+migrating Redis: queue names, the `class`/`args` payload shape, database 1, and
+the `resque` namespace remain unchanged. Stop scheduler and worker processes
+before switching releases, then restart them in the sequence above.
+
 Rails 7 defaults use SHA-256 for the application key generator. The first
 deployment that includes those defaults invalidates existing encrypted admin
 session cookies, so operators should expect to sign in again after that deploy.
@@ -204,7 +210,7 @@ and requires at least 75% line coverage:
 
 Focused test commands continue to produce mergeable coverage reports without
 enforcing the aggregate floor. On Rails 7.0.10, the current complete-suite
-baseline is 76.23%.
+baseline is 76.33%.
 
 ## Export/Import
 

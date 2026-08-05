@@ -1,5 +1,5 @@
-Rails 6 worker-runtime baseline
-===============================
+Worker-runtime baseline
+=======================
 
 Purpose
 -------
@@ -20,10 +20,17 @@ Implemented boundary
   real Resque serialization, bootstrap idempotence, and managed queue resets,
   persists the existing five-minute scheduler definition, and removes only the
   keys created under that namespace.
-- The compatible legacy-core package shelf is Redis 3.3.5, Resque 1.27.4,
-  Resque Scheduler 4.11.0, Redis Namespace 1.8.2, and Redis Store 1.6.0.
-  MultiJSON remains below 1.21 because Resque 1.x calls aliases deprecated in
-  that release; 1.20.1 is the newest warning-free serializer on this shelf.
+- The supported client shelf is redis-rb 5.4.1, Resque 3.0.0, Resque Scheduler
+  5.0.0, Redis Namespace 1.11.0, and MultiJSON 1.21.1. Unused Redis Store and
+  the obsolete Vegas dependency are absent.
+- Resque 3 wraps the namespaced Redis client in `Resque::DataStore`.
+  `ResqueConfiguration` constructs the Redis 5 client through the lazy
+  `Redis.new(url:)` API; no connection is opened during Rails boot.
+- Redis 5's one-second default client timeout is intentional for CobbleBot's
+  loopback Redis deployment and keeps operational worker failures fast.
+- Resque 3.0 still calls deprecated MultiJSON aliases internally, so CobbleBot
+  supplies the same JSON payload contract through MultiJSON's maintained
+  `generate`/`parse` API without capping the serializer.
 - `MinecraftWatchdog` performs one maintenance pass per scheduled invocation.
   It does not sleep, inspect its own backlog, or enqueue another watchdog.
 - `MinecraftWorkerQueuePolicy` independently converges the log-monitor and
@@ -51,10 +58,14 @@ REDIS_INTEGRATION=1 RAILS_ENV=test bundle exec rails test test/integration/resqu
 Use a disposable database through `DATABASE_URL` for the Rails tests. The Redis
 integration command may also set `COBBLEBOT_REDIS_URL`; its generated namespace
 prevents collisions with unrelated Resque queues on that Redis database.
+The integration proves Resque 1-shaped payload compatibility, the Resque 3 data
+store, active-worker detection, authenticated Resque Web rendering, schedule
+persistence, and rollback-compatible new payloads. A disposable `resque:work`
+process smoke additionally verifies fork, execution, and graceful shutdown.
 
 Deferred work
 -------------
 - Modernize or replace `config/cobblebot.god`.
-- Upgrade the Redis 3/Resque 1 core boundary as a dedicated compatibility slice.
 - Validate real RCON/file-tail operation against a disposable Minecraft server.
-- Run the complete suite against PostgreSQL.
+- Deploy the client-stack upgrade to Bolger without flushing Redis and retain
+  the Rails 7/Resque 1 release as the narrow rollback point.
