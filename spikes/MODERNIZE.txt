@@ -244,21 +244,28 @@ Zeitwerk-compatible application service, its command behavior and 46,116 phrase
 combinations are covered, and the SSH Git source, unsolicited boot banner, and
 obsolete Gist help link are absent.
 
-The file-tail slice is complete locally: file-tail 1.4 keeps the historical API
-and transitive dependency shape, real-file tests prove append, copy-truncate,
-and rename/recreate behavior, and `MinecraftServerLogTailer` turns the former
-blocking `tail(log_length)` call into finite EOF polls over one handle. The
-managed 1200-tick payload now has its intended five-minute normal runtime and
-does not require a Minecraft query before reading `latest.log`.
+The file-tail slice is complete in production: file-tail 1.4 keeps the
+historical API and transitive dependency shape, real-file tests prove append,
+copy-truncate, and rename/recreate behavior, and `MinecraftServerLogTailer`
+turns the former blocking `tail(log_length)` call into finite EOF polls over one
+handle. Commit `f9876bd` is green on Bolger with Redis continuity, HTTP 200,
+zero service restarts, and live version/slap command responses.
+
+The obsolete dependency cleanup is complete locally: the Ruby-3-incompatible
+Translate callback, `google-translate`, and its `json_pure`/`resource_accessor`
+dependencies are gone. The deployment migration removes only the persisted
+system Translate callback. Unused `nesty` and `simplecov-csv` are also absent.
 
 Likely follow-on order
 ----------------------
-1. Deploy file-tail 1.4 to Bolger, verify the synthetic rotation harness there,
-   and repeat the live `@server version` log-to-RCON round trip.
-2. Retire or replace the obsolete `google-translate` callback dependency. Keep
-   the working `minecraft-query` boundary and its Ruby 3 compatibility test
+1. Deploy the obsolete dependency cleanup and confirm the system Translate
+   callback migration removes only the intended row.
+2. Audit the live `ai4r` prediction boundary for its 2.0 upgrade. Keep the
+   working `minecraft-query` boundary and its Ruby 3 compatibility test
    unchanged unless production evidence calls for a replacement.
-3. Modernize or retire the obsolete God process definition now that systemd is
+3. Decide whether optional IRC remains supported before upgrading or retiring
+   the legacy `summer` client.
+4. Modernize or retire the obsolete God process definition now that systemd is
    the proven production supervisor.
 
 Open decisions

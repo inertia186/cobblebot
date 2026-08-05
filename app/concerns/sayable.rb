@@ -1,7 +1,3 @@
-require 'google_translate'
-require 'google_translate/version'
-require 'google_translate/result_parser'
-
 module Sayable
   extend Commandable
   
@@ -408,21 +404,6 @@ module Sayable
         ]
       DONE
       ) unless selector.nil?
-    end
-    
-    def say_translation(selector, pair, term)
-      pair = pair.split(':')
-      if pair.size == 1
-        from = :auto
-        to = pair[0].to_sym
-      else
-        from = pair[0].to_sym
-        to = pair[1].to_sym
-      end
-      translator = GoogleTranslate.new
-      translation = translator.translate(from, to, term)
-      
-      say(selector, escape(translation.first.first.first), as: 'Google', color: 'white', hover_text: "Translation from: #{translation.third}")
     end
     
     def say_trust(selector, truster_nick, trustee_nick)

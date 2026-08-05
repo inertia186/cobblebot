@@ -2,6 +2,7 @@
 .bundle
 db/*.sqlite3
 log/*.log
+log/irc.log.*
 log/*.pid
 tmp/**/*
 tmp/*
@@ -19,4 +20,3 @@ test/models/coverage/*
 todo.*
 public/assets
 .idea
-

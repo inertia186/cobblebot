@@ -54,6 +54,10 @@ Implemented boundary
   46,116 combinations remain, while the SSH-hosted Gist dependency, require-time
   stderr banner, and runtime Gist link are gone. Focused tests inject a random
   source rather than depending on sampled output.
+- The broken Translate callback and its `google-translate` dependency are
+  retired. A data migration removes only the persisted system callback; custom
+  callbacks with the same name remain. Unused `nesty` and `simplecov-csv`
+  dependencies are absent as well.
 
 Validation
 ----------
@@ -79,15 +83,12 @@ process smoke additionally verifies fork, execution, and graceful shutdown.
 
 Production validation
 ---------------------
-Commit `614ef9b` is deployed on Bolger with Redis Server continuity, healthy
-Resque 3 workers and scheduler, HTTP 200, zero service restarts, and a live
-log-worker-to-RCON `@server version` response. A disposable archive of the
-previous `fc7cdf2` release reconstructed its complete production bundle and
-passed `bundle check` without touching the live checkout or Redis.
+Commit `f9876bd` is deployed on Bolger with Redis Server continuity, healthy
+Resque workers and scheduler, HTTP 200, and zero service restarts. The bounded
+tailer processed new chat; live `@server version` and application-owned
+`@server slap` responses passed. The previous release remains available for
+rollback.
 
 Deferred work
 -------------
 - Modernize or replace `config/cobblebot.god`.
-- Deploy the file-tail 1.4 slice to Bolger and repeat the live
-  log-worker-to-RCON command check. Rotation semantics are covered locally with
-  real temporary files; do not force a Minecraft restart solely to test them.
