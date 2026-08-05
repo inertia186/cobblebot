@@ -244,12 +244,21 @@ Zeitwerk-compatible application service, its command behavior and 46,116 phrase
 combinations are covered, and the SSH Git source, unsolicited boot banner, and
 obsolete Gist help link are absent.
 
+The file-tail slice is complete locally: file-tail 1.4 keeps the historical API
+and transitive dependency shape, real-file tests prove append, copy-truncate,
+and rename/recreate behavior, and `MinecraftServerLogTailer` turns the former
+blocking `tail(log_length)` call into finite EOF polls over one handle. The
+managed 1200-tick payload now has its intended five-minute normal runtime and
+does not require a Minecraft query before reading `latest.log`.
+
 Likely follow-on order
 ----------------------
-1. Audit the remaining legacy Minecraft-facing gems (`google-translate`,
-   `minecraft-query`, and `file-tail`) against their actual live seams before
-   choosing the next package boundary.
-2. Modernize or retire the obsolete God process definition now that systemd is
+1. Deploy file-tail 1.4 to Bolger, verify the synthetic rotation harness there,
+   and repeat the live `@server version` log-to-RCON round trip.
+2. Retire or replace the obsolete `google-translate` callback dependency. Keep
+   the working `minecraft-query` boundary and its Ruby 3 compatibility test
+   unchanged unless production evidence calls for a replacement.
+3. Modernize or retire the obsolete God process definition now that systemd is
    the proven production supervisor.
 
 Open decisions

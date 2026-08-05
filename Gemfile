@@ -53,7 +53,7 @@ gem 'java_properties', '~> 0.0.4'
 gem 'minecraft-query', '~> 1.0'
 
 # CobbleBot uses file-tail to read latest.log of the Minecraft Server.
-gem 'file-tail', '~> 1.1.1'
+gem 'file-tail', '~> 1.4'
 
 # CobbleBot uses mechanize to get the HTML Title when displaying a link to players.
 # TEMP Ruby 3 spike cut: old mechanize/mime-types stack is not Ruby-3-clean.
