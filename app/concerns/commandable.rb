@@ -62,6 +62,8 @@ module Commandable
     end
   
     def execute(command, options = {try_max: try_max})
+      command = command.to_s.strip
+
       _try_max = if options[:try_max].present?
         options[:try_max].to_i
       else
