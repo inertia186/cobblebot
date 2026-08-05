@@ -18,7 +18,12 @@ Implemented boundary
   migrations, assets, and ordinary tests do not open a Redis connection.
 - The opt-in Redis integration test uses a process-specific namespace, verifies
   real Resque serialization, bootstrap idempotence, and managed queue resets,
-  and removes only the keys created under that namespace.
+  persists the existing five-minute scheduler definition, and removes only the
+  keys created under that namespace.
+- The compatible legacy-core package shelf is Redis 3.3.5, Resque 1.27.4,
+  Resque Scheduler 4.11.0, Redis Namespace 1.8.2, and Redis Store 1.6.0.
+  MultiJSON remains below 1.21 because Resque 1.x calls aliases deprecated in
+  that release; 1.20.1 is the newest warning-free serializer on this shelf.
 - `MinecraftWatchdog` performs one maintenance pass per scheduled invocation.
   It does not sleep, inspect its own backlog, or enqueue another watchdog.
 - `MinecraftWorkerQueuePolicy` independently converges the log-monitor and
@@ -50,6 +55,6 @@ prevents collisions with unrelated Resque queues on that Redis database.
 Deferred work
 -------------
 - Modernize or replace `config/cobblebot.god`.
-- Upgrade the legacy Redis, Resque, and resque-scheduler major-version stack.
+- Upgrade the Redis 3/Resque 1 core boundary as a dedicated compatibility slice.
 - Validate real RCON/file-tail operation against a disposable Minecraft server.
 - Run the complete suite against PostgreSQL.

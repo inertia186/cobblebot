@@ -96,7 +96,7 @@ class Admin::CallbacksController < Admin::AdminController
   def gist_callback
     @callback = ServerCallback.find(params[:id])
     
-    redirect_to 'https://gist.github.com/'
+    redirect_to 'https://gist.github.com/', allow_other_host: true
   end
 
   def reset_cooldown

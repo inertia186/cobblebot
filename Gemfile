@@ -3,8 +3,9 @@ source 'https://rubygems.org'
 # TEMP Ruby 3 spike cut: let a modern Bundler drive resolution so we can expose the next real blocker.
 # gem 'bundler', '>= 1.12'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-# TEMP Ruby 3 spike cut: next plausible Rails shelf above 5.2.
-gem 'rails', '~> 6.1.7', '>= 6.1.7.10'
+# Keep Rails on the latest 7.0 maintenance shelf while configuration defaults
+# remain intentionally explicit.
+gem 'rails', '~> 7.0.10'
 
 # TEMP Ruby 3 / Rails 6.1 spike cut: old json 1.8.5 is not viable on this stack.
 gem 'json', '>= 2.6'
@@ -19,11 +20,6 @@ gem 'sqlite3', '~> 1.6', '>= 1.6.9', require: false, platforms: :ruby
 # Use postgresql if you're tired of SQLite errors.
 # TEMP Ruby 3 spike cut: old pg 1.0.x still calls removed taint APIs on Ruby 3.
 gem 'pg', '~> 1.5', platforms: :ruby
-# gem 'pg', platforms: :jruby, git: 'git://github.com/headius/jruby-pg.git', :branch => :master
-
-# Enables sqlite3 on jruby
-gem 'jruby-openssl', platform: :jruby
-gem 'activerecord-jdbcsqlite3-adapter', platform: :jruby
 
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '~> 3.0'
@@ -81,9 +77,9 @@ gem 'redis', '~> 3.3', require: false
 gem 'redis-store', '~> 1.1', require: false
 gem 'resque', '~> 1.26', require: 'resque/server'
 gem 'resque-scheduler', '~> 4.2', require: false
-# Resque serializes jobs through MultiJson; older releases use Proc semantics
-# removed by Ruby 3.
-gem 'multi_json', '~> 1.15'
+# Resque 1.x serializes jobs through MultiJson. Versions before 1.15 use Proc
+# semantics removed by Ruby 3, while 1.21 deprecates the API Resque 1.x calls.
+gem 'multi_json', '>= 1.15', '< 1.21'
 
 # IRC
 gem 'summer', '~> 1.0'
@@ -110,6 +106,9 @@ gem 'dentaku', '~> 3.5'
 # gem 'capistrano-rails', group: :development
 
 # Assets
+
+# Rails 7 no longer includes Sprockets through the Rails meta-gem.
+gem 'sprockets-rails', '~> 3.5'
 
 # Bootstrap 4 ruby gem for Ruby on Rails (Sprockets) and Compass.
 # TEMP spike cut: disabled alongside Sass to avoid the old asset/ffi branch.
@@ -157,7 +156,7 @@ group :test do
   gem 'puma', '~> 6.4'
   gem 'rails-controller-testing', '~> 1.0'
   gem 'selenium-webdriver', '~> 4.40'
-  gem 'simplecov', '~> 0.11', require: false
+  gem 'simplecov', '~> 0.22', require: false
   gem 'simplecov-csv', '~> 0.1', require: false
   gem 'webmock', '~> 3.25', require: false
   gem 'rexml', '~> 3.4', require: false

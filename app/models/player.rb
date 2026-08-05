@@ -241,7 +241,7 @@ class Player < ActiveRecord::Base
   end
 
   def self.to_selector
-    nicks = all.map { |p| "name=#{p.nick}" }.join(',')
+    nicks = order(:nick).map { |p| "name=#{p.nick}" }.join(',')
     
     "@p[#{nicks}]"
   end

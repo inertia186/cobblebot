@@ -1,5 +1,6 @@
 require 'test_helper'
 require 'securerandom'
+require 'resque-scheduler'
 
 class ResqueRuntimeTest < ActiveSupport::TestCase
   class UnmanagedWorker
@@ -37,6 +38,10 @@ class ResqueRuntimeTest < ActiveSupport::TestCase
     payload = Resque.peek(MinecraftWatchdog::QUEUE, 0)
     assert_equal MinecraftWatchdog.name, payload.fetch('class')
     assert_equal [], payload.fetch('args')
+
+    schedule = YAML.safe_load(File.read(Rails.root.join('config/resque_schedule.yml')))
+    Resque.schedule = schedule
+    assert_equal '*/5 * * * *', Resque.schedule.fetch('MinecraftWatchdog').fetch('cron')
   end
 
   def test_worker_queue_policy_resets_managed_payloads_and_preserves_unmanaged_work
@@ -68,4 +73,5 @@ class ResqueRuntimeTest < ActiveSupport::TestCase
     ).fetch(MinecraftServerLogMonitor::QUEUE)
     assert_equal 1, Resque.size(:unmanaged_runtime_test)
   end
+
 end

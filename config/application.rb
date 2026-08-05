@@ -1,6 +1,6 @@
 require File.expand_path('../boot', __FILE__)
 
-# TEMP Ruby 3 / Rails 6.1 spike cut: ensure stdlib Logger is loaded before ActiveSupport touches it.
+# Ensure stdlib Logger is loaded before Active Support touches it.
 require 'logger'
 require 'rails'
 require 'active_model/railtie'
@@ -16,8 +16,9 @@ Bundler.require(*Rails.groups)
 
 module Cobblebot
   class Application < Rails::Application
-    # CobbleBot has not adopted the Rails 6.1 default configuration wholesale,
-    # so select the modern autoloader explicitly.
+    config.load_defaults 7.0
+
+    # Rails 7 only supports Zeitwerk; keep the application mode explicit.
     config.autoloader = :zeitwerk
 
     # Settings in config/environments/* take precedence over those specified here.

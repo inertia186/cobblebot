@@ -32,7 +32,7 @@ class PlayerImagesController < ApplicationController
       response.headers['ETag'] = uuid unless uuid.to_s.empty?
       send_data image, stream: false, filename: "#{nick}.#{format}", type: "image/#{format}", disposition: 'inline'
     else
-      redirect_to url
+      redirect_to url, allow_other_host: true
     end
   end
 end

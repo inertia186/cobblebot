@@ -1,7 +1,7 @@
 class Link < ActiveRecord::Base
   attr_accessor :skip_populate_from_response
   
-  belongs_to :actor, polymorphic: true
+  belongs_to :actor, polymorphic: true, optional: true
 
   scope :optionally_for_url, lambda { |url = nil|
     if !!url

@@ -79,6 +79,11 @@ bootstrap task, and workers. Development, beta, and production use Redis databas
 connection URL and `COBBLEBOT_RESQUE_NAMESPACE` to isolate CobbleBot's Resque
 keys from other applications using the same Redis database.
 
+Rails 7 defaults use SHA-256 for the application key generator. The first
+deployment that includes those defaults invalidates existing encrypted admin
+session cookies, so operators should expect to sign in again after that deploy.
+No preference or application data is affected.
+
 Each scheduled watchdog job is a one-shot maintenance pass; it does not sleep or
 replenish its own queue. During that pass, the worker queue policy keeps one
 pending standby for the five-minute log monitor and, when enabled, IRC. Active
@@ -198,7 +203,8 @@ and requires at least 75% line coverage:
     $ RAILS_ENV=test bundle exec rake cobblebot:test:coverage
 
 Focused test commands continue to produce mergeable coverage reports without
-enforcing the aggregate floor. The current complete-suite baseline is 79.22%.
+enforcing the aggregate floor. On Rails 7.0.10, the current complete-suite
+baseline is 76.23%.
 
 ## Export/Import
 
