@@ -61,8 +61,6 @@ gem 'mechanize', '~> 2.9'
 # TEMP Ruby 3 spike cut: WEBrick is no longer bundled with Ruby stdlib.
 gem 'webrick', '~> 1.8'
 
-# Can be used by callbacks.
-gem 'mc-slap', git: 'git@gist.github.com:5002463.git'
 # Used to translate in-game chat.
 gem 'google-translate', '~> 1.1'
 

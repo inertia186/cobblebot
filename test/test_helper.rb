@@ -77,14 +77,11 @@ module WebStubs
   end
 
   def stub_github(&block)
-    stub_head = stub_request(:head, "http://github.com/inertia186/cobblebot").
-      to_return(status: 200)
-    stub_get = stub_request(:get, "https://gist.github.com/inertia186/5002463").
+    stub = stub_request(:head, "http://github.com/inertia186/cobblebot").
       to_return(status: 200)
     yield block
   ensure
-    remove_request_stub stub_get
-    remove_request_stub stub_head
+    remove_request_stub stub
   end
 
   def stub_googleapis(&block)
@@ -96,17 +93,6 @@ module WebStubs
   ensure
     remove_request_stub stub_man
     remove_request_stub stub_florida_man
-  end
-
-  def stub_gist(&block)
-    stub_head = stub_request(:head, "https://gist.github.com/inertia186/5002463").
-      to_return(status: 200)
-    stub_get = stub_request(:get, "https://gist.github.com/inertia186/5002463").
-      to_return(status: 200)
-    yield block
-  ensure
-    remove_request_stub stub_head
-    remove_request_stub stub_get
   end
 
   def stub_youtube(&block)

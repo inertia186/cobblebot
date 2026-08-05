@@ -43,6 +43,10 @@ Implemented boundary
 - Minecraft integration stops at the reusable log/callback/command boundary:
   fixture log lines are parsed and resulting RCON commands are captured without
   opening an RCON connection or requiring a running server.
+- The callback-only `McSlap` phrase generator is application code. Its original
+  46,116 combinations remain, while the SSH-hosted Gist dependency, require-time
+  stderr banner, and runtime Gist link are gone. Focused tests inject a random
+  source rather than depending on sampled output.
 
 Validation
 ----------
@@ -51,6 +55,7 @@ bundle check
 RAILS_ENV=test bundle exec rails zeitwerk:check
 RAILS_ENV=test bundle exec rails test test/configuration/resque_configuration_test.rb
 RAILS_ENV=test bundle exec rails test test/services/minecraft_worker_queue_policy_test.rb
+RAILS_ENV=test bundle exec rails test test/services/mc_slap_test.rb
 RAILS_ENV=test bundle exec rails test test/workers test/models/server_callback_test.rb
 REDIS_INTEGRATION=1 RAILS_ENV=test bundle exec rails test test/integration/resque_runtime_test.rb
 ```
@@ -63,9 +68,15 @@ store, active-worker detection, authenticated Resque Web rendering, schedule
 persistence, and rollback-compatible new payloads. A disposable `resque:work`
 process smoke additionally verifies fork, execution, and graceful shutdown.
 
+Production validation
+---------------------
+Commit `614ef9b` is deployed on Bolger with Redis Server continuity, healthy
+Resque 3 workers and scheduler, HTTP 200, zero service restarts, and a live
+log-worker-to-RCON `@server version` response. A disposable archive of the
+previous `fc7cdf2` release reconstructed its complete production bundle and
+passed `bundle check` without touching the live checkout or Redis.
+
 Deferred work
 -------------
 - Modernize or replace `config/cobblebot.god`.
 - Validate real RCON/file-tail operation against a disposable Minecraft server.
-- Deploy the client-stack upgrade to Bolger without flushing Redis and retain
-  the Rails 7/Resque 1 release as the narrow rollback point.

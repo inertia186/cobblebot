@@ -150,9 +150,9 @@ What the modernization spike established
   serializer initializer is gone. The SHA-256 key-generator transition causes
   a one-time admin-session cookie rollover on deployment but does not alter
   persisted application data.
-- The complete Rails 7 PostgreSQL gate passes 378 tests and 2980 assertions
+- The complete Rails 7 PostgreSQL gate passes 383 tests and 2997 assertions
   with no failures or errors and six intentional skips. SimpleCov measures
-  76.33% of the Rails 7 relevant surface, above both the documented 76% target
+  76.37% of the Rails 7 relevant surface, above both the documented 76% target
   and the enforced 75% floor.
 - The Redis client boundary now runs on redis-rb 5.4.1, Resque 3.0.0, Resque
   Scheduler 5.0.0, and Redis Namespace 1.11.0. Redis Store and Vegas are gone,
@@ -161,6 +161,10 @@ What the modernization spike established
   namespaced Redis tests prove old-payload reads, rollback-compatible writes,
   schedule persistence, active-worker detection, queue policy, and authenticated
   Resque Web access; a disposable worker process also forks and exits cleanly.
+- The one callback-only Git dependency is retired. `McSlap` now lives under
+  Zeitwerk with the original phrase data and deterministic sampling coverage;
+  clean installs and rollback bundles no longer require GitHub SSH host-key
+  trust, and Rails/test boot no longer emits the Gist's stderr banner.
 
 Completed migration slice
 -------------------------
@@ -207,7 +211,7 @@ The reachable-surface coverage slice is complete: routed admin, public, and API
 behavior has focused regression coverage, content-sensitive server-icon caching
 and reputation joins are correct, dead session/console surfaces are absent, and
 the deterministic PostgreSQL coverage task passes its 75% floor. The current
-Rails 7 measurement is 76.20%.
+Rails 7 measurement is 76.37%.
 
 The first dependency refresh is complete: maintained gems are current within
 their existing patch boundaries, SimpleCov 0.22 preserves focused-result merging
@@ -228,18 +232,25 @@ intentional optional associations and external redirects are explicit, and the
 full local gate is green. Deploying this slice rolls existing encrypted admin
 sessions because the Rails 7 key generator uses SHA-256.
 
-The Redis/Resque core slice is complete locally: Redis remains absent from
+The Redis/Resque core slice is complete in production: Redis remains absent from
 ordinary Rails boot, Resque 3 and Scheduler 5 preserve existing queues and
-commands, the five-minute schedule is unchanged, and no Redis data migration or
-flush is required. The Redis Server daemon and its service configuration remain
-outside this client-library slice.
+commands, the five-minute schedule is unchanged, and the Bolger rollout kept
+Redis running without a data migration or flush. Scheduler, workers, HTTP, and
+the live log-to-RCON command path are green with zero service restarts. A
+disposable rollback bundle for `fc7cdf2` also passes on the host.
+
+The callback dependency slice is complete: the tiny `mc-slap` Gist is now a
+Zeitwerk-compatible application service, its command behavior and 46,116 phrase
+combinations are covered, and the SSH Git source, unsolicited boot banner, and
+obsolete Gist help link are absent.
 
 Likely follow-on order
 ----------------------
-1. Deploy the Redis/Resque client stack to Bolger, preserving the Redis keyspace
-   and the Rails 7/Resque 1 release as a narrow rollback point.
-2. Validate Resque Web, schedule ownership, bootstrap idempotence, queue shape,
-   log ingestion, and the in-game version response.
+1. Audit the remaining legacy Minecraft-facing gems (`google-translate`,
+   `minecraft-query`, and `file-tail`) against their actual live seams before
+   choosing the next package boundary.
+2. Modernize or retire the obsolete God process definition now that systemd is
+   the proven production supervisor.
 
 Open decisions
 --------------

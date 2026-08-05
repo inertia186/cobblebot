@@ -292,8 +292,7 @@ module Sayable
       if target.present?
         emote selector, result = McSlap.slap(sub_safe_selectors(target)), color: 'white', as: nick, hover_text: options[:hover_text]
       else
-        emote selector, "has #{McSlap.combinations} slap combinations, see:"
-        say_link selector, "https://gist.github.com/inertia186/5002463", only_title: true
+        emote selector, "has #{McSlap.combinations} slap combinations."
       end
     
       result
