@@ -22,7 +22,17 @@ module ApplicationHelper
     else
       name
     end
-    options = params.merge(action: controller.action_name, sort_field: field, page: nil, query: params[:query], sort_order: sort_order)
+    filter_keys = %i[
+      address any_nick any_recipient_nick author_id author_type cc deleted
+      filter filter_modes limit muted only_registered origin page per_page player_id
+      query read recipient_id recipient_type select sort_field sort_order status type
+    ]
+    options = params.permit(*filter_keys).to_h.symbolize_keys.merge(
+      action: controller.action_name,
+      sort_field: field,
+      page: nil,
+      sort_order: sort_order
+    )
     
     link_to name.html_safe, url_for(options)
   end
@@ -47,7 +57,7 @@ module ApplicationHelper
   end
   
   def flag_exists(cc)
-    File.exists?("#{Rails.root}/app/assets/images/flag/16/#{cc.downcase}.png")
+    File.exist?("#{Rails.root}/app/assets/images/flag/16/#{cc.downcase}.png")
   end
   
   def help_docs(key)

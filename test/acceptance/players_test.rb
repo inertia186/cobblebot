@@ -1,6 +1,6 @@
 require "test_helper"
 
-class PlayersTest < ActionDispatch::IntegrationTest
+class PlayersTest < AcceptanceTest
   def setup
   end
 

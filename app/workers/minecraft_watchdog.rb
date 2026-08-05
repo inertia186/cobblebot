@@ -1,7 +1,7 @@
 class MinecraftWatchdog
-  @queue = :minecraft_watchdog
+  QUEUE = :minecraft_watchdog
+  @queue = QUEUE
 
-  WATCHDOG_TICK = 300
   DEFERRED_OPERATIONS = %(update_player_quotes update_player_last_ip update_player_last_location)
   DEFERRED_MAX_RETRY = 5
 
@@ -14,28 +14,19 @@ class MinecraftWatchdog
 
     deferred_operation(options) if !!options['operation']
 
-    begin
-      # TODO do quick stuff on live Query::simpleQuery results
-      # TODO look for any new crash logs, e.g.: hs_err_pid29380.log or crash-reports/crash-2015-03-14_13.01.01-server.txt
-      # TODO every so often (not every watchdog tick) crack open the latest.log to see what's going on
+    # TODO do quick stuff on live Query::simpleQuery results
+    # TODO look for any new crash logs, e.g.: hs_err_pid29380.log or crash-reports/crash-2015-03-14_13.01.01-server.txt
+    # TODO every so often (not every watchdog invocation) crack open the latest.log to see what's going on
 
-      check_resque
-      check_resource_pack
-      prettify_callbacks
-      update_ip_cc
-      update_player_stats
-      start_slack_bot_rtm
-
-      break if !!options[:debug]
-      if Resque.size(@queue) < 6
-        Rails.logger.info "#{self} sleeping for #{WATCHDOG_TICK}"
-        sleep WATCHDOG_TICK
-      end
-    rescue Errno::ENOENT => e
-      Rails.logger.error "Need to finish setup: #{e.inspect}"
-      sleep WATCHDOG_TICK * 4
-    end while Resque.size(@queue) < 4
-  rescue Resque::TermException => e
+    MinecraftWorkerQueuePolicy.call
+    check_resource_pack
+    prettify_callbacks
+    update_ip_cc
+    update_player_stats
+  rescue Errno::ENOENT => e
+    Rails.logger.error "Need to finish setup: #{e.inspect}"
+    nil
+  rescue Resque::TermException
     Rails.logger.info "Detected ^C"
   end
 private
@@ -66,68 +57,6 @@ private
     else
       Rails.logger.warn "Gave up: #{options.inspect}"
     end
-  end
-
-  def self.check_resque
-    # Make sure the other workers are queued and working (like IRC and Log Monitor)
-
-    queues = {
-      minecraft_server_log_monitor: {
-        class: MinecraftServerLogMonitor,
-        options: {server_log: "#{ServerProperties.path_to_server}/logs/latest.log", max_ticks: 1200},
-        max_queues: 5,
-        min_queues: 5,
-        enabled: true
-      },
-      irc_bot: {
-        class: IrcBot,
-        options: {start_irc_bot: true},
-        max_queues: 1,
-        min_queues: 1,
-        enabled: Preference.irc_enabled?
-      },
-      minecraft_watchdog: {
-        class: MinecraftWatchdog,
-        options: {},
-        max_queues: 5,
-        min_queues: 5,
-        enabled: true
-      }
-    }
-
-    return if Rails.env == 'test'
-
-    queues.each_key do |key|
-      q = queues[key]
-      if q[:enabled] && Resque.size(key.to_s) == 0
-        Rails.logger.info "Adding queue for #{key}.  Current queue: #{Resque.size(key.to_s)}"
-        Resque.enqueue(q[:class], q[:options])
-      end
-    end
-
-    Resque.queues.each do |queue|
-      if !!(q = queues[queue.to_sym])
-        unless q[:enabled]
-          Resque.dequeue(queue) unless Resque.size(queue) == 0
-          Rails.logger.info "Skipping disabled queue: #{queue}: #{Resque.size(queue)}"
-          next
-        end
-
-        if Resque.size(queue) > q[:max_queues] && q[:class] != MinecraftWatchdog
-          Rails.logger.info "Dequeuing #{queue}.  Current queue: #{Resque.size(queue)}"
-          Resque.dequeue(q[:class])
-        end
-
-        if Resque.size(queue) < q[:min_queues]
-          Rails.logger.info "Enqueuing #{queue}.  Current queue: #{Resque.size(queue)}"
-          Resque.enqueue(q[:class], q[:options])
-        end
-      else
-        Rails.logger.info "Skipping unknown queue: #{queue}: #{Resque.size(queue)}"
-      end
-    end
-
-    # TODO Also check that the correct number of workers are actually working the above queues, warn if not.
   end
 
   # Every so often, download the resource-pack and cache the hash.
@@ -221,60 +150,4 @@ private
     player.update_attribute(:last_location, "x=#{x.to_i},y=#{y.to_i},z=#{z.to_i}") # no AR callbacks
   end
 
-  def self.start_slack_bot_rtm
-    @slack_bot_thread = nil unless !!@slack_bot_thread && @slack_bot_thread.alive?
-
-    @slack_bot_thread ||= Thread.start do
-      @slack_bot = SlackBot.instance
-      client = @slack_bot.realtime
-
-      client.on :hello do
-        Rails.logger.info "SlackBot realtime client started."
-      end
-
-      client.on :message do |data|
-        begin
-          Rails.logger.info data.inspect
-
-          channel = data['channel']
-          return unless channel == Preference.slack_group
-
-          message = data['text'].force_encoding('US-ASCII')
-          return if message.nil?
-
-          at, command = message.split(' ')
-          return unless at == '@cobblebot' || at == '@cb' || at == '@server'
-
-          Rails.logger.info command
-
-          case command
-          when /^list$/
-            msg = ServerCommand.execute('list') || ''
-            msg = msg.strip
-            msg = msg.gsub(/:/, ': ')
-
-            @slack_bot.say msg
-          when /^say$/
-            words = message.split(' ')
-            if words.size > 2
-              msg = words[2..-1].join(' ').gsub(/['`"]/, "\'")
-              user_info = @slack_bot.users_info user: data['user']
-              if !!user_info
-                # We downcase the name just in case the Slack user changes their
-                # name to Server.
-                nick = user_info['user']['name'].downcase
-                ServerCommand.say "@a", msg, as: nick, color: 'white'
-              end
-            end
-          else
-            @slack_bot.say "Sorry <@#{data['user']}>, what?"
-          end
-        rescue => e
-          Rails.logger.error e.inspect
-        end
-      end
-
-      client.start
-    end
-  end
 end

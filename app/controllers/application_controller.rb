@@ -11,8 +11,6 @@ class ApplicationController < ActionController::Base
   helper_method :admin_signed_in?
   helper_method :show_irc_web_chat?
 
-  helper_method :slack_bot, :slack_groups_list
-
   helper_method :setup_params
 
   before_action :check_server_status, unless: proc {
@@ -39,19 +37,6 @@ class ApplicationController < ActionController::Base
     end
   end
   
-  def slack_bot
-    ServerCommand.slack_bot
-  end
-  
-  def slack_groups_list
-    # TODO Find a way to get AngularJS to refresh this correctly if a new API Key is provided.
-    return [] unless !!slack_bot.auth_test
-    groups = slack_bot.groups_list["groups"]
-    
-    @slack_groups_list = groups.map do |group|
-      [group["name"], group["id"]]
-    end
-  end
 private
   def admin_signed_in?
     session[:admin_signed_in]

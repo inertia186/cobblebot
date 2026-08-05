@@ -14,7 +14,7 @@ gem 'nesty'
 
 # Use sqlite3 as the database for Active Record
 # TEMP Ruby 3 spike cut: old sqlite3 1.3.x does not build on Ruby 3.
-gem 'sqlite3', '~> 1.6', require: false, platforms: :ruby
+gem 'sqlite3', '~> 1.6', '>= 1.6.9', require: false, platforms: :ruby
 
 # Use postgresql if you're tired of SQLite errors.
 # TEMP Ruby 3 spike cut: old pg 1.0.x still calls removed taint APIs on Ruby 3.
@@ -25,16 +25,11 @@ gem 'pg', '~> 1.5', platforms: :ruby
 gem 'jruby-openssl', platform: :jruby
 gem 'activerecord-jdbcsqlite3-adapter', platform: :jruby
 
-# Use SCSS for stylesheets
-# TEMP spike cut: disabled to expose the next non-Sass blocker.
-# TEMP Ruby 3 / Rails 6.1 spike cut: legacy .scss assets still need a Sass engine on the modern stack.
-gem 'sassc-rails', '~> 2.1'
-
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '~> 3.0'
 
 # Use CoffeeScript for .coffee assets and views
-gem 'coffee-rails', '~> 4.1'
+gem 'coffee-rails', '~> 5.0'
 
 # See https://github.com/sstephenson/execjs#readme for more supported runtimes
 # gem 'therubyracer', platforms: :ruby, require: false
@@ -70,10 +65,6 @@ gem 'mechanize', '~> 2.9'
 # TEMP Ruby 3 spike cut: WEBrick is no longer bundled with Ruby stdlib.
 gem 'webrick', '~> 1.8'
 
-# CobbleBot uses slack-api to communicate with slack.com for servers that would like such integration.  Get an API token here: http://slack.com/
-# TEMP Ruby 3 spike cut: old slack-api/faraday stack is not Ruby-3-clean.
-# gem 'slack-api', '~> 1.2'
-
 # Can be used by callbacks.
 gem 'mc-slap', git: 'git@gist.github.com:5002463.git'
 # Used to translate in-game chat.
@@ -90,6 +81,9 @@ gem 'redis', '~> 3.3', require: false
 gem 'redis-store', '~> 1.1', require: false
 gem 'resque', '~> 1.26', require: 'resque/server'
 gem 'resque-scheduler', '~> 4.2', require: false
+# Resque serializes jobs through MultiJson; older releases use Proc semantics
+# removed by Ruby 3.
+gem 'multi_json', '~> 1.15'
 
 # IRC
 gem 'summer', '~> 1.0'
@@ -104,7 +98,7 @@ gem 'haml', '~> 5.2'
 gem 'will_paginate', '~> 3.3'
 
 # For 'Calc' callback
-gem 'dentaku', '~> 2.0'
+gem 'dentaku', '~> 3.5'
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1'
@@ -157,15 +151,16 @@ group :development do
 end
 
 group :test do
-  gem 'capybara', '~> 2.18'
-  gem 'capybara-angular', '~> 0.2'
+  gem 'minitest', '~> 5.25'
+  gem 'capybara', '~> 3.40'
   gem 'capybara-screenshot', '~> 1.0'
-  gem 'poltergeist', '~> 1.9'
-  gem 'phantomjs', '~> 2.1', require: 'phantomjs/poltergeist'
+  gem 'puma', '~> 6.4'
+  gem 'rails-controller-testing', '~> 1.0'
+  gem 'selenium-webdriver', '~> 4.40'
   gem 'simplecov', '~> 0.11', require: false
   gem 'simplecov-csv', '~> 0.1', require: false
-  gem 'webmock', '~> 2.0', require: false
-  gem 'database_cleaner', '~> 1.5', require: false
+  gem 'webmock', '~> 3.25', require: false
+  gem 'rexml', '~> 3.4', require: false
   # TEMP Ruby 3 / Rails 6.1 spike cut: memory_test_fix does not support this Rails shelf.
   # gem 'memory_test_fix', '~> 1.3'
 end
@@ -180,4 +175,3 @@ group :development, :test do
   # For quick dumps: https://github.com/yamldb/yaml_db
   #gem 'yaml_db'
 end
-

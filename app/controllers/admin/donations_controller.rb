@@ -54,7 +54,7 @@ class Admin::DonationsController < Admin::AdminController
 
     @donation = Message::Donation.find(params[:id])
 
-    if @donation.update_attributes(donation_params)
+    if @donation.update(donation_params)
       redirect_to admin_message_donations_url
     else
       render action: 'edit'

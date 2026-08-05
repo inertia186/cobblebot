@@ -25,11 +25,12 @@ class Admin::MessagesControllerTest < ActionController::TestCase
   end
 
   def test_index_from_author
-    get :index, author_id: @player
+    get :index, params: { author_id: @player.id }
     messages = assigns :messages
     refute_equal messages.count(:all), 0, 'did not expect zero count'
 
-    assert messages.where.not(author_id: @player).none?, "expect only messages from #{@player.nick}"
+    assert_equal [@player.id], messages.pluck(:author_id).uniq,
+      "expect only messages from #{@player.nick}"
 
     assert_template :index
     assert_response :success
@@ -40,7 +41,7 @@ class Admin::MessagesControllerTest < ActionController::TestCase
     credentials = basic.encode_credentials('admin', Preference.web_admin_password)
     request.headers['Authorization'] = credentials
 
-    get :index, format: :atom
+    get :index, params: { format: :atom }
     messages = assigns :messages
     refute_equal messages.count(:all), 0, 'did not expect zero count'
 
@@ -49,7 +50,7 @@ class Admin::MessagesControllerTest < ActionController::TestCase
   end
 
   def test_index_query
-    get :index, query: 'test'
+    get :index, params: { query: 'test' }
     messages = assigns :messages
     refute_equal messages.count(:all), 0, 'did not expect zero count'
 
@@ -58,7 +59,7 @@ class Admin::MessagesControllerTest < ActionController::TestCase
   end
 
   def test_index_for_players
-    get :index, player_id: @player
+    get :index, params: { player_id: @player }
     messages = assigns :messages
     refute_equal messages.count(:all), 0, 'did not expect zero count'
 
@@ -67,7 +68,7 @@ class Admin::MessagesControllerTest < ActionController::TestCase
   end
 
   def test_index_sort_by_message_author_nick
-    get :index, sort_field: 'message_author_nick'
+    get :index, params: { sort_field: 'message_author_nick' }
     messages = assigns :messages
     refute_equal messages.count(:all), 0, 'did not expect zero count'
 
@@ -76,7 +77,7 @@ class Admin::MessagesControllerTest < ActionController::TestCase
   end
 
   def test_index_sort_by_message_recipient_nick
-    get :index, sort_field: 'message_recipient_nick'
+    get :index, params: { sort_field: 'message_recipient_nick' }
     messages = assigns :messages
     refute_equal messages.count(:all), 0, 'did not expect zero count'
 
@@ -85,7 +86,7 @@ class Admin::MessagesControllerTest < ActionController::TestCase
   end
 
   def test_index_sort_by_muted_at
-    get :index, sort_field: 'muted_at'
+    get :index, params: { sort_field: 'muted_at' }
     messages = assigns :messages
     refute_equal messages.count(:all), 0, 'did not expect zero count'
 
@@ -94,7 +95,7 @@ class Admin::MessagesControllerTest < ActionController::TestCase
   end
 
   def test_show
-    get :show, id: @player.messages.first
+    get :show, params: { id: @player.messages.first }
     message = assigns :message
     refute_nil message, 'did not expect nil message'
 

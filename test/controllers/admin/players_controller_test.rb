@@ -25,7 +25,7 @@ class Admin::PlayersControllerTest < ActionController::TestCase
   end
 
   def test_index_query
-    get :index, query: 'inertia'
+    get :index, params: { query: 'inertia' }
     players = assigns :players
     refute_equal players.count, 0, 'did not expect zero count'
 
@@ -34,7 +34,7 @@ class Admin::PlayersControllerTest < ActionController::TestCase
   end
 
   def test_index_json
-    get :index, format: :json, select: '*'
+    get :index, params: { format: :json, select: '*' }
     players = assigns :players
     refute_equal players.count, 0, 'did not expect zero count'
 
@@ -43,7 +43,7 @@ class Admin::PlayersControllerTest < ActionController::TestCase
   end
 
   def test_show
-    get :show, id: Player.first
+    get :show, params: { id: Player.first }
     refute_nil assigns :player
 
     assert_template :show
@@ -52,7 +52,7 @@ class Admin::PlayersControllerTest < ActionController::TestCase
 
   def test_toggle_may_autolink
     assert_difference -> { Player.may_autolink.count }, -1, 'expect different count' do
-      patch :toggle_may_autolink, format: :js, id: Player.first
+      patch :toggle_may_autolink, params: { format: :js, id: Player.first }
     end
 
     assert_template 'admin/players/_player'
@@ -62,7 +62,7 @@ class Admin::PlayersControllerTest < ActionController::TestCase
 
   def test_destroy
     assert_difference -> { Player.count }, -1, 'expect different count' do
-      delete :destroy, id: Player.first
+      delete :destroy, params: { id: Player.first }
     end
 
     assert_template nil

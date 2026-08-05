@@ -1,3 +1,4 @@
-development: localhost:6379:1
-beta: localhost:6379:1
-production: localhost:6379:1
+development: redis://localhost:6379/1
+beta: redis://localhost:6379/1
+production: redis://localhost:6379/1
+test: redis://localhost:6379/3

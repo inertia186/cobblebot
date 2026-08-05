@@ -1,0 +1,87 @@
+Rails 6 test harness and PhantomJS retirement playbook
+======================================================
+
+Purpose
+-------
+Run CobbleBot's controller and browser coverage on Ruby 3.2/Rails 6 without
+installing PhantomJS or contacting a browser during ordinary Rails tests.
+
+Implemented boundary
+--------------------
+- Capybara 3.40 uses `rack_test` by default. Only acceptance tests select the
+  Selenium headless-Chrome driver.
+- PhantomJS, Poltergeist, capybara-angular, Database Cleaner, their extension
+  script, and the PhantomJS log side effect are removed.
+- Selenium WebDriver 4 and Puma provide the supported browser/session boundary.
+  The first explicit browser run may let Selenium Manager resolve a compatible
+  Chrome driver; model and controller tests never do so.
+- `rails-controller-testing` preserves the focused `assigns` and
+  `assert_template` coverage while the old controller request signatures use
+  Rails 6 `params:` and `xhr:` keywords.
+- WebMock and coffee-rails are on Ruby-3-compatible releases. Browser requests
+  for fixture player avatars are stubbed locally.
+- Angular/jQuery synchronization is local to the acceptance helper. Angular is
+  bootstrapped with the current document-ready API, and screenshots remain
+  available on browser failures.
+- Test-only SQLite models remove their connection pools from Active Record's
+  handler during teardown. Merely disconnecting them left deleted temporary
+  databases registered for later PostgreSQL fixture transactions.
+- JSON/content-type acceptance checks use integration requests rather than a
+  JavaScript browser.
+
+Rails 6 seams repaired while restoring coverage
+-----------------------------------------------
+- Application writes use `update`; test setup that requires persistence uses
+  `update!`.
+- Sort links copy only an explicit set of permitted filter, pagination, and sort
+  parameters.
+- Preloaded JSON templates use explicit template and format options.
+- Status output permits only the optional Angular client-version parameter.
+- Donation JSON correctly includes its author, and the status UI labels the
+  `raw_plugins` field consistently.
+- The previously undiscovered admin-links integration workflow now has a
+  `_test.rb` filename.
+
+Validation
+----------
+Use a disposable SQLite database for this lane:
+
+```text
+bundle check
+DATABASE_URL=sqlite3:/tmp/cobblebot-test.sqlite3 RAILS_ENV=test bundle exec rails db:schema:load
+DATABASE_URL=sqlite3:/tmp/cobblebot-test.sqlite3 RAILS_ENV=test bundle exec rails test test/controllers
+DATABASE_URL=sqlite3:/tmp/cobblebot-test.sqlite3 RAILS_ENV=test bundle exec rails test test/integration/admin_links_workflow_test.rb
+DATABASE_URL=sqlite3:/tmp/cobblebot-test.sqlite3 RAILS_ENV=test bundle exec rails test test/acceptance
+```
+
+The controller baseline is 90 runs with the two intentional donation skips and
+no failures or errors. The acceptance baseline is 21 runs with no failures,
+errors, or skips. Repeat the acceptance command to catch driver/session leakage.
+
+PostgreSQL validation
+---------------------
+With `cobblebot_test` owned by the configured `cobblebot` role:
+
+```text
+DISABLE_SPRING=1 RAILS_ENV=test bundle exec rails db:schema:load
+DISABLE_SPRING=1 RAILS_ENV=test bundle exec rails test test/configuration
+DISABLE_SPRING=1 RAILS_ENV=test bundle exec rails test test/acceptance
+DISABLE_SPRING=1 RAILS_ENV=test bundle exec rails test
+```
+
+The complete PostgreSQL baseline is 324 runs and 2811 assertions with no
+failures or errors and six existing skips. The acceptance subset is 21 runs and
+136 assertions with no failures, errors, or skips.
+
+Ordinary test proof
+-------------------
+A focused model or controller run must not launch Chrome, invoke Selenium
+Manager, download a driver, or create/touch `log/test_phantomjs.log`. Browser
+startup is reserved for an explicit `test/acceptance` run.
+
+Deferred work
+-------------
+- Replace remaining historical Rails deprecations independently of this harness
+  restoration.
+- Validate Redis/Resque workers and live Minecraft integration on the modern
+  lane without making ordinary Rails tests depend on either service.

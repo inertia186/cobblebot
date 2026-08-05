@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'minitest/mock'
 
 class ServerCallbackTest < ActiveSupport::TestCase
   include WebStubs
@@ -27,25 +28,27 @@ class ServerCallbackTest < ActiveSupport::TestCase
   end
 
   def test_all_commands
-    ServerCallback.all.find_each do |callback|
-      begin
-        stub_github do
-          stub_googleapis do
-            callback.execute_command("@a", "Test")
+    ServerCommand.stub(:run, nil) do
+      ServerCallback.all.find_each do |callback|
+        begin
+          stub_github do
+            stub_googleapis do
+              callback.execute_command("@a", "Test")
+            end
           end
+        rescue SyntaxError => e
+          # :nocov:
+          if [SKIP_CALLBACKS_NAMED].include? callback.name
+            skip "SyntaxError while evaluating callback command named \"#{callback.name}\":\nCommand: #{callback.command}\n#{e.inspect}"
+          else
+            fail "SyntaxError while evaluating callback command named \"#{callback.name}\":\nCommand: #{callback.command}\n#{e.inspect}"
+          end
+          # :nocov:
+        rescue Errno::ENOENT => e
+          # skip
         end
-      rescue SyntaxError => e
-        # :nocov:
-        if [SKIP_CALLBACKS_NAMED].include? callback.name
-          skip "SyntaxError while evaluating callback command named \"#{callback.name}\":\nCommand: #{callback.command}\n#{e.inspect}"
-        else
-          fail "SyntaxError while evaluating callback command named \"#{callback.name}\":\nCommand: #{callback.command}\n#{e.inspect}"
-        end
-        # :nocov:
-      rescue Errno::ENOENT => e
-        # skip
+        assert callback.ran_at, 'expect callback ran'
       end
-      assert callback.ran_at, 'expect callback ran'
     end
   end
 
@@ -125,7 +128,29 @@ class ServerCallbackTest < ActiveSupport::TestCase
   end
 
   def test_valid_command
-    assert ServerCallback::ServerEntry.create(command: '"%nick%"').errors.any?, 'did not expect valid callback'
+    callback = ServerCallback::ServerEntry.new(
+      name: 'Invalid Nick Reference',
+      pattern: '/invalid nick reference/',
+      command: '"%nick%"'
+    )
+
+    refute callback.valid?, 'did not expect valid callback'
+    assert_equal [
+      'cannot reference %nick% in a Server Callback/Server Entry callback.  Try %1% if you intend to capture the nick yourself.'
+    ], callback.errors[:command]
+  end
+
+  def test_invalid_command_syntax_records_string_errors
+    callback = ServerCallback::PlayerCommand.new(
+      name: 'Invalid Command Syntax',
+      pattern: '/invalid command syntax/',
+      command: 'if'
+    )
+
+    refute callback.valid?, 'did not expect valid callback'
+    assert_equal ['has syntax error(s)'], callback.errors[:command]
+    assert callback.errors[:base].all? { |message| message.is_a?(String) }
+    assert callback.errors[:base].all?(&:present?)
   end
 
   def test_player_input?

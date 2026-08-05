@@ -20,7 +20,7 @@ Rails.application.routes.draw do
   resources :topics, only: :index
   resources :pvps, only: :index
   resources :donations, only: :index
-  resources :irc, only: :index
+  resources :irc, only: :index, defaults: {format: 'js'}
   get 'server-icon.png' => 'resources#server_icon', as: :server_icon
   get 'suggestion/:group/:key' => 'suggestions#show'
 
@@ -61,7 +61,6 @@ Rails.application.routes.draw do
     resources :preferences, only: [:index, :update] do
       collection do
         get :edit_cell
-        get :slack_group_element
       end
     end
     resources :callbacks, as: :server_callbacks, controller: :callbacks do
@@ -92,13 +91,11 @@ Rails.application.routes.draw do
     delete 'session' => 'sessions#destroy', as: :destroy_session
     
     get 'config/server_properties' => 'config#show_server_properties'
-    get 'config/console' => 'config#console'
     mount Resque::Server, at: "/resque"
   end
   
   namespace :api, defaults: {format: 'json'} do
     scope module: :v1, constraints: ApiConstraints.new(version: 1, default: 1) do
-      resource :session, only: %w(create update destroy)
       resources :players, only: %w(index show)
       resources :messages, only: %w(index show)
       resources :reputations, only: %w(index show)

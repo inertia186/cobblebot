@@ -186,9 +186,8 @@ factory('Preference', ['$resource', 'resourceCache', ($resource, resourceCache) 
     isTruthy: -> /_enabled$|latest_gametick_in_progress/.test @key
     isSecure: -> /password|_key$|_salt$/.test @key
     isCommandScheme: -> /command_scheme/.test @key
-    isSlackGroup: -> /slack_group/.test @key
     isTextField: ->
-      !@isSlackGroup() && !@isCommandScheme() && !@isTruthy() && !@isVerbose()
+      !@isCommandScheme() && !@isTruthy() && !@isVerbose()
     displayKey: ->
       switch(@key)
         when 'web_admin_password' then 'Web Admin Password'
@@ -213,8 +212,6 @@ factory('Preference', ['$resource', 'resourceCache', ($resource, resourceCache) 
         when 'faq_json' then 'FAQ JSON'
         when 'donations_json' then 'Donations JSON'
         when 'mmp_api_key' then 'minecraft-mp.com API Key'
-        when 'slack_api_key' then 'Slack API Key'
-        when 'slack_group' then 'Slack Group'
         else @key
     displayValue: ->
       if @isSecure()
@@ -257,7 +254,7 @@ factory('Stat', ['$resource', 'resourceCache', ($resource, resourceCache) ->
         when 'maxplayers' then 'Max No. of Players'
         when 'hostip' then 'Host IP'
         when 'motd' then 'Message of the Day'
-        when 'rawplugins' then 'Raw Plugins'
+        when 'raw_plugins' then 'Raw Plugins'
         when 'server' then 'Server'
         when 'timestamp' then 'Timestamp'
         else @key
@@ -274,4 +271,4 @@ factory('Stat', ['$resource', 'resourceCache', ($resource, resourceCache) ->
   Stat
 ])
 
-$(document).on 'ready page:load', -> angular.bootstrap 'body', ['CobbleBot']
+angular.element(document).ready -> angular.bootstrap document.body, ['CobbleBot']

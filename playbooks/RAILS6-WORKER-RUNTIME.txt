@@ -1,0 +1,55 @@
+Rails 6 worker-runtime baseline
+===============================
+
+Purpose
+-------
+Verify CobbleBot's Ruby 3 worker and callback boundary without requiring Redis
+during ordinary tests or connecting to a live Minecraft server.
+
+Implemented boundary
+--------------------
+- Dentaku is on the Ruby-3-compatible 3.5 line. The Calc callback normalizes
+  whole-number results so `=128/8` still reports `16=128/8`.
+- `ResqueConfiguration` is the single Resque connection owner. Development,
+  beta, and production default to Redis database 1; test defaults to database 3.
+- `COBBLEBOT_REDIS_URL` overrides the Redis URL and
+  `COBBLEBOT_RESQUE_NAMESPACE` overrides the default `resque` namespace.
+- Constructing the Redis and namespace clients is lazy. Rails boot, routes,
+  migrations, assets, and ordinary tests do not open a Redis connection.
+- The opt-in Redis integration test uses a process-specific namespace, verifies
+  real Resque serialization, bootstrap idempotence, and managed queue resets,
+  and removes only the keys created under that namespace.
+- `MinecraftWatchdog` performs one maintenance pass per scheduled invocation.
+  It does not sleep, inspect its own backlog, or enqueue another watchdog.
+- `MinecraftWorkerQueuePolicy` independently converges the log-monitor and
+  optional IRC queues to one canonical pending standby. Excess managed jobs are
+  reset, disabled IRC jobs are cleared without terminating active work, and
+  unmanaged queues are neither inspected nor changed.
+- The managed log-monitor standby runs for 1200 quarter-second ticks (five
+  minutes). Direct/manual invocations retain the longer worker default, and
+  monitor termination no longer depends on Redis queue depth.
+- Minecraft integration stops at the reusable log/callback/command boundary:
+  fixture log lines are parsed and resulting RCON commands are captured without
+  opening an RCON connection or requiring a running server.
+
+Validation
+----------
+```text
+bundle check
+RAILS_ENV=test bundle exec rails zeitwerk:check
+RAILS_ENV=test bundle exec rails test test/configuration/resque_configuration_test.rb
+RAILS_ENV=test bundle exec rails test test/services/minecraft_worker_queue_policy_test.rb
+RAILS_ENV=test bundle exec rails test test/workers test/models/server_callback_test.rb
+REDIS_INTEGRATION=1 RAILS_ENV=test bundle exec rails test test/integration/resque_runtime_test.rb
+```
+
+Use a disposable database through `DATABASE_URL` for the Rails tests. The Redis
+integration command may also set `COBBLEBOT_REDIS_URL`; its generated namespace
+prevents collisions with unrelated Resque queues on that Redis database.
+
+Deferred work
+-------------
+- Modernize or replace `config/cobblebot.god`.
+- Upgrade the legacy Redis, Resque, and resque-scheduler major-version stack.
+- Validate real RCON/file-tail operation against a disposable Minecraft server.
+- Run the complete suite against PostgreSQL.

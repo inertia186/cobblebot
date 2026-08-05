@@ -1,0 +1,109 @@
+Rails 6 autoload/config modernization playbook
+==============================================
+
+Purpose
+-------
+Record the completed change from a Ruby 3/Rails 6 compatibility spike to an
+intentional Rails 6 Zeitwerk baseline, including the retirement of the obsolete
+Slack integration.
+
+Verified baseline (2026-08-01)
+------------------------------
+- Ruby `3.2.7`, Bundler `2.6.6`, and Rails `6.1.7.10` are installed and resolve.
+- `bundle check` passes.
+- The environment boot probe reports `RAILS_OK 6.1.7.10` when local Redis is
+  available.
+- `config.autoloader = :zeitwerk` is explicit, and
+  `RAILS_ENV=test bundle exec rails zeitwerk:check` passes.
+- `rails/all` has been replaced with the Rails, Active Model, Active Record,
+  Action Controller, Action View, Rails test-unit, and Sprockets railties.
+- CobbleBot's own routes remain. Slack, Active Storage, and Action Mailbox routes
+  are absent; the resulting route set contains 71 routes.
+- The admin login form and authenticated preferences page both return 200 in a
+  disposable SQLite smoke environment.
+- The unstaged `Gemfile.lock` change adds native `arm64-darwin-24` variants.
+
+Current compatibility seams
+---------------------------
+- `logger` is explicitly required before the selected railties.
+- `config.autoloader = :zeitwerk` is explicit. Rails 6.1 defaults are not adopted
+  wholesale in this slice.
+- SQLite immediate transaction mode is configured through sqlite3 rather than a
+  Rails adapter monkey patch.
+- Rails boot no longer queries Resque. Operators seed the watchdog explicitly
+  with `cobblebot:workers:bootstrap`.
+- Old or incompatible gems were upgraded or disabled in `Gemfile`; the comments
+  there are the current dependency record.
+
+Implemented changes
+-------------------
+- `banned_ip.rb` now defines the conventional `BannedIp` constant. There is no
+  legacy alias because no repository callers required one.
+- Unused Active Storage, Action Mailbox, Action Text, Action Cable, Active Job,
+  and Action Mailer railties are excluded. Obsolete Action Mailer environment
+  configuration was removed, and no dummy `storage.yml` was introduced.
+- Slack was intentionally retired: `SlackBot`, `ServerCommand.slack_bot`, worker
+  forwarding/startup, controller and route surfaces, admin UI, Angular handling,
+  preference keys, stubs, and feature tests were removed.
+- Migration `20260802000000_remove_slack_preferences.rb` uses a migration-local
+  model to delete `slack_api_key` and `slack_group`. Rollback is irreversible
+  because credentials cannot be reconstructed.
+- Focused Ruby 3.2 test support uses Minitest 5 and REXML. Jbuilder 2.13 restores
+  Rails 6 template-handler compatibility for the authenticated preferences page.
+- Later focused slices removed Redis queue mutation from Rails boot and replaced
+  the SQLite transaction monkey patch with supported sqlite3 configuration.
+
+Definition of done
+------------------
+- `config.autoloader = :zeitwerk` is explicit.
+- `RAILS_ENV=test bundle exec rails zeitwerk:check` passes.
+- The environment boot probe and `RAILS_ENV=test bundle exec rails routes`
+  succeed.
+- `/admin/session/new` and the authenticated `/admin/preferences` page pass a
+  shallow request smoke test.
+- Redis availability and watchdog scheduling are either deliberately required
+  for the smoke environment or isolated from framework boot.
+- Remaining compatibility shims are labeled intentional or temporary.
+
+Validation performed
+--------------------
+- `bundle check`
+- Rails 6.1.7.10 test-environment boot probe
+- `RAILS_ENV=test bundle exec rails zeitwerk:check`
+- route inspection for retained CobbleBot routes and absent Slack/framework
+  engine routes
+- migration tests proving only Slack rows are deleted and rollback raises
+  `ActiveRecord::IrreversibleMigration`
+- focused preference, watchdog, gametick/log-handler, and routing tests against a
+  disposable SQLite database
+- admin login and authenticated preferences request smoke
+
+The broader legacy suite was not a gate for this slice. The later Rails 6 test
+harness pass retired PhantomJS and restored controller and acceptance coverage;
+PostgreSQL validation remains deferred until a disposable service is available.
+
+Useful commands
+---------------
+```text
+bundle check
+bundle exec ruby -e 'require "logger"; require "./config/environment"; puts "RAILS_OK #{Rails.version}"'
+bundle exec rails zeitwerk:check
+bundle exec rails routes
+```
+
+Boot, Zeitwerk, and route commands no longer contact Redis. Scheduler, bootstrap,
+worker, and Resque administration commands still require it.
+
+Non-goals
+---------
+- Do not jump to Rails 7 or 8 during this pass.
+- Do not redesign workers or Minecraft integration unless they block the target
+  checks.
+- Do not broadly normalize the Gemfile or asset pipeline.
+- Do not broadly redesign SQLite concurrency beyond the supported immediate-mode
+  replacement completed in its focused follow-up slice.
+
+Follow-on candidates
+--------------------
+1. Validate Redis/Resque worker behavior under Rails 6.
+2. Run the complete suite against disposable PostgreSQL.

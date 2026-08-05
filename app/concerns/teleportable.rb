@@ -20,7 +20,7 @@ module Teleportable
 
         if response.respond_to?(:split)
           pos = response.split(' ')[3..-1].join(' ').split(/[\s,]+/)
-          player.update_attributes(last_location: "x=#{pos[0].to_i},y=#{pos[1].to_i},z=#{pos[2].to_i}")
+          player.update(last_location: "x=#{pos[0].to_i},y=#{pos[1].to_i},z=#{pos[2].to_i}")
         end
       else
         response = execute "tp #{selector} #{destination}"

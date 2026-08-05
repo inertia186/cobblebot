@@ -3,7 +3,7 @@
     %span.glyphicon.glyphicon-cog
     Preferences
 
-%div{data: {preload_resource: '/admin/preferences.json', data: (render template: '/admin/preferences/index.json')}}
+%div{data: {preload_resource: '/admin/preferences.json', data: (render template: '/admin/preferences/index', formats: [:json])}}
 
 .row{ng_controller: 'PreferenceCtrl'}
   %table.table

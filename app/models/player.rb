@@ -460,7 +460,7 @@ class Player < ActiveRecord::Base
   end
   
   def player_data
-    @player_data = JSON[File.read stats_file_path] if File.exists? stats_file_path
+    @player_data = JSON[File.read stats_file_path] if File.exist? stats_file_path
   end
   
   def explore_all_biome_progress

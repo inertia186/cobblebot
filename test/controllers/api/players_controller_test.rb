@@ -7,7 +7,7 @@ class Api::V1::PlayersControllerTest < ActionController::TestCase
   end
 
   def test_index
-    get :index, format: :json, only_registered: true
+    get :index, params: { format: :json, only_registered: true }
     assert_response 200
 
     assert_equal 1, response_json.size
@@ -18,7 +18,7 @@ class Api::V1::PlayersControllerTest < ActionController::TestCase
 
   def test_index_any_nick
     player = Player.find_by_nick 'inertia186'
-    get :index, format: :json, only_registered: true, any_nick: player.nick
+    get :index, params: { format: :json, only_registered: true, any_nick: player.nick }
     assert_response 200
 
     assert_equal 1, response_json.size
@@ -39,7 +39,7 @@ class Api::V1::PlayersControllerTest < ActionController::TestCase
     player = Player.find_by_nick 'inertia186'
     # TODO use request_token
     #request_token @access_token.token
-    get :show, id: player.id, format: :json
+    get :show, params: { id: player.id, format: :json }
     assert_response 200
     %w(uuid nick registered_at).each do |attr|
       assert_equal player.send(attr), response_json[attr]

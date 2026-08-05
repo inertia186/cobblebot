@@ -7,7 +7,7 @@ class BannedPlayer
   end
   
   def self.banned_players_data
-    JSON[File.read banned_players_path] if File.exists? banned_players_path
+    JSON[File.read banned_players_path] if File.exist? banned_players_path
   end
   
   def self.find(options = {})

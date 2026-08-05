@@ -59,7 +59,7 @@ class Server
   end
 
   def self.server_icon
-    File.binread(server_icon_path) if File.exists? server_icon_path rescue return
+    File.binread(server_icon_path) if File.exist? server_icon_path rescue return
   end
   
   def self.player_nicks(selector = nil)
@@ -231,7 +231,7 @@ class Server
   end
 
   def self.banned_players
-    JSON[File.read banned_players_file_path] if File.exists? banned_players_file_path
+    JSON[File.read banned_players_file_path] if File.exist? banned_players_file_path
   end
 
   def self.banned_ips_file_path
@@ -239,7 +239,7 @@ class Server
   end
 
   def self.banned_ips
-    JSON[File.read banned_ips_file_path] if File.exists? banned_ips_file_path
+    JSON[File.read banned_ips_file_path] if File.exist? banned_ips_file_path
   end
 
   def self.ops_file_path
@@ -247,7 +247,7 @@ class Server
   end
 
   def self.ops
-    JSON[File.read ops_file_path] if File.exists? ops_file_path
+    JSON[File.read ops_file_path] if File.exist? ops_file_path
   end
 
   def self.whitelist_file_path
@@ -255,7 +255,7 @@ class Server
   end
 
   def self.whitelist
-    JSON[File.read whitelist_file_path] if File.exists? whitelist_file_path
+    JSON[File.read whitelist_file_path] if File.exist? whitelist_file_path
   end
 
   def self.latest_debug_report_path
@@ -265,7 +265,8 @@ class Server
   end
   
   def self.latest_debug_report
-    File.read latest_debug_report_path if File.exists? latest_debug_report_path
+    path = latest_debug_report_path
+    File.read(path) if path && File.exist?(path)
   end
 
   # To get the full list of votes.

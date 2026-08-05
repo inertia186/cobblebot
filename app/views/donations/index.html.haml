@@ -1,6 +1,6 @@
 = content_for :head, auto_discovery_link_tag(:atom, "http://#{donations_url(format: :atom).split('://')[1]}")
 
-%div{data: {preload_resource: '/donations.json', data: (render template: '/donations/index.json')}}
+%div{data: {preload_resource: '/donations.json', data: (render template: '/donations/index', formats: [:json])}}
 
 .row{ng_controller: 'DonationCtrl'}
   .col-sm-3

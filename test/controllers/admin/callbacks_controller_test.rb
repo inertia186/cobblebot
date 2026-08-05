@@ -34,12 +34,12 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
 
   def test_index_all_status
     %w(ready in_cooldown enabled disabled).each do |status|
-      get :index, status: status
+      get :index, params: { status: status }
     end
   end
 
   def test_show
-    get :show, id: ServerCallback.first
+    get :show, params: { id: ServerCallback.first }
     callback = assigns :callback
 
     assert_template :show
@@ -55,7 +55,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
   end
 
   def test_edit
-    get :edit, id: ServerCallback.first
+    get :edit, params: { id: ServerCallback.first }
     callback = assigns :callback
 
     assert_template :edit
@@ -71,7 +71,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
 
   def test_create
     assert_difference -> { ServerCallback.count }, 1, 'expect different count' do
-      post :create, server_callback: callback_params
+      post :create, params: { server_callback: callback_params }
     end
 
     assert_template nil
@@ -80,7 +80,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
 
   def test_create_failure
     assert_no_difference -> { ServerCallback.count }, 'did not expect different count' do
-      post :create, server_callback: callback_params.merge(pattern: '/(.*/i')
+      post :create, params: { server_callback: callback_params.merge(pattern: '/(.*/i') }
     end
 
     assert_template :new
@@ -89,7 +89,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
 
   def test_update
     callback = ServerCallback.first
-    patch :update, id: callback, server_callback: callback_params
+    patch :update, params: { id: callback, server_callback: callback_params }
 
     assert_template nil
     assert_redirected_to admin_server_callbacks_url
@@ -97,7 +97,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
 
   def test_update_failure
     callback = ServerCallback.first
-    patch :update, id: callback, server_callback: callback_params.merge(pattern: '/(.*/i')
+    patch :update, params: { id: callback, server_callback: callback_params.merge(pattern: '/(.*/i') }
 
     assert_template :edit
     assert_response :success
@@ -106,7 +106,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
   def test_toggle_enabled
     callback = ServerCallback.first
     assert_difference -> { ServerCallback.enabled.count }, -1, 'expect different count' do
-      patch :toggle_enabled, id: callback
+      patch :toggle_enabled, params: { id: callback }
     end
 
     assert_template nil
@@ -116,7 +116,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
   def test_toggle_enabled_js
     callback = ServerCallback.first
     assert_difference -> { ServerCallback.enabled.count }, -1, 'expect different count' do
-      xhr :patch, :toggle_enabled, format: :js, id: callback
+      patch :toggle_enabled, params: { format: :js, id: callback }, xhr: true
     end
 
     assert_template :replace_visible_callbacks
@@ -126,7 +126,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
   def test_execute_command
     callback = ServerCallback.first
     assert_difference -> { ServerCallback.where.not(ran_at: nil).count }, 1, 'expect different count' do
-      get :execute_command, id: callback
+      get :execute_command, params: { id: callback }
     end
 
     assert_template nil
@@ -136,7 +136,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
   def test_execute_command_js
     callback = ServerCallback.first
     assert_difference -> { ServerCallback.where.not(ran_at: nil).count }, 1, 'expect different count' do
-      xhr :get, :execute_command, format: :js, id: callback
+      get :execute_command, params: { format: :js, id: callback }, xhr: true
     end
 
     assert_template :replace_visible_callbacks
@@ -147,7 +147,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
     callback = ServerCallback.where.not(cooldown: '+0 seconds').first
     callback.update_attribute(:ran_at, Time.now)
     assert_difference -> { ServerCallback.ready.count }, 1, 'expect different count' do
-      patch :reset_cooldown, id: callback
+      patch :reset_cooldown, params: { id: callback }
     end
 
     assert_template nil
@@ -158,7 +158,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
     callback = ServerCallback.where.not(cooldown: '+0 seconds').first
     callback.update_attribute(:ran_at, Time.now)
     assert_difference -> { ServerCallback.ready.count }, 1, 'expect different count' do
-      xhr :patch, :reset_cooldown, format: :js, id: callback
+      patch :reset_cooldown, params: { format: :js, id: callback }, xhr: true
     end
 
     assert_template :replace_visible_callbacks
@@ -167,7 +167,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
 
   def test_destroy
     assert_difference -> { ServerCallback.count }, -1, 'expect different count' do
-      delete :destroy, id: ServerCallback.first
+      delete :destroy, params: { id: ServerCallback.first }
     end
 
     assert_template nil

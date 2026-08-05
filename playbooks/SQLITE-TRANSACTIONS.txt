@@ -1,0 +1,51 @@
+SQLite transaction modernization playbook
+=========================================
+
+Purpose
+-------
+Preserve CobbleBot's immediate SQLite transaction behavior without overriding
+Rails adapter internals.
+
+Implemented boundary
+--------------------
+- The historical `SqliteTransactionFix` initializer is removed.
+- Development and production SQLite connections set
+  `default_transaction_mode: immediate` and retain `timeout: 15000`.
+- sqlite3 is constrained to 1.6.9 or newer within the 1.x line because 1.6.9
+  introduced the supported default transaction mode option.
+- The PostgreSQL test configuration receives only shared pool settings, not
+  SQLite-specific connection options.
+- Rails again owns root transactions, commits, rollbacks, and nested savepoints.
+  Lock exhaustion raises the native Active Record/SQLite exception instead of a
+  custom `CobbleBotError` after a broad rescue loop.
+
+Concurrency model
+-----------------
+Immediate mode acquires SQLite's write reservation when the root transaction
+materializes. The native busy timeout allows a separate CobbleBot process to
+wait for that reservation and continue after it is released.
+
+The sqlite3 1.7 native busy wait blocks the calling Ruby thread. It is therefore
+not a general solution for sustained threaded write contention in one process.
+PostgreSQL remains the recommended database for concurrent deployments; do not
+restore a broad Ruby retry loop inside the Rails adapter to hide this limitation.
+
+Validation
+----------
+Use an isolated SQLite file and independent Active Record connections to verify:
+- a native Rails root transaction reserves the writer slot immediately
+- a separate process waits and commits when the first transaction releases
+- a short exhausted timeout raises `ActiveRecord::StatementInvalid` caused by
+  `SQLite3::BusyException`
+- commit, rollback, and nested `requires_new` savepoints behave normally
+
+Then run schema load, migration status, focused model/worker/migration tests,
+Zeitwerk, routes, assets, and the admin login/preferences smoke against a
+disposable SQLite database whose URL explicitly includes
+`default_transaction_mode=immediate` and `timeout=15000`.
+
+Deferred work
+-------------
+- Full PostgreSQL validation when the configured service is available.
+- Full PostgreSQL validation now that the Rails 6 test harness is restored.
+- Any redesign for high-concurrency or threaded SQLite writes.

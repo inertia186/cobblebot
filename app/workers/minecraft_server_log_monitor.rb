@@ -1,5 +1,6 @@
 class MinecraftServerLogMonitor
-  @queue = :minecraft_server_log_monitor
+  QUEUE = :minecraft_server_log_monitor
+  @queue = QUEUE
 
   DEFAULT_LOG_LENGTH = 1000
   DEFAULT_MONITOR_TICK = 0.25
@@ -21,8 +22,6 @@ class MinecraftServerLogMonitor
 
     ticks = 0
     latest_log_entry_at = nil
-    server_msgs = []
-
     begin
       new_latest_log_entry_at = Server.latest_log_entry_at
 
@@ -53,8 +52,8 @@ class MinecraftServerLogMonitor
     rescue Errno::ENOENT => e
       Rails.logger.error "Need to finish setup: #{e.inspect}"
       sleep 300
-    end while max_ticks > ticks && Resque.size(@queue) < 4
-  rescue Resque::TermException => e
+    end while max_ticks > ticks
+  rescue Resque::TermException
     Rails.logger.info "Detected ^C"
   end
 end

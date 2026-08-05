@@ -15,7 +15,7 @@
     %ul.nav.navbar-nav
       %li.nav-item
         %a.navbar-brand{href: "#"}
-          %img{src: '/assets/logo-24.png', alt: 'CobbleBot', height: 24}
+          %img{src: asset_path('logo-24.png'), alt: 'CobbleBot', height: 24}
     %button.navbar-toggler.hidden-sm-up#main_toggle_nav{type: 'button', 'data-toggle' => 'collapse', 'data-target' => '#cobblebot-navbar', 'aria-expanded' => "false"}
       &#9776;
       %span.sr-only Toggle navigation
@@ -75,10 +75,6 @@
               %li.dropdown-item{class: active_nav('admin_config_server_properties')}
                 %span.glyphicon.glyphicon-folder-open
                 = link_to 'Server Properties', admin_config_server_properties_path
-              - if Rails.env == 'development'
-                %li.dropdown-item{class: active_nav('admin_config_console')}
-                  %span.glyphicon.glyphicon-comment
-                  = link_to 'Console', admin_config_console_path, data: { remote: true }
               %li.dropdown-item
                 %span.glyphicon.glyphicon-dashboard
                 = link_to 'Resque', "http://admin:#{Preference.web_admin_password}@#{admin_resque_server_url.split('://')[1]}", target: '_new'

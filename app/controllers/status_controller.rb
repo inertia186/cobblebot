@@ -3,7 +3,7 @@ class StatusController < ApplicationController
   
   def index
     @query = ServerQuery.full_query
-    @query = @query.merge(params)
+    @query = @query.merge(params.permit('angular.version').to_h)
     
     @query = @query.map do |q|
       if q[1].class == Time

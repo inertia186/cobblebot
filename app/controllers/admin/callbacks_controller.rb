@@ -59,7 +59,7 @@ class Admin::CallbacksController < Admin::AdminController
   def update
     @callback = ServerCallback.find(params[:id])
 
-    if @callback.update_attributes(server_callback_params)
+    if @callback.update(server_callback_params)
       redirect_to admin_server_callbacks_url
     else
       render action: 'edit'
@@ -102,7 +102,7 @@ class Admin::CallbacksController < Admin::AdminController
   def reset_cooldown
     @callback = ServerCallback.find(params[:id])
     
-    @callback.update_attributes(last_match: nil, last_command_output: nil, ran_at: nil)
+    @callback.update(last_match: nil, last_command_output: nil, ran_at: nil)
 
     respond_to do |format|
       format.html { redirect_to admin_server_callbacks_url, notice: "Cooldown for #{@callback.name} has been reset." }

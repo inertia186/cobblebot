@@ -1056,9 +1056,14 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   
   def test_calc
     calc = ServerCallback.find_by_name 'Calc'
-    
+
+    ServerCommand.reset_commands_executed
     assert_callback_ran 'Calc' do
       ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> =128/8', debug: true)
     end
+
+    refute calc.reload.error_flag?, calc.last_command_output
+    assert ServerCommand.commands_executed.keys.any? { |command| command.include?('16=128/8') },
+      "expected Calc response in #{ServerCommand.commands_executed.keys.inspect}"
   end
 end
