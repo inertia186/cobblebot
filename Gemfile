@@ -73,13 +73,11 @@ gem 'google-translate', '~> 1.1'
 gem 'ai4r', '~> 1.13'
 
 # CobbleBot uses redis/resque to kick off the log monitor and other stuff.
-gem 'redis', '~> 3.3', require: false
-gem 'redis-store', '~> 1.1', require: false
-gem 'resque', '~> 1.26', require: 'resque/server'
-gem 'resque-scheduler', '~> 4.2', require: false
-# Resque 1.x serializes jobs through MultiJson. Versions before 1.15 use Proc
-# semantics removed by Ruby 3, while 1.21 deprecates the API Resque 1.x calls.
-gem 'multi_json', '>= 1.15', '< 1.21'
+gem 'redis', '~> 5.4', '>= 5.4.1', require: false
+# CobbleBot constructs Redis::Namespace directly in its configuration service.
+gem 'redis-namespace', '~> 1.11', require: false
+gem 'resque', '~> 3.0', require: 'resque/server'
+gem 'resque-scheduler', '~> 5.0', require: false
 
 # IRC
 gem 'summer', '~> 1.0'
