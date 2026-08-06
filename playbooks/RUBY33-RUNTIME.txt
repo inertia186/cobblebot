@@ -1,0 +1,40 @@
+Ruby 3.3 runtime bridge
+=======================
+
+Baseline
+--------
+CobbleBot declares Ruby 3.3.12 in `.ruby-version`, the Gemfile, and the lockfile.
+Rails remains fixed at the production-verified 7.2.3.2 framework/defaults
+baseline, and Bundler remains 2.6.6. This slice changes the runtime only.
+
+Dependency boundary
+-------------------
+- The Rails and application dependency graph resolves unchanged on Ruby 3.3.12.
+- `csv` is now explicit because CobbleBot's export/import tasks require it and
+  Ruby 3.4 removes it from the default gem set.
+- Ruby 3.3.12 is the current security release in the 3.3 line. It includes the
+  July 2026 ERB and net-imap security updates.
+- Rails' `config.yjit = true` remains active. YJIT is optional at the Ruby build
+  level; the validated local build does not expose it, and CobbleBot does not
+  require it for correctness.
+- No routes, schema, Redis payloads, preferences, worker ownership, or public
+  APIs change.
+
+Validation
+----------
+- PostgreSQL coverage gate: 414 tests, 3208 assertions, no failures or errors,
+  six intentional skips, and 77.31% line coverage.
+- Disposable-SQLite coverage gate: 414 tests, 3207 assertions, no failures or
+  errors, six intentional skips, and 77.31% line coverage.
+- All 21 headless-Chrome acceptance tests pass.
+- Production assets and `SECRET_KEY_BASE` handling pass.
+- Development and test boot remain Redis-independent.
+- Zeitwerk passes.
+- Namespaced real-Redis integration passes: 2 tests and 23 assertions.
+
+Deployment boundary
+-------------------
+Install Ruby 3.3.12 and Bundler 2.6.6 before switching the application release.
+Stop and restart CobbleBot processes through the external supervisor; do not
+restart or flush Redis. Retain the Rails 7.2/Ruby 3.2 release for rollback until
+web, workers, and in-game commands pass on Ruby 3.3.12.

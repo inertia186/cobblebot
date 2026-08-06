@@ -52,9 +52,9 @@ Compatibility declarations
 - PostgreSQL raw date values now decode as `Date`; CobbleBot has no schema-level
   `date` columns or raw date-query consumers, and focused PostgreSQL coverage
   verifies the adapter behavior.
-- `config.yjit` is enabled. Rails only activates YJIT on supported Ruby builds;
-  the current Ruby 3.2.7 runtime does not expose it, so this changes no current
-  process behavior and needs no override.
+- `config.yjit` is enabled. Rails only activates YJIT on Ruby builds that expose
+  it. The locally validated Ruby 3.3.12 build does not, so this needs no
+  compatibility override; deployment builds may enable it when available.
 - The other Rails 7.2 defaults belong to Active Job and Active Storage. CobbleBot
   loads neither railtie, so those configuration surfaces remain absent.
 
@@ -78,9 +78,17 @@ Validation
 - Production asset compilation.
 - Disposable-SQLite controller, model, worker, service, task, migration, and
   configuration tests.
-- Full PostgreSQL coverage gate: 414 tests, 3207 assertions, no failures or
-  errors, six intentional skips, and 77.28% line coverage.
-- Full disposable-SQLite coverage gate: 414 tests, 3206 assertions, no failures
-  or errors, six intentional skips, and 77.31% line coverage.
+- Full PostgreSQL coverage gate on Ruby 3.3.12: 414 tests, 3208 assertions, no
+  failures or errors, six intentional skips, and 77.31% line coverage.
+- Full disposable-SQLite coverage gate on Ruby 3.3.12: 414 tests, 3207
+  assertions, no failures or errors, six intentional skips, and 77.31% line
+  coverage.
 - All 21 headless-Chrome acceptance tests pass.
 - Namespaced real-Redis integration: 2 tests and 23 assertions.
+
+Production verification
+-----------------------
+Commit `12b7d48074069cdd5b815fa95049aaaa5093bef2` is verified on Bolger:
+schema `20260805000000`, all five services active with zero restarts, HTTP 200,
+continuous unflushed Redis, and working in-game version and slap commands. The
+previous application release remains available for rollback.

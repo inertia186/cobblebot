@@ -1,10 +1,15 @@
 source 'https://rubygems.org'
 
+ruby '3.3.12'
+
+# CobbleBot's export/import tasks use CSV, which is no longer a default gem in
+# Ruby 3.4.
+gem 'csv', '~> 3.2'
+
 # TEMP Ruby 3 spike cut: let a modern Bundler drive resolution so we can expose the next real blocker.
 # gem 'bundler', '>= 1.12'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-# Use Rails 7.2 as a compatibility bridge while configuration defaults remain
-# intentionally pinned to Rails 7.1.
+# Use the production-verified Rails 7.2 framework and defaults baseline.
 gem 'rails', '~> 7.2.3.2'
 
 # TEMP Ruby 3 / Rails 6.1 spike cut: old json 1.8.5 is not viable on this stack.
