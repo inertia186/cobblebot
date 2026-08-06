@@ -190,6 +190,12 @@ What the modernization spike established
   exception handling uses `:none`, and Resque task coverage now observes a
   clean Rake process. PostgreSQL, real Redis, assets, and headless Chrome remain
   green.
+- Rails 7.1 defaults are now active. The application does not depend on the
+  affected Active Job, Active Record encryption/serialization/readonly/token,
+  transaction-callback, or shared-cache surfaces. Focused coverage protects the
+  JSON-with-Marshal-fallback message serializer, HTML5 parsing/sanitization,
+  strict SQLite behavior, response headers, the 100 MB local log cap, and
+  supported `lib` route loading. Rotated log archives are ignored.
 
 Completed migration slice
 -------------------------
@@ -312,11 +318,17 @@ assertions with no failures or errors, six intentional skips, and 77.31% line
 coverage. Production assets, all 21 browser acceptance tests, and the two-test
 real-Redis integration are green.
 
+The Rails 7.1 defaults slice is complete locally: `config.load_defaults 7.1` is
+active without application compatibility overrides, legacy Marshal messages
+remain readable, and Redis/Resque formats remain independent. The complete
+PostgreSQL gate passes 412 tests and 3173 assertions with no failures or errors,
+six intentional skips, and 77.28% line coverage. Production assets, all 21
+headless-browser tests, strict SQLite coverage, and real Redis integration pass.
+
 Likely follow-on order
 ----------------------
-1. Review and adopt Rails 7.1 configuration defaults as a separate behavior
-   slice, then advance the framework to Rails 7.2 before the next Bolger
-   deployment.
+1. Advance the framework to Rails 7.2 while initially retaining Rails 7.1
+   defaults, then review Rails 7.2 defaults separately.
 2. Deploy the accumulated obsolete-dependency, ai4r, supervisor, strict-package,
    and Rails 7.1 slices. Live ai4r command verification remains deferred until
    Bolger has suitable prediction data.

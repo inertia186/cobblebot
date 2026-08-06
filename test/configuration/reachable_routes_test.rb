@@ -1,6 +1,13 @@
 require 'test_helper'
 
 class ReachableRoutesTest < ActiveSupport::TestCase
+  def test_api_constraint_remains_available_with_rails_7_1_load_paths
+    route = Rails.application.routes.recognize_path('/api/players', method: :get)
+
+    assert_equal 'api/v1/players', route[:controller]
+    assert_equal 'index', route[:action]
+  end
+
   def test_retired_api_session_routes_are_absent
     %i[post put patch delete].each do |method|
       assert_raises(ActionController::RoutingError) do

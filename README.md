@@ -115,6 +115,13 @@ deployment that includes those defaults invalidates existing encrypted admin
 session cookies, so operators should expect to sign in again after that deploy.
 No preference or application data is affected.
 
+Rails 7.1 defaults write framework messages as JSON while retaining Marshal
+read compatibility. Existing Rails 7.0 admin sessions remain readable, but a
+rollback after Rails 7.1 has issued a new session may require another sign-in.
+CobbleBot does not configure a shared Rails cache, so the Rails 7.1 cache format
+does not require an operational cache migration or flush. Resque payloads and
+Redis keys are independent of these Rails message and cache formats.
+
 Each scheduled watchdog job is a one-shot maintenance pass; it does not sleep or
 replenish its own queue. During that pass, the worker queue policy keeps one
 pending standby for the five-minute log monitor and, when enabled, IRC. Active
@@ -195,8 +202,8 @@ and requires at least 75% line coverage:
     $ RAILS_ENV=test bundle exec rake cobblebot:test:coverage
 
 Focused test commands continue to produce mergeable coverage reports without
-enforcing the aggregate floor. On Rails 7.1.6 with Rails 7.0 configuration
-defaults, the current complete-suite baseline is 77.31%.
+enforcing the aggregate floor. On Rails 7.1.6 with Rails 7.1 configuration
+defaults, the current complete-suite baseline is 77.28%.
 
 ## Export/Import
 
