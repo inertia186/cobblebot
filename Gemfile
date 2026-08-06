@@ -85,8 +85,8 @@ gem 'summer', '~> 1.0'
 # TEMP Ruby 3 / Rails 5.2 spike cut: Haml 4 expects old Erubis handler APIs.
 gem 'haml', '~> 5.2'
 
-# TEMP Ruby 3 / Rails 5.2 spike cut: older will_paginate hits Proc.new semantics removed by Ruby 3.
-gem 'will_paginate', '~> 3.3'
+# Paginate admin result indexes.
+gem 'will_paginate', '~> 4.0'
 
 # For 'Calc' callback
 gem 'dentaku', '~> 4.0'

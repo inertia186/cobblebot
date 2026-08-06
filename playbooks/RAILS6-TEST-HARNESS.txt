@@ -40,7 +40,9 @@ Rails 6 seams repaired while restoring coverage
 - Donation JSON correctly includes its author, and the status UI labels the
   `raw_plugins` field consistently.
 - The previously undiscovered admin-links integration workflow now has a
-  `_test.rb` filename.
+  `_test.rb` filename. On will_paginate 4.0.1 it covers distinct first- and
+  second-page rows, current-page state, retained search/sort/page-size
+  parameters, and the single-page no-navigation case.
 
 Validation
 ----------
