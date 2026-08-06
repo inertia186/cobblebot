@@ -89,7 +89,7 @@ gem 'haml', '~> 5.2'
 gem 'will_paginate', '~> 3.3'
 
 # For 'Calc' callback
-gem 'dentaku', '~> 3.5'
+gem 'dentaku', '~> 4.0'
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1'

@@ -3,8 +3,8 @@ Vendor static assets playbook
 
 Status
 ------
-Complete on both the Ruby 2.6/Rails 4 preservation lane and the Ruby 3/Rails 6
-modernization lane.
+Complete. The Ruby 2.6/Rails 4 preservation result below is historical evidence;
+only the current Ruby 3/Rails 7 runtime is supported.
 
 Purpose
 -------

@@ -30,9 +30,10 @@ There is also an optional IRC bot that allows players to interact.
 
 ## Installation
 
-CobbleBot's supported runtime is Ruby 3.3.12 with Bundler 2.6.6. The repository
-includes `.ruby-version`; install that Ruby with your preferred version manager
-before running Bundler.
+CobbleBot's only supported runtime is Ruby 3.3.12 with Bundler 2.6.6 and Rails
+7.2.3.2. The repository includes `.ruby-version`; install that Ruby with your
+preferred version manager before running Bundler. Historical Rails 4 revisions
+remain in git history but are not maintained or tested.
 
     $ mkdir cobblebot
     $ cd cobblebot
