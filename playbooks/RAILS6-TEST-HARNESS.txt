@@ -43,6 +43,9 @@ Rails 6 seams repaired while restoring coverage
   `_test.rb` filename. On will_paginate 4.0.1 it covers distinct first- and
   second-page rows, current-page state, retained search/sort/page-size
   parameters, and the single-page no-navigation case.
+- Admin Links and Donations browser searches wait for the returned query field
+  before inspecting the replaced results table. This avoids stale Chrome
+  document nodes without adding sleeps or weakening result assertions.
 
 Validation
 ----------

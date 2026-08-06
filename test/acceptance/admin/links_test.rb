@@ -33,6 +33,7 @@ class Admin::LinksTest < AcceptanceTest
 
         fill_in('query', with: 'inertia')
         click_on('Search')
+        assert_selector 'input#query[value="inertia"]'
 
         within(:css, results_container) do
           assert page.has_no_content?('resnullius'), 'did not expect resnullius in inertia results'

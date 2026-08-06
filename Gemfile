@@ -75,6 +75,8 @@ gem 'redis', '~> 5.4', '>= 5.4.1', require: false
 gem 'redis-namespace', '~> 1.11', require: false
 gem 'resque', '~> 3.0', require: 'resque/server'
 gem 'resque-scheduler', '~> 5.0', require: false
+# Resque Server runs on Sinatra; keep its verified Rack-major shelf explicit.
+gem 'sinatra', '~> 4.2', require: false
 
 # IRC
 gem 'summer', '~> 1.0'
