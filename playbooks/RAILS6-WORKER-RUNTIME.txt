@@ -8,8 +8,10 @@ during ordinary tests or connecting to a live Minecraft server.
 
 Implemented boundary
 --------------------
-- Dentaku is on the Ruby-3-compatible 3.5 line. The Calc callback normalizes
-  whole-number results so `=128/8` still reports `16=128/8`.
+- Dentaku is on 4.0.2, which supports the Ruby 3.3 runtime. The Calc callback
+  retains whole-number normalization, decimal rendering, operator precedence,
+  and its historical blank result for malformed expressions without setting an
+  error flag.
 - `ResqueConfiguration` is the single Resque connection owner. Development,
   beta, and production default to Redis database 1; test defaults to database 3.
 - `COBBLEBOT_REDIS_URL` overrides the Redis URL and

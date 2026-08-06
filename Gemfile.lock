@@ -118,10 +118,10 @@ GEM
     crass (1.0.7)
     csv (3.3.6)
     date (3.5.1)
-    dentaku (3.5.8)
-      bigdecimal
-      concurrent-ruby
-      tsort
+    dentaku (4.0.2)
+      bigdecimal (>= 3.1)
+      concurrent-ruby (~> 1.1)
+      tsort (>= 0.1.1)
     docile (1.4.1)
     domain_name (0.6.20240107)
     drb (2.2.3)
@@ -399,7 +399,7 @@ DEPENDENCIES
   capybara-screenshot (~> 1.0)
   coffee-rails (~> 5.0)
   csv (~> 3.2)
-  dentaku (~> 3.5)
+  dentaku (~> 4.0)
   file-tail (~> 1.4)
   haml (~> 5.2)
   java_properties (~> 0.0.4)

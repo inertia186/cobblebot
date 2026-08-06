@@ -1054,15 +1054,38 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
   
   def test_calc
+    assert_calc_response '128/8', '16=128/8'
+  end
+
+  def test_calc_decimal
+    assert_calc_response '1.5+2.25', '3.75=1.5+2.25'
+  end
+
+  def test_calc_operator_precedence
+    assert_calc_response '2+3*4', '14=2+3*4'
+  end
+
+  def test_calc_malformed_expression_returns_blank_result
+    assert_calc_response '2+', '=2+'
+  end
+
+  private
+
+  def assert_calc_response(expression, response)
     calc = ServerCallback.find_by_name 'Calc'
 
     ServerCommand.reset_commands_executed
-    assert_callback_ran 'Calc' do
-      ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> =128/8', debug: true)
-    end
+    assert_callback_ran('Calc') { handle_calc expression }
 
     refute calc.reload.error_flag?, calc.last_command_output
-    assert ServerCommand.commands_executed.keys.any? { |command| command.include?('16=128/8') },
+    assert ServerCommand.commands_executed.keys.any? { |command| command.include?(response) },
       "expected Calc response in #{ServerCommand.commands_executed.keys.inspect}"
+  end
+
+  def handle_calc(expression)
+    ServerCallback::AnyPlayerEntry.handle(
+      "[15:17:25] [Server thread/INFO]: <inertia186> =#{expression}",
+      debug: true
+    )
   end
 end

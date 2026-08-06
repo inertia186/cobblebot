@@ -6,11 +6,13 @@ Purpose
 Record the conclusions from the preservation and modernization experiments. This
 is evidence for choosing the next migration step, not a final project roadmap.
 
-Current baseline (2026-08-05)
+Current baseline (2026-08-06)
 -----------------------------
 - Branch: `develop`.
 - Ruby `3.3.12`, Bundler `2.6.6`, and Rails `7.2.3.2` resolve and boot with Rails
   7.2 configuration defaults.
+- Rails 7/Ruby 3 is the only supported lane. Rails 4/Ruby 2.6 remains in git
+  history but is not maintained, tested, or kept reproducible.
 - `bundle check` passes.
 - The Rails environment boots when the configured local Redis is available.
 - Normal Rails initialization no longer inspects or mutates Resque, so web,
@@ -87,9 +89,10 @@ What the modernization spike established
   overrides. Operational environments retain database 1, tests use database 3,
   and a process-specific namespace proves real enqueue serialization without
   disturbing unrelated queues.
-- Dentaku 3.5 restores the Calc callback on Ruby 3. Whole-number results retain
-  the concise historical display, and the complete worker suite passes without
-  the former `BigDecimal.new` failure or nil-assertion deprecation flood.
+- Dentaku 3.5 originally restored the Calc callback on Ruby 3. Whole-number
+  results retained the concise historical display, and the complete worker
+  suite passed without the former `BigDecimal.new` failure or nil-assertion
+  deprecation flood.
 - The watchdog is now a one-shot scheduled maintenance job. A Redis-independent
   `MinecraftWorkerQueuePolicy` converges the log-monitor and optional IRC queues
   to one canonical pending standby without inspecting or changing unrelated
@@ -357,29 +360,34 @@ CSV export/import has an explicit dependency ahead of Ruby 3.4's stdlib change.
 The PostgreSQL gate passes 414 tests and 3208 assertions at 77.31% coverage; the
 disposable-SQLite gate passes 414 tests and 3207 assertions at 77.31%. Assets,
 all 21 browser tests, production secrets, Redis-denied boot, Zeitwerk, and real
-Redis integration remain green.
+Redis integration remain green. Bolger now validates the same Ruby 3.3.12
+runtime on the Rails 7.2 baseline.
+
+CobbleBot remains an actively maintained standalone Rails application. Continue
+modernizing in small package slices while preserving useful workflows and
+behavior rather than pixel-perfect historical styling. Extraction into
+Galactica Actual stays deferred until a concrete integration requires it.
+
+The Dentaku 4 dependency slice is complete locally. Dentaku 4.0.2 preserves
+Calc's whole-number, decimal, precedence, malformed-input, command-output, and
+callback-error behavior. The callback/worker gate passes 111 tests and 2025
+assertions with two intentional skips. The complete PostgreSQL gate passes 417
+tests and 3220 assertions with no failures or errors, six intentional skips,
+and 77.31% line coverage.
 
 Likely follow-on order
 ----------------------
-1. Deploy Ruby 3.3.12 as a runtime-only change while retaining the verified
-   Rails 7.2 release for rollback. Live ai4r verification remains deferred until
-   Bolger has suitable prediction data.
-2. Evaluate Ruby 3.4 or the next Rails compatibility bridge only after the Ruby
-   3.3 deployment is stable; keep runtime, framework, and defaults separate.
-3. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
+1. Deploy Dentaku 4.0.2 as a package-only slice and verify the live Calc
+   workflow while retaining the current release for rollback.
+2. Upgrade will_paginate 3.3.1 to 4.0.1 as an admin pagination workflow slice.
+3. Keep the Rack 3, Sinatra 4, and Resque Web dependency cluster separate because
+   its request/session blast radius is larger.
+4. Evaluate Ruby 3.4 or the next Rails compatibility bridge only if continued
+   maintenance calls for it; keep runtime, framework, and defaults separate.
+5. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
    test unchanged unless production evidence calls for a replacement.
-4. Add Sting chat as a separate integration when its protocol, authentication,
+6. Add Sting chat as a separate integration when its protocol, authentication,
    and worker ownership are defined; keep Summer available in the meantime.
-5. Resolve the product-direction and historical-admin-UI decisions before
-   undertaking another broad modernization front.
-
-Open decisions
---------------
-- Is the desired outcome an archived preservation build, a live resurrection,
-  an actively maintained Rails app, or extraction into Galactica Actual?
-- Should the preservation and modernization environments remain reproducible in
-  parallel, or is the Rails 7 branch now the only supported lane?
-- How much of the historical admin UI must remain pixel/behavior compatible?
 
 Project boundary
 ----------------

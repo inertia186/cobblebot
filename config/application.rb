@@ -33,7 +33,6 @@ module Cobblebot
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
 
-    # TEMP Ruby 3 / modern Rails spike: this old Rails 4 callback setting is obsolete on newer Rails.
     config.middleware.use Rack::Deflater
   end
 end
