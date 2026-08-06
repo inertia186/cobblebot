@@ -375,11 +375,20 @@ assertions with two intentional skips. The complete PostgreSQL gate passes 417
 tests and 3220 assertions with no failures or errors, six intentional skips,
 and 77.31% line coverage.
 
+The will_paginate 4 dependency slice is complete locally. A characterization
+test passes before and after the update and proves distinct result pages,
+current-page state, retained search/sort/page-size parameters, and no navigation
+for a single-page result. All six paginated admin controllers and their browser
+workflows remain green on will_paginate 4.0.1. The complete PostgreSQL gate
+passes 417 tests and 3236 assertions with no failures or errors, six intentional
+skips, and 77.28% line coverage.
+
 Likely follow-on order
 ----------------------
 1. Deploy Dentaku 4.0.2 as a package-only slice and verify the live Calc
    workflow while retaining the current release for rollback.
-2. Upgrade will_paginate 3.3.1 to 4.0.1 as an admin pagination workflow slice.
+2. Deploy will_paginate 4.0.1 as its own package-only slice and verify admin
+   search and pagination while retaining the Dentaku release for rollback.
 3. Keep the Rack 3, Sinatra 4, and Resque Web dependency cluster separate because
    its request/session blast radius is larger.
 4. Evaluate Ruby 3.4 or the next Rails compatibility bridge only if continued
