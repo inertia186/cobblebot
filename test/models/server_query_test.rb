@@ -5,13 +5,8 @@ class ServerQueryTest < ActiveSupport::TestCase
   end
   
   def test_full_query
-    begin
+    assert_raises(CobbleBotError) do
       ServerQuery.full_query
-      # :nocov:
-      fail 'did not expect the full query to work'
-      # :nocov:
-    rescue StandardError => e
-      # success
     end
   end
   

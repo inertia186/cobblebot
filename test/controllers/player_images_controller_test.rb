@@ -11,12 +11,18 @@ class PlayerImagesControllerTest < ActionController::TestCase
     stub_minotar('inertia186', '16', 'png') do
       get :show, params: { id: 'inertia186', size: '16', format: :png }
     end
+
+    assert_response :success
+    assert_equal 'image/png', response.media_type
   end
 
   def test_show_missing
     stub_minotar('Notch', '16', 'png') do
       get :show, params: { id: 'Notch', size: '16', format: :png }
     end
+
+    assert_response :success
+    assert_equal 'image/png', response.media_type
   end
 
   def test_show_redirected

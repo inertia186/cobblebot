@@ -35,6 +35,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
   def test_index_all_status
     %w(ready in_cooldown enabled disabled).each do |status|
       get :index, params: { status: status }
+      assert_response :success
     end
   end
 

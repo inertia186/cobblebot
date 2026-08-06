@@ -1,12 +1,32 @@
 require 'test_helper'
 
 class TestRuntimeNoiseTest < Minitest::Test
-  def test_rails_7_1_defaults_are_loaded
-    assert_equal '7.1.6', Rails.version
-    assert_equal 7.1, Rails.application.config.loaded_config_version
+  def test_rails_7_2_defaults_are_loaded
+    assert_equal '7.2.3.2', Rails.version
+    assert_equal 7.2, Rails.application.config.loaded_config_version
     assert Rails.application.config.action_controller.raise_on_open_redirects
     assert_equal :json, Rails.application.config.action_dispatch.cookies_serializer
     assert_equal :none, Rails.application.config.action_dispatch.show_exceptions
+  end
+
+  def test_rails_7_2_runtime_defaults_are_active
+    config = Rails.application.config
+
+    assert config.yjit
+    assert config.active_record.postgresql_adapter_decode_dates
+    assert config.active_record.validate_migration_timestamps
+    refute config.respond_to?(:active_job)
+    refute config.respond_to?(:active_storage)
+  end
+
+  def test_postgresql_adapter_decodes_dates
+    if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+      value = ActiveRecord::Base.connection.select_value("SELECT DATE '2026-08-05'")
+      assert_instance_of Date, value
+      assert_equal Date.new(2026, 8, 5), value
+    else
+      assert Rails.application.config.active_record.postgresql_adapter_decode_dates
+    end
   end
 
   def test_rails_7_1_runtime_defaults_are_active
@@ -18,7 +38,7 @@ class TestRuntimeNoiseTest < Minitest::Test
     assert_equal 100.megabytes, config.log_file_size
     assert_equal :error, config.action_dispatch.debug_exception_log_level
     assert_equal '0', config.action_dispatch.default_headers['X-XSS-Protection']
-    assert_equal false, config.action_controller.allow_deprecated_parameters_hash_equality
+    refute_equal({'value' => 1}, ActionController::Parameters.new(value: 1))
     assert_equal Rails::HTML5::Sanitizer,
       ActionView::Helpers::SanitizeHelper.sanitizer_vendor
   end
@@ -47,8 +67,6 @@ class TestRuntimeNoiseTest < Minitest::Test
     config = Rails.application.config.active_record
 
     refute config.run_commit_callbacks_on_first_saved_instances_in_transaction
-    assert config.commit_transaction_on_non_local_return
-    refute config.allow_deprecated_singular_associations_name
     assert config.sqlite3_adapter_strict_strings_by_default
     assert config.raise_on_assign_to_attr_readonly
     refute config.belongs_to_required_validates_foreign_key

@@ -3,9 +3,9 @@ source 'https://rubygems.org'
 # TEMP Ruby 3 spike cut: let a modern Bundler drive resolution so we can expose the next real blocker.
 # gem 'bundler', '>= 1.12'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-# Use Rails 7.1 as a compatibility bridge while configuration defaults remain
-# intentionally pinned to Rails 7.0.
-gem 'rails', '~> 7.1.6'
+# Use Rails 7.2 as a compatibility bridge while configuration defaults remain
+# intentionally pinned to Rails 7.1.
+gem 'rails', '~> 7.2.3.2'
 
 # TEMP Ruby 3 / Rails 6.1 spike cut: old json 1.8.5 is not viable on this stack.
 gem 'json', '>= 2.6'
