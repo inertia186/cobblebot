@@ -68,9 +68,12 @@ class ServerCallbackTest < ActiveSupport::TestCase
   end
 
   def test_all_patterns
+    valid_patterns = 0
+
     ServerCallback.all.find_each do |callback|
       begin
         eval(callback.pattern, Proc.new{}.binding)
+        valid_patterns += 1
       rescue SyntaxError => e
         # :nocov:
         fail "SyntaxError while evaluating callback pattern named \"#{callback.name}\":\n#{e.inspect}"
@@ -79,6 +82,8 @@ class ServerCallbackTest < ActiveSupport::TestCase
         # skip
       end
     end
+
+    assert_equal ServerCallback.count, valid_patterns
   end
 
   def test_all_commands
@@ -208,12 +213,9 @@ class ServerCallbackTest < ActiveSupport::TestCase
   end
 
   def test_player_input?
-    assert ServerCallback::AnyEntry.new.player_input?, 'expect player input'
-    # :nocov:
-    fail 'please update test to reflect new behavior'
-    # :nocov:
-  rescue NotImplementedError => e
-    # success
+    assert_raises(NotImplementedError) do
+      ServerCallback::AnyEntry.new.player_input?
+    end
   end
 
   def test_callbacks_that_need_help_docs

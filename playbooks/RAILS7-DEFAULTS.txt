@@ -3,7 +3,7 @@ Rails 7 configuration defaults
 
 Baseline
 --------
-CobbleBot runs Rails 7.1.6 with `config.load_defaults 7.1`. Framework
+CobbleBot runs Rails 7.2.3.2 with `config.load_defaults 7.2`. Framework
 compatibility and default adoption were validated as separate slices. Zeitwerk
 remains explicit, and only the framework railties used by the application are
 loaded.
@@ -40,6 +40,23 @@ Compatibility declarations
   CobbleBot has no serialized columns, readonly attributes, secure tokens,
   Active Record encryption, transaction callbacks, or Active Job surface that
   requires a compatibility override.
+- Rails 7.2 removed the deprecated parameters-hash equality, non-local
+  transaction-return, and singular-association-name compatibility switches.
+  CobbleBot did not rely on them; behavior coverage replaces assertions on the
+  removed configuration APIs.
+- Rails 7.2 adds `useragent` through Action Pack and no other new direct runtime
+  surface. Rack remains on the compatible 2.2 line.
+- Rails 7.2 enables migration timestamp validation. Every repository migration
+  has a valid timestamp, including the two intentional modernization data
+  migrations.
+- PostgreSQL raw date values now decode as `Date`; CobbleBot has no schema-level
+  `date` columns or raw date-query consumers, and focused PostgreSQL coverage
+  verifies the adapter behavior.
+- `config.yjit` is enabled. Rails only activates YJIT on supported Ruby builds;
+  the current Ruby 3.2.7 runtime does not expose it, so this changes no current
+  process behavior and needs no override.
+- The other Rails 7.2 defaults belong to Active Job and Active Storage. CobbleBot
+  loads neither railtie, so those configuration surfaces remain absent.
 
 Deployment note
 ---------------
@@ -61,7 +78,9 @@ Validation
 - Production asset compilation.
 - Disposable-SQLite controller, model, worker, service, task, migration, and
   configuration tests.
-- Full PostgreSQL coverage gate: 412 tests, 3173 assertions, no failures or
+- Full PostgreSQL coverage gate: 414 tests, 3207 assertions, no failures or
   errors, six intentional skips, and 77.28% line coverage.
+- Full disposable-SQLite coverage gate: 414 tests, 3206 assertions, no failures
+  or errors, six intentional skips, and 77.31% line coverage.
 - All 21 headless-Chrome acceptance tests pass.
 - Namespaced real-Redis integration: 2 tests and 23 assertions.

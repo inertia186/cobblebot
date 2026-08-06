@@ -9,8 +9,8 @@ is evidence for choosing the next migration step, not a final project roadmap.
 Current baseline (2026-08-05)
 -----------------------------
 - Branch: `develop`.
-- Ruby `3.2.7`, Bundler `2.6.6`, and Rails `7.1.6` resolve and boot while
-  configuration defaults remain intentionally pinned to Rails 7.0.
+- Ruby `3.2.7`, Bundler `2.6.6`, and Rails `7.2.3.2` resolve and boot with Rails
+  7.2 configuration defaults.
 - `bundle check` passes.
 - The Rails environment boots when the configured local Redis is available.
 - Normal Rails initialization no longer inspects or mutates Resque, so web,
@@ -325,13 +325,33 @@ PostgreSQL gate passes 412 tests and 3173 assertions with no failures or errors,
 six intentional skips, and 77.28% line coverage. Production assets, all 21
 headless-browser tests, strict SQLite coverage, and real Redis integration pass.
 
+The Rails 7.2 compatibility bridge is complete locally: Rails 7.2.3.2 runs with
+Rails 7.1 defaults, Rack remains on 2.2, and Action Pack adds only its `useragent`
+dependency. Rails removed three deprecated compatibility accessors that the
+application did not use. Explicit assertions now cover the silent legacy tests
+that Rails 7.2 surfaced. The complete PostgreSQL gate passes 412 tests and 3200
+assertions with no failures or errors, six intentional skips, and 77.28% line
+coverage; the equivalent disposable-SQLite gate reaches 77.31%. Production
+assets, all 21 headless-browser tests, Redis-denied boot, production secrets,
+Zeitwerk, routes, and real Redis integration are green.
+
+The Rails 7.2 defaults slice is complete locally without compatibility
+overrides. Migration timestamp validation accepts the repository history,
+PostgreSQL raw dates decode as `Date`, and YJIT remains inert on the current
+Ruby 3.2.7 build while its configuration is ready for a supported runtime.
+Active Job and Active Storage remain excluded by the selective-railtie boundary.
+The PostgreSQL gate passes 414 tests and 3207 assertions at 77.28% coverage; the
+disposable-SQLite gate passes 414 tests and 3206 assertions at 77.31%. Assets,
+all 21 browser tests, production secrets, Redis-denied boot, Zeitwerk, and real
+Redis integration remain green.
+
 Likely follow-on order
 ----------------------
-1. Advance the framework to Rails 7.2 while initially retaining Rails 7.1
-   defaults, then review Rails 7.2 defaults separately.
-2. Deploy the accumulated obsolete-dependency, ai4r, supervisor, strict-package,
-   and Rails 7.1 slices. Live ai4r command verification remains deferred until
+1. Deploy the accumulated obsolete-dependency, ai4r, supervisor, package, and
+   Rails 7.2 slices. Live ai4r command verification remains deferred until
    Bolger has suitable prediction data.
+2. Evaluate the next Ruby/Rails compatibility bridge only after the Rails 7.2
+   deployment is stable; keep framework movement separate from new defaults.
 3. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
    test unchanged unless production evidence calls for a replacement.
 4. Add Sting chat as a separate integration when its protocol, authentication,

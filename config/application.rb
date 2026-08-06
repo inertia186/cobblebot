@@ -16,7 +16,7 @@ Bundler.require(*Rails.groups)
 
 module Cobblebot
   class Application < Rails::Application
-    config.load_defaults 7.1
+    config.load_defaults 7.2
 
     # Rails 7 only supports Zeitwerk; keep the application mode explicit.
     config.autoloader = :zeitwerk

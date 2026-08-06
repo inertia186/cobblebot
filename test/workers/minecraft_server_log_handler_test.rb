@@ -804,7 +804,8 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
 
   def test_unknown_callback
-    refute_callback_ran "Unknown" do
+    assert_nil ServerCallback.find_by_name('Unknown')
+    assert_nothing_raised do
       ServerCallback::PlayerChat.handle('[15:17:25] [Server thread/INFO]: <inertia186> test', debug: true)
     end
   end
