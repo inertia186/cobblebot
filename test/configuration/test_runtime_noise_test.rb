@@ -2,6 +2,7 @@ require 'test_helper'
 
 class TestRuntimeNoiseTest < Minitest::Test
   def test_rails_7_2_defaults_are_loaded
+    assert_equal '3.3.12', RUBY_VERSION
     assert_equal '7.2.3.2', Rails.version
     assert_equal 7.2, Rails.application.config.loaded_config_version
     assert Rails.application.config.action_controller.raise_on_open_redirects

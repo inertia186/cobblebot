@@ -30,6 +30,10 @@ There is also an optional IRC bot that allows players to interact.
 
 ## Installation
 
+CobbleBot's supported runtime is Ruby 3.3.12 with Bundler 2.6.6. The repository
+includes `.ruby-version`; install that Ruby with your preferred version manager
+before running Bundler.
+
     $ mkdir cobblebot
     $ cd cobblebot
     $ git clone https://github.com/inertia186/cobblebot.git .
@@ -169,10 +173,12 @@ $ bundle config build.nokogiri --use-system-libraries
 
 ### better_errors
 
-If you're having trouble with better_errors, you may need to update to a more recent version of ruby.  I suggest [rvm](https://rvm.io/).  If you have rvm, try:
+If `better_errors` or another native dependency was installed under a different
+Ruby, install the repository's declared Ruby and rebuild the bundle:
 
 ```
-$ rvm install 2.1.5
+$ ruby --version
+$ bundle install
 ```
 
 ## Updating CobbleBot
@@ -202,8 +208,9 @@ and requires at least 75% line coverage:
     $ RAILS_ENV=test bundle exec rake cobblebot:test:coverage
 
 Focused test commands continue to produce mergeable coverage reports without
-enforcing the aggregate floor. On Rails 7.2.3.2 with Rails 7.2 configuration
-defaults, the current PostgreSQL complete-suite baseline is 77.28%.
+enforcing the aggregate floor. On Ruby 3.3.12 and Rails 7.2.3.2 with Rails 7.2
+configuration defaults, the current PostgreSQL complete-suite baseline is
+77.31%.
 
 ## Export/Import
 
