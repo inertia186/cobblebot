@@ -18,13 +18,18 @@ Implemented boundary
   `COBBLEBOT_RESQUE_NAMESPACE` overrides the default `resque` namespace.
 - Constructing the Redis and namespace clients is lazy. Rails boot, routes,
   migrations, assets, and ordinary tests do not open a Redis connection.
+- Resque Web runs on Sinatra 4.2.1 and Rack 3.2.6. The embedded Sinatra
+  environment follows `Rails.env`, so Sinatra 4 host authorization retains its
+  development protection without rejecting test or production hosts before
+  Basic authentication. A Redis-independent integration contract covers the
+  mounted redirect, rejected credentials, and static asset path.
 - The opt-in Redis integration test uses a process-specific namespace, verifies
   real Resque serialization, bootstrap idempotence, and managed queue resets,
   persists the existing five-minute scheduler definition, and removes only the
   keys created under that namespace.
 - The supported client shelf is redis-rb 5.4.1, Resque 3.0.0, Resque Scheduler
-  5.0.0, Redis Namespace 1.11.0, and MultiJSON 1.21.1. Unused Redis Store and
-  the obsolete Vegas dependency are absent.
+  5.0.0, Redis Namespace 1.11.0, MultiJSON 1.21.1, Sinatra 4.2.1, and Rack
+  3.2.6. Unused Redis Store and the obsolete Vegas dependency are absent.
 - Resque 3 wraps the namespaced Redis client in `Resque::DataStore`.
   `ResqueConfiguration` constructs the Redis 5 client through the lazy
   `Redis.new(url:)` API; no connection is opened during Rails boot.
@@ -75,6 +80,7 @@ Validation
 bundle check
 RAILS_ENV=test bundle exec rails zeitwerk:check
 RAILS_ENV=test bundle exec rails test test/configuration/resque_configuration_test.rb
+RAILS_ENV=test bundle exec rails test test/integration/resque_web_test.rb
 RAILS_ENV=test bundle exec rails test test/services/minecraft_worker_queue_policy_test.rb
 RAILS_ENV=test bundle exec rails test test/services/mc_slap_test.rb
 RAILS_ENV=test bundle exec rails test test/services/minecraft_server_log_tailer_test.rb

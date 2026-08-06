@@ -383,14 +383,26 @@ workflows remain green on will_paginate 4.0.1. The complete PostgreSQL gate
 passes 417 tests and 3236 assertions with no failures or errors, six intentional
 skips, and 77.28% line coverage.
 
+The Resque Web dependency slice is complete locally. Sinatra 4.2.1, Rack 3.2.6,
+Rack Protection 4.2.1, Rack Session 2.1.2, and Rackup 2.3.1 move together while
+Rails 7.2.3.2, Resque 3.0.0, Redis, schema, and payload serialization remain
+fixed. A characterization test passed on Sinatra 3/Rack 2, exposed Sinatra 4's
+development host authorization after the update, and passes again now that the
+embedded Sinatra environment follows Rails. Basic authentication, the mounted
+redirect, static assets, a production-host smoke, and the real namespaced-Redis
+overview remain green. The complete PostgreSQL gate passes 420 tests and 3247
+assertions with no failures or errors, six intentional skips, and 77.31% line
+coverage.
+
 Likely follow-on order
 ----------------------
 1. Deploy Dentaku 4.0.2 as a package-only slice and verify the live Calc
    workflow while retaining the current release for rollback.
 2. Deploy will_paginate 4.0.1 as its own package-only slice and verify admin
    search and pagination while retaining the Dentaku release for rollback.
-3. Keep the Rack 3, Sinatra 4, and Resque Web dependency cluster separate because
-   its request/session blast radius is larger.
+3. Deploy the Rack 3/Sinatra 4 Resque Web cluster separately and verify Basic
+   authentication, the overview, and static assets while retaining the
+   will_paginate release for rollback.
 4. Evaluate Ruby 3.4 or the next Rails compatibility bridge only if continued
    maintenance calls for it; keep runtime, framework, and defaults separate.
 5. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
