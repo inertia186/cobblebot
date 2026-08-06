@@ -3,11 +3,10 @@ Rails 7 configuration defaults
 
 Baseline
 --------
-CobbleBot runs Rails 7.1.6 while deliberately retaining
-`config.load_defaults 7.0`. This separates framework compatibility from default
-adoption so a later defaults slice can review behavior changes explicitly.
-Zeitwerk remains explicit, and only the framework railties used by the
-application are loaded.
+CobbleBot runs Rails 7.1.6 with `config.load_defaults 7.1`. Framework
+compatibility and default adoption were validated as separate slices. Zeitwerk
+remains explicit, and only the framework railties used by the application are
+loaded.
 
 Compatibility declarations
 --------------------------
@@ -27,6 +26,20 @@ Compatibility declarations
 - Resque task coverage inspects a clean operator-style Rake process because the
   Rails test runner may reset its in-process task registry after task files have
   already been required.
+- Autoloaded application paths are no longer added to `$LOAD_PATH`. Rails keeps
+  the application `lib` directory there intentionally, so the existing
+  `ApiConstraints` route dependency remains supported without a special shim.
+- Active Support writes framework messages as JSON with legacy Marshal read
+  compatibility, uses the 7.1 cache format, and embeds message metadata in the
+  new envelope. CobbleBot has no shared Rails cache or application cache calls.
+- Action View and DOM assertions use HTML5 parsing and sanitization. Default
+  response headers use the Rails 7.1 security policy.
+- Development and test logs rotate at Rails 7.1's 100 MB local cap. Rotated
+  `*.log.*` archives are ignored alongside active logs.
+- SQLite strict-string mode and the Rails 7.1 transaction defaults are active.
+  CobbleBot has no serialized columns, readonly attributes, secure tokens,
+  Active Record encryption, transaction callbacks, or Active Job surface that
+  requires a compatibility override.
 
 Deployment note
 ---------------
@@ -36,6 +49,11 @@ first deployment logs current admins out once. Operators should simply sign in
 again. Preferences, Minecraft state, and other persisted application data are
 not changed.
 
+The Rails 7.1 message serializer can read Rails 7.0 Marshal payloads. Older
+releases cannot read the new metadata envelope, so rolling back after a new
+session is issued may log an admin out again. Resque payloads and Redis keys do
+not use the Rails message or cache formats and require no migration or flush.
+
 Validation
 ----------
 - Redis-denied development and test boot.
@@ -43,7 +61,7 @@ Validation
 - Production asset compilation.
 - Disposable-SQLite controller, model, worker, service, task, migration, and
   configuration tests.
-- Full PostgreSQL coverage gate: 407 tests, 3147 assertions, no failures or
-  errors, six intentional skips, and 77.31% line coverage.
+- Full PostgreSQL coverage gate: 412 tests, 3173 assertions, no failures or
+  errors, six intentional skips, and 77.28% line coverage.
 - All 21 headless-Chrome acceptance tests pass.
 - Namespaced real-Redis integration: 2 tests and 23 assertions.
