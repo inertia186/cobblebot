@@ -47,6 +47,17 @@ Rails 6 seams repaired while restoring coverage
   query field before inspecting the replaced results table. This avoids stale
   Chrome document nodes without adding sleeps or weakening result assertions.
 
+Verified Selenium 4.46 result
+-----------------------------
+Under Ruby `3.3.12`, Rails `7.2.3.2`, and Selenium WebDriver `4.46.0`:
+- only the test-only Selenium package moves from the prior `4.44.0` shelf
+- the existing headless-Chrome driver needs no configuration changes for the
+  updated element atoms, driver discovery, CDP, HTTP client, or BiDi internals
+- all 21 browser workflows pass with 136 assertions and no failures, errors, or
+  skips
+- the complete PostgreSQL gate passes 421 tests and 3256 assertions with no
+  failures or errors, six intentional skips, and 77.34% line coverage
+
 Validation
 ----------
 Use a disposable SQLite database for this lane:
