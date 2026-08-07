@@ -2,7 +2,7 @@ ENV['RAILS_ENV'] ||= 'test'
 
 require 'simplecov'
 if ENV['COBBLEBOT_COVERAGE_GATE'] == '1'
-  SimpleCov.use_merging false
+  SimpleCov.merging false
   SimpleCov.minimum_coverage 75
 end
 SimpleCov.start 'rails'
