@@ -358,7 +358,7 @@ GEM
     strscan (3.1.8)
     summer (1.0.1)
     sync (0.5.0)
-    temple (0.10.4)
+    temple (0.10.6)
     thor (1.5.0)
     tilt (2.8.0)
     timeout (0.6.1)

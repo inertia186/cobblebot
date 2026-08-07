@@ -83,6 +83,22 @@ Under Ruby `3.3.12`, Rails `7.2.3.2`, and Byebug `13.0.0`:
   failures or errors, six intentional skips, and 77.31% line coverage
 - this development/test-only slice requires no production deployment
 
+Verified Temple 0.10.6 result
+-----------------------------
+Under Ruby `3.3.12`, Rails `7.2.3.2`, Haml `5.2.2`, and Temple `0.10.6`:
+- only Haml's transitive Temple dependency moves from `0.10.4`
+- Temple `0.10.5` selects the bundled Prism `1.9.0` parser instead of its Ripper
+  fallback; `0.10.6` corrects hash-shorthand analysis on that fallback
+- CobbleBot uses no shorthand hashes in Haml, and the active Prism analyzer
+  already classifies the syntax as dynamic
+- a callback-row rendering contract passes before and after the update with its
+  interpolated row attributes and JavaScript navigation path intact
+- all 21 browser workflows pass with 136 assertions and no failures, errors, or
+  skips; the complete PostgreSQL gate passes 422 tests and 3260 assertions with
+  no failures or errors, six intentional skips, and 77.28% line coverage
+- Temple is part of production Haml rendering, so deploy it separately and
+  verify representative public and admin pages with rollback retained
+
 Validation
 ----------
 Use a disposable SQLite database for this lane:

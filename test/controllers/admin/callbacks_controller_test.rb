@@ -32,6 +32,17 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_index_renders_callback_row_attributes_and_javascript
+    callback = ServerCallback.first
+
+    get :index
+
+    row = css_select("tr#callback_tr_#{callback.id}").first
+    refute_nil row
+    assert_equal callback.id.to_s, row['data-id']
+    assert_includes response.body, "window.document.location = '#{admin_server_callback_path(callback)}';"
+  end
+
   def test_index_all_status
     %w(ready in_cooldown enabled disabled).each do |status|
       get :index, params: { status: status }

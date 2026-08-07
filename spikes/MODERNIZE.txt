@@ -431,6 +431,19 @@ complete PostgreSQL gate passes 421 tests and 3256 assertions with no failures
 or errors, six intentional skips, and 77.31% line coverage. This slice requires
 no production deployment.
 
+The Temple 0.10.6 dependency slice is complete locally. Haml remains on 5.2.2
+while only its transitive Temple dependency moves from 0.10.4. Temple 0.10.5
+selects bundled Prism 1.9.0 instead of Ripper on Ruby 3.3.12, and 0.10.6 fixes
+hash-shorthand classification on the Ripper fallback. CobbleBot uses no
+shorthand hashes in Haml, and the active Prism analyzer already treats that
+syntax as dynamic. A callback-row rendering contract passes before and after
+the update with interpolated attributes and JavaScript filter output intact.
+All 21 browser workflows pass with 136 assertions, and the complete PostgreSQL
+gate passes 422 tests and 3260 assertions with no failures or errors, six
+intentional skips, and 77.28% line coverage. Temple participates in production
+Haml rendering, so this slice needs a separate deployment and representative
+public/admin page verification.
+
 Likely follow-on order
 ----------------------
 1. Deploy Dentaku 4.0.2 as a package-only slice and verify the live Calc
@@ -442,11 +455,13 @@ Likely follow-on order
    will_paginate release for rollback.
 4. Deploy Uglifier 4.2.1 separately and verify the public/admin JavaScript bundle
    and Angular-backed admin search while retaining the Rack/Sinatra release.
-5. Evaluate Ruby 3.4 or the next Rails compatibility bridge only if continued
+5. Deploy Temple 0.10.6 separately and verify representative public and admin
+   Haml pages while retaining the Uglifier release for rollback.
+6. Evaluate Ruby 3.4 or the next Rails compatibility bridge only if continued
    maintenance calls for it; keep runtime, framework, and defaults separate.
-6. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
+7. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
    test unchanged unless production evidence calls for a replacement.
-7. Add Sting chat as a separate integration when its protocol, authentication,
+8. Add Sting chat as a separate integration when its protocol, authentication,
    and worker ownership are defined; keep Summer 1.0.1 available in the meantime.
 
 Project boundary
