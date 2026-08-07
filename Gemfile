@@ -153,7 +153,7 @@ group :test do
   gem 'puma', '~> 6.4'
   gem 'rails-controller-testing', '~> 1.0'
   gem 'selenium-webdriver', '~> 4.46'
-  gem 'simplecov', '~> 0.22', require: false
+  gem 'simplecov', '~> 1.0', require: false
   gem 'webmock', '~> 3.25', require: false
   gem 'rexml', '~> 3.4', require: false
   # TEMP Ruby 3 / Rails 6.1 spike cut: memory_test_fix does not support this Rails shelf.

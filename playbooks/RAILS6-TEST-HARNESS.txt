@@ -99,6 +99,20 @@ Under Ruby `3.3.12`, Rails `7.2.3.2`, Haml `5.2.2`, and Temple `0.10.6`:
 - Temple is part of production Haml rendering, so deploy it separately and
   verify representative public and admin pages with rollback retained
 
+Verified SimpleCov 1.0 result
+-----------------------------
+Under Ruby `3.3.12`, Rails `7.2.3.2`, and SimpleCov `1.0.3`:
+- only the test-only coverage package moves from `0.22.0`; its formerly separate
+  Docile, HTML, and JSON formatter dependencies are now internal or unnecessary
+- the coverage harness uses the current `merging` API while preserving merged
+  focused runs and the unmerged 75% complete-suite floor
+- SimpleCov's corrected executable-line stubs reduce the tracked-but-unloaded
+  `BannedIp`, `BannedPlayer`, and `Whitelist` denominator by exactly 23 lines;
+  the application paths included in the report do not change
+- the complete PostgreSQL gate passes 422 tests and 3260 assertions with no
+  failures or errors, six intentional skips, and 77.79% line coverage
+- this test-only slice requires no production deployment
+
 Validation
 ----------
 Use a disposable SQLite database for this lane:

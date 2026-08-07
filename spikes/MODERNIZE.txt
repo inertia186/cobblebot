@@ -444,6 +444,16 @@ intentional skips, and 77.28% line coverage. Temple participates in production
 Haml rendering, so this slice needs a separate deployment and representative
 public/admin page verification.
 
+The SimpleCov 1.0 dependency slice is complete locally. Only the test-only
+coverage package moves from 0.22.0 to 1.0.3; Docile and the separate HTML/JSON
+formatter dependencies leave the bundle. The harness now uses SimpleCov's
+current `merging` API while preserving merged focused runs and the unmerged 75%
+complete-suite floor. Its corrected executable-line stubs reduce the denominator
+for the three tracked-but-unloaded legacy ban models by exactly 23 lines without
+changing the application paths in scope. The complete PostgreSQL gate passes
+422 tests and 3260 assertions with no failures or errors, six intentional skips,
+and 77.79% line coverage. This test-only slice requires no deployment.
+
 Likely follow-on order
 ----------------------
 1. Deploy Dentaku 4.0.2 as a package-only slice and verify the live Calc
