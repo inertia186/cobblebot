@@ -48,4 +48,14 @@ class StaticAssetPipelineTest < Minitest::Test
     assert_includes source, ".service('HttpPendingRequestsService', ['$q'"
     assert_includes source, ".factory('HttpRequestTimeoutInterceptor', ['$q', 'HttpPendingRequestsService'"
   end
+
+  def test_application_javascript_survives_production_minification
+    source = Rails.application.assets.find_asset('application.js').to_s
+    minified = Uglifier.compile(source)
+
+    assert_operator minified.bytesize, :<, source.bytesize
+    %w[$httpProvider $rootScope $q HttpPendingRequestsService].each do |dependency|
+      assert_includes minified, dependency
+    end
+  end
 end

@@ -65,6 +65,17 @@ Under Ruby `3.2.7`, Bundler `2.6.6`, and Rails `6.1.7.10`:
 - the minified production JavaScript bootstraps Angular successfully under the
   headless-Chrome acceptance suite
 
+Verified Uglifier 4 result
+--------------------------
+Under Ruby `3.3.12`, Rails `7.2.3.2`, and Uglifier `4.2.1`:
+- only the Uglifier package moves from the prior `3.2.0` shelf
+- the complete compiled `application.js` bundle minifies successfully, and its
+  explicit Angular dependency names survive Uglifier 4's removal of automatic
+  `ngInject` processing
+- a clean production precompile and all 21 headless-Chrome workflows pass
+- the complete PostgreSQL gate passes 421 tests and 3256 assertions with no
+  failures or errors, six intentional skips, and 77.34% line coverage
+
 Regression coverage
 -------------------
 `test/configuration/static_asset_pipeline_test.rb` proves that:
@@ -73,14 +84,16 @@ Regression coverage
 - application CSS and JavaScript compile
 - all referenced Glyphicons and Chosen assets resolve with digested URLs
 - the asset manifest continues to publish vendor fonts and images
+- the complete JavaScript bundle passes production minification
 - cancel-on-navigate dependency annotations remain safe for minification
 
 Known boundary
 --------------
 Removing SassC also removes its incidental CSS compression. The compiled CSS is
 larger but preserves the vendored payloads and references. JavaScript compression
-continues through Uglifier in production. Reintroducing a CSS compressor should
-be a separate performance decision, not a reason to restore Sass compilation.
+continues through Uglifier 4.2.1 in production. Reintroducing a CSS compressor
+should be a separate performance decision, not a reason to restore Sass
+compilation.
 
 Deferred work
 -------------

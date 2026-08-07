@@ -24,7 +24,7 @@ gem 'sqlite3', '~> 1.6', '>= 1.6.9', require: false, platforms: :ruby
 gem 'pg', '~> 1.5', platforms: :ruby
 
 # Use Uglifier as compressor for JavaScript assets
-gem 'uglifier', '~> 3.0'
+gem 'uglifier', '~> 4.2'
 
 # Use CoffeeScript for .coffee assets and views
 gem 'coffee-rails', '~> 5.0'
