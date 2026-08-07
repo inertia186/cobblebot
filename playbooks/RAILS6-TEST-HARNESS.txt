@@ -66,9 +66,22 @@ Under Ruby `3.3.12`, Rails `7.2.3.2`, and Rouge `5.1.0`:
   482-byte highlighted Ruby fragment with its target line and token markup intact
 - Better Errors remains explicitly unloaded by the Gemfile, so this slice does
   not alter the application middleware or require a production deployment
-- Bundler's strict dependency shelf is current, and the complete PostgreSQL gate
-  passes 421 tests and 3256 assertions with no failures or errors, six
+- Bundler's dependency resolution remains clean, and the complete PostgreSQL
+  gate passes 421 tests and 3256 assertions with no failures or errors, six
   intentional skips, and 77.34% line coverage
+
+Verified Byebug 13 result
+-------------------------
+Under Ruby `3.3.12`, Rails `7.2.3.2`, and Byebug `13.0.0`:
+- only the development/test debugger moves from `11.1.3`; its new `reline`
+  dependency edge uses the version already present in the bundle
+- the public `Kernel#byebug` attacher and native debugger engine start/stop
+  successfully before and after the update
+- the old extension's two obsolete `T_DATA` allocator warnings are absent, and
+  Rails test boot continues to auto-load the breakpoint method
+- the complete PostgreSQL gate passes 421 tests and 3256 assertions with no
+  failures or errors, six intentional skips, and 77.31% line coverage
+- this development/test-only slice requires no production deployment
 
 Validation
 ----------
