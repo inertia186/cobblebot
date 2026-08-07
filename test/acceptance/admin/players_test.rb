@@ -28,6 +28,7 @@ class Admin::PlayersTest < AcceptanceTest
 
         fill_in('query', with: 'inertia')
         click_on('Search')
+        assert_selector 'input#query[value="inertia"]'
 
         within(:css, results_container) do
           assert page.has_content?('inertia186'), 'expect inertia186 in inertia results'

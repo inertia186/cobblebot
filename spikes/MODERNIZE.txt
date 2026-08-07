@@ -394,6 +394,15 @@ overview remain green. The complete PostgreSQL gate passes 420 tests and 3247
 assertions with no failures or errors, six intentional skips, and 77.31% line
 coverage.
 
+The Uglifier 4 dependency slice is complete locally. Only Uglifier moves from
+3.2.0 to 4.2.1. A characterization test passes before and after the update,
+minifies the complete compiled application JavaScript, and proves the explicit
+Angular dependency names survive Uglifier 4's removal of automatic `ngInject`
+processing. A clean production precompile, Zeitwerk, and all 21 browser
+workflows remain green. The complete PostgreSQL gate passes 421 tests and 3256
+assertions with no failures or errors, six intentional skips, and 77.34% line
+coverage.
+
 Likely follow-on order
 ----------------------
 1. Deploy Dentaku 4.0.2 as a package-only slice and verify the live Calc
@@ -403,11 +412,13 @@ Likely follow-on order
 3. Deploy the Rack 3/Sinatra 4 Resque Web cluster separately and verify Basic
    authentication, the overview, and static assets while retaining the
    will_paginate release for rollback.
-4. Evaluate Ruby 3.4 or the next Rails compatibility bridge only if continued
+4. Deploy Uglifier 4.2.1 separately and verify the public/admin JavaScript bundle
+   and Angular-backed admin search while retaining the Rack/Sinatra release.
+5. Evaluate Ruby 3.4 or the next Rails compatibility bridge only if continued
    maintenance calls for it; keep runtime, framework, and defaults separate.
-5. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
+6. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
    test unchanged unless production evidence calls for a replacement.
-6. Add Sting chat as a separate integration when its protocol, authentication,
+7. Add Sting chat as a separate integration when its protocol, authentication,
    and worker ownership are defined; keep Summer available in the meantime.
 
 Project boundary
