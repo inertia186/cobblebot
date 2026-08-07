@@ -162,8 +162,7 @@ end
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
-  # TEMP Ruby 3 spike cut: old byebug 9.x native extension does not build on Ruby 3.2.
-  gem 'byebug', '~> 11.1', platforms: :ruby
+  gem 'byebug', '~> 13.0', platforms: :ruby
 
   # TEMP Ruby 3 / Rails 5.2 spike cut: old pry/pry-rails stack is not worth saving here.
   # gem 'pry-rails', '~> 0.3'
