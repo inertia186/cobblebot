@@ -58,6 +58,18 @@ Under Ruby `3.3.12`, Rails `7.2.3.2`, and Selenium WebDriver `4.46.0`:
 - the complete PostgreSQL gate passes 421 tests and 3256 assertions with no
   failures or errors, six intentional skips, and 77.34% line coverage
 
+Verified Rouge 5.1 result
+-------------------------
+Under Ruby `3.3.12`, Rails `7.2.3.2`, and Rouge `5.1.0`:
+- only Better Errors' development-only Rouge dependency moves from `5.0.0`
+- a direct formatter smoke before and after the update produces the same
+  482-byte highlighted Ruby fragment with its target line and token markup intact
+- Better Errors remains explicitly unloaded by the Gemfile, so this slice does
+  not alter the application middleware or require a production deployment
+- Bundler's strict dependency shelf is current, and the complete PostgreSQL gate
+  passes 421 tests and 3256 assertions with no failures or errors, six
+  intentional skips, and 77.34% line coverage
+
 Validation
 ----------
 Use a disposable SQLite database for this lane:
