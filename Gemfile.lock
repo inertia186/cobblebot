@@ -316,7 +316,7 @@ GEM
       resque (>= 3.0)
       rufus-scheduler (~> 3.2, != 3.3)
     rexml (3.4.4)
-    rouge (5.0.0)
+    rouge (5.1.0)
       strscan (~> 3.1)
     rubyntlm (0.6.5)
       base64

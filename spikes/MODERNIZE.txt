@@ -412,6 +412,15 @@ also evaluated but cannot join the Rails 7 bundle: despite shipping the same
 runtime files as 1.0.1, its gem metadata newly requires Active Support 3.2.
 Keep Summer 1.0.1 until the optional IRC integration is replaced or repackaged.
 
+The Rouge 5.1 dependency slice is complete locally. Only Better Errors'
+development-only transitive dependency moves from 5.0.0 to 5.1.0. A direct
+formatter smoke before and after the update produces the same 482-byte
+highlighted Ruby fragment with its target line and token markup intact. Better
+Errors remains explicitly unloaded, so application middleware and deployment
+artifacts do not change. Bundler's strict shelf is current, and the complete
+PostgreSQL gate remains 421 tests and 3256 assertions with no failures or
+errors, six intentional skips, and 77.34% line coverage.
+
 Likely follow-on order
 ----------------------
 1. Deploy Dentaku 4.0.2 as a package-only slice and verify the live Calc
