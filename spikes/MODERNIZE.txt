@@ -403,6 +403,15 @@ workflows remain green. The complete PostgreSQL gate passes 421 tests and 3256
 assertions with no failures or errors, six intentional skips, and 77.34% line
 coverage.
 
+The Selenium WebDriver dependency slice is complete locally. Only the test-only
+driver moves from 4.44.0 to 4.46.0; the existing headless-Chrome configuration
+needs no changes. All 21 browser workflows pass with 136 assertions, and the
+complete PostgreSQL gate remains 421 tests and 3256 assertions with no failures
+or errors, six intentional skips, and 77.34% line coverage. Summer 1.0.2 was
+also evaluated but cannot join the Rails 7 bundle: despite shipping the same
+runtime files as 1.0.1, its gem metadata newly requires Active Support 3.2.
+Keep Summer 1.0.1 until the optional IRC integration is replaced or repackaged.
+
 Likely follow-on order
 ----------------------
 1. Deploy Dentaku 4.0.2 as a package-only slice and verify the live Calc
@@ -419,7 +428,7 @@ Likely follow-on order
 6. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
    test unchanged unless production evidence calls for a replacement.
 7. Add Sting chat as a separate integration when its protocol, authentication,
-   and worker ownership are defined; keep Summer available in the meantime.
+   and worker ownership are defined; keep Summer 1.0.1 available in the meantime.
 
 Project boundary
 ----------------
