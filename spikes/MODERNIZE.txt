@@ -454,6 +454,17 @@ changing the application paths in scope. The complete PostgreSQL gate passes
 422 tests and 3260 assertions with no failures or errors, six intentional skips,
 and 77.79% line coverage. This test-only slice requires no deployment.
 
+The console dependency slice is complete locally. Only Reline and io-console
+move, from 0.6.3 to 0.7.0 and from 0.8.2 to 0.9.0 respectively; IRB, Byebug,
+Rails, and the application dependency shelves remain fixed. A real terminal
+session starts IRB, evaluates input through Reline with the updated native
+io-console extension, and exits cleanly. Rails boot still loads Byebug's public
+breakpoint method, Zeitwerk and production assets pass, and Bundler reports no
+remaining compatible updates. The complete disposable-SQLite gate passes 422
+tests and 3259 assertions with no failures or errors, six intentional skips,
+and 77.79% line coverage. This slice changes no application source, schema, or
+runtime service behavior.
+
 Likely follow-on order
 ----------------------
 1. Deploy Dentaku 4.0.2 as a package-only slice and verify the live Calc

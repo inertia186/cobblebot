@@ -113,6 +113,20 @@ Under Ruby `3.3.12`, Rails `7.2.3.2`, and SimpleCov `1.0.3`:
   failures or errors, six intentional skips, and 77.79% line coverage
 - this test-only slice requires no production deployment
 
+Verified console dependency result
+----------------------------------
+Under Ruby `3.3.12`, IRB `1.18.0`, Reline `0.7.0`, and io-console `0.9.0`:
+- only the console/readline cluster moves: Reline from `0.6.3` and io-console
+  from `0.8.2`; IRB, Byebug, Rails, and all other locked gems remain fixed
+- a real terminal session starts IRB, evaluates input through Reline and the
+  native io-console extension, reports the updated versions, and exits cleanly
+- Rails test boot continues to expose Byebug's public `Kernel#byebug` method;
+  Zeitwerk and production asset compilation also pass
+- Bundler reports no compatible updates remaining after the lockfile change
+- the complete disposable-SQLite gate passes 422 tests and 3259 assertions with
+  no failures or errors, six intentional skips, and 77.79% line coverage
+- this slice changes no application source, schema, or runtime service behavior
+
 Validation
 ----------
 Use a disposable SQLite database for this lane:
