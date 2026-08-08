@@ -88,8 +88,8 @@ gem 'summer', '~> 1.0'
 # Use this if there are problems with the latest version.
 #gem 'rufus-scheduler', '~> 2.0.24'
 
-# TEMP Ruby 3 / Rails 5.2 spike cut: Haml 4 expects old Erubis handler APIs.
-gem 'haml', '~> 5.2'
+# Haml 7 uses the supported Ruby 3.3/Prism rendering lane.
+gem 'haml', '~> 7.3'
 
 # Paginate admin result indexes.
 gem 'will_paginate', '~> 4.0'

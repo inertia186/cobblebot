@@ -520,6 +520,23 @@ intentional skips, and 77.79% line coverage. Deploy this client separately
 against Bolger's RESP3-capable Redis Server 7.0.15 with Redis left running and
 the current application release retained for rollback.
 
+The Haml 7 dependency slice is complete locally. Only Haml moves from 5.2.2 to
+7.3.0; its declared Prism, Temple, Thor, and Tilt edges use the versions already
+locked, so every other package remains fixed. Haml 6 replaced the renderer with
+the Hamlit implementation, Haml 7 changed the default attribute quote, and Haml
+7.3 replaces its Ripper analysis with Prism. CobbleBot uses none of Haml 6's
+removed Rails buffer helpers, while its two `surround` calls remain supported.
+All 63 application templates compile through Tilt. Every controller render and
+all 21 browser workflows preserve nested data attributes, Angular attributes,
+modal markup, helper output, and locally generated Rouge callback highlighting
+without exposing escaped source as active HTML. With development/test groups
+excluded, production schema and seeds load, the admin login Haml page returns
+HTTP 200, and assets precompile. The complete disposable-SQLite gate passes 428
+tests and 3347 assertions with no failures or errors, six intentional skips,
+and 78.02% line coverage. Deploy this production rendering dependency alone,
+retain `5f0c120` for rollback, and verify representative public/admin pages plus
+a locally highlighted callback.
+
 Likely follow-on order
 ----------------------
 1. Deploy Dentaku 4.0.2 as a package-only slice and verify the live Calc
@@ -531,8 +548,8 @@ Likely follow-on order
    will_paginate release for rollback.
 4. Deploy Uglifier 4.2.1 separately and verify the public/admin JavaScript bundle
    and Angular-backed admin search while retaining the Rack/Sinatra release.
-5. Deploy Temple 0.10.6 separately and verify representative public and admin
-   Haml pages while retaining the Uglifier release for rollback.
+5. Deploy Haml 7.3.0 separately and verify representative public and admin Haml
+   pages plus local callback highlighting while retaining `5f0c120` for rollback.
 6. Evaluate Ruby 3.4 or the next Rails compatibility bridge only if continued
    maintenance calls for it; keep runtime, framework, and defaults separate.
 7. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
