@@ -172,6 +172,17 @@ class ServerCallbackTest < ActiveSupport::TestCase
     assert ServerCallback.needs_prettification(false).none?, 'did not expect needs prettification'
   end
 
+  def test_prettify_highlights_ruby_locally_and_escapes_html
+    callback = ServerCallback.first
+    callback.update!(pattern: '/<script>/')
+
+    callback.prettify(:pattern)
+
+    assert_includes callback.reload.pretty_pattern, '<pre class="highlight"><code>'
+    assert_includes callback.pretty_pattern, '&lt;script&gt;'
+    refute_includes callback.pretty_pattern, '<script>'
+  end
+
   def test_has_help_docs
     assert (callbacks = ServerCallback.has_help_docs).any?, 'expect callbacks with help docs'
     assert callbacks.map(&:help_doc_key).uniq.size > 0, 'expect callbacks with help docs'

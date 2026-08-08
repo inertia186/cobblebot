@@ -83,8 +83,18 @@ private
 
   def self.prettify_callbacks
     ServerCallback.needs_prettification.find_each do |callback|
-      callback.prettify(:pattern) unless !!callback.pretty_pattern
-      callback.prettify(:command) unless !!callback.pretty_command
+      %i[pattern command].each do |key|
+        next if callback.public_send("pretty_#{key}").present?
+
+        begin
+          callback.prettify(key)
+        rescue StandardError => e
+          Rails.logger.warn CobbleBotError.new(
+            message: "Unable to prettify ServerCallback #{callback.id} #{key}.",
+            cause: e
+          ).local_backtrace
+        end
+      end
     end
   end
 

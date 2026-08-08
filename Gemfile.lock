@@ -414,6 +414,7 @@ DEPENDENCIES
   resque (~> 3.0)
   resque-scheduler (~> 5.0)
   rexml (~> 3.4)
+  rouge (~> 5.1)
   selenium-webdriver (~> 4.46)
   simplecov (~> 1.0)
   sinatra (~> 4.2)
