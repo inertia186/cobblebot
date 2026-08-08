@@ -147,6 +147,20 @@ Under Ruby `3.3.12`, Rails `7.2.3.2`, and Puma `8.0.2`:
   web and Resque Web responses, graceful shutdown, intact Redis, and the prior
   release retained for immediate rollback
 
+Verified rack-mini-profiler retirement
+---------------------------------------
+Under Ruby `3.3.12`, Rails `7.2.3.2`, and Rack `3.2.6`:
+- rack-mini-profiler `0.10.7` and its inert initializer leave the bundle; Rack
+  and every other locked gem remain fixed
+- the initializer had been fully commented out since 2015 after the middleware
+  removed ETag response headers, and development boot confirms the profiler is
+  not loaded before removal
+- upgrading unused middleware to 4.0.1 would add a new major-version surface
+  without restoring a supported CobbleBot workflow
+- a configuration contract keeps the gem, constant, and initializer absent
+- the complete disposable-SQLite gate passes 424 tests and 3267 assertions with
+  no failures or errors, six intentional skips, and 77.82% line coverage
+
 Validation
 ----------
 Use a disposable SQLite database for this lane:

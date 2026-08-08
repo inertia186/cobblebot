@@ -82,6 +82,12 @@ class TestRuntimeNoiseTest < Minitest::Test
     assert_equal :raise, Rails.application.config.active_support.deprecation
   end
 
+  def test_disabled_rack_mini_profiler_surface_is_retired
+    refute defined?(Rack::MiniProfiler)
+    refute File.exist?(Rails.root.join('config/initializers/rack_profiler.rb'))
+    refute_includes File.read(Rails.root.join('Gemfile.lock')), 'rack-mini-profiler'
+  end
+
   def test_simplecov_uses_an_explicit_suite_name
     assert_equal 'Rails Tests', SimpleCov.command_name
   end
