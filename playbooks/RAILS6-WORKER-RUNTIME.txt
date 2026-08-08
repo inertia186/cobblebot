@@ -27,14 +27,15 @@ Implemented boundary
   real Resque serialization, bootstrap idempotence, and managed queue resets,
   persists the existing five-minute scheduler definition, and removes only the
   keys created under that namespace.
-- The supported client shelf is redis-rb 5.4.1, Resque 3.0.0, Resque Scheduler
+- The supported client shelf is redis-rb 6.0.0, Resque 3.0.0, Resque Scheduler
   5.0.0, Redis Namespace 1.11.0, MultiJSON 1.21.1, Sinatra 4.2.1, and Rack
   3.2.6. Unused Redis Store and the obsolete Vegas dependency are absent.
 - Resque 3 wraps the namespaced Redis client in `Resque::DataStore`.
-  `ResqueConfiguration` constructs the Redis 5 client through the lazy
-  `Redis.new(url:)` API; no connection is opened during Rails boot.
-- Redis 5's one-second default client timeout is intentional for CobbleBot's
-  loopback Redis deployment and keeps operational worker failures fast.
+  `ResqueConfiguration` constructs the Redis 6 client through the lazy
+  `Redis.new(url:, protocol: 3)` API; no connection is opened during Rails boot.
+- RESP3 is an explicit CobbleBot connection contract. Redis 6 requires Ruby
+  3.2 or newer, which is inside the supported Ruby 3.3 lane, and retains the
+  existing one-second client timeout for CobbleBot's loopback deployment.
 - Resque 3.0 still calls deprecated MultiJSON aliases internally, so CobbleBot
   supplies the same JSON payload contract through MultiJSON's maintained
   `generate`/`parse` API without capping the serializer.
@@ -92,10 +93,22 @@ REDIS_INTEGRATION=1 RAILS_ENV=test bundle exec rails test test/integration/resqu
 Use a disposable database through `DATABASE_URL` for the Rails tests. The Redis
 integration command may also set `COBBLEBOT_REDIS_URL`; its generated namespace
 prevents collisions with unrelated Resque queues on that Redis database.
-The integration proves Resque 1-shaped payload compatibility, the Resque 3 data
-store, active-worker detection, authenticated Resque Web rendering, schedule
-persistence, and rollback-compatible new payloads. A disposable `resque:work`
-process smoke additionally verifies fork, execution, and graceful shutdown.
+The integration proves RESP3 negotiation, Resque 1-shaped payload compatibility,
+the Resque 3 data store, active-worker detection, authenticated Resque Web
+rendering, schedule persistence, and rollback-compatible new payloads. A
+disposable `resque:work` process smoke additionally verifies fork, execution,
+and graceful shutdown.
+
+Verified Redis 6 result
+-----------------------
+Only redis-rb moves from 5.4.1 to 6.0.0; redis-client remains fixed at 0.30.1,
+and Resque, Scheduler, Namespace, server keys, and JSON payloads do not move.
+The real Redis integration negotiates RESP3 and passes both bootstrap and queue
+policy workflows with 24 assertions. Redis-independent boot, Zeitwerk,
+production schema load and assets, and a disposable forked Resque job that
+reconnects and writes from its child process all pass. The complete gate is 424
+tests and 3267 assertions with no failures or errors, six intentional skips, and
+77.79% line coverage.
 
 Production validation
 ---------------------
@@ -104,6 +117,11 @@ Resque workers and scheduler, HTTP 200, and zero service restarts. The bounded
 tailer processed new chat; live `@server version` and application-owned
 `@server slap` responses passed. The previous release remains available for
 rollback.
+
+Redis 6.0.0 remains a separate deployment slice. Bolger's Redis Server 7.0.15
+supports RESP3; retain the current application release for rollback and verify
+the scheduler, all workers, queue continuity, authenticated Resque Web, and the
+live log-to-command path without flushing Redis.
 
 Deferred work
 -------------

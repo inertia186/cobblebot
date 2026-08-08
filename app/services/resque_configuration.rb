@@ -20,7 +20,7 @@ class ResqueConfiguration
   end
 
   def apply(resque: Resque, redis: Redis, namespace_class: Redis::Namespace)
-    client = redis.new(url: redis_url)
+    client = redis.new(url: redis_url, protocol: 3)
     namespaced_client = namespace_class.new(namespace, redis: client)
     resque.redis = namespaced_client
     namespaced_client
