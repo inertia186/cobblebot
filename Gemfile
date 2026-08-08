@@ -146,7 +146,6 @@ group :development do
   gem 'better_errors', '~> 2.1', require: false, platforms: :ruby
   # TEMP Ruby 3 / Rails 5.2 spike cut: old binding_of_caller native extension is not worth saving here.
   # gem 'binding_of_caller', '~> 0.7', require: false, platforms: :ruby
-  gem 'rack-mini-profiler', '~> 0.10', require: false
 end
 
 group :test do

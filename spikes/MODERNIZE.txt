@@ -479,6 +479,16 @@ coverage. Bolger runs Puma 8.0.2 on Ruby 3.3.12 with the five application
 services healthy, expected web and Resque Web responses, graceful shutdown,
 intact Redis, and the prior release retained for immediate rollback.
 
+The rack-mini-profiler retirement slice is complete locally. The development
+dependency remained locked at 0.10.7, but its initializer had been entirely
+commented out since 2015 after the middleware removed ETag response headers.
+Rails development boot confirms the profiler is not loaded, so upgrading unused
+middleware to 4.0.1 would add risk without restoring a supported workflow. The
+dependency, lock entry, and inert initializer are now absent while Rack remains
+fixed at 3.2.6. A configuration contract guards that boundary. The complete
+disposable-SQLite gate passes 424 tests and 3267 assertions with no failures or
+errors, six intentional skips, and 77.82% line coverage.
+
 Likely follow-on order
 ----------------------
 1. Deploy Dentaku 4.0.2 as a package-only slice and verify the live Calc
