@@ -69,6 +69,9 @@ Ubuntu:
 
 Once Redis is running, operate CobbleBot as separate processes. These production
 examples are supervisor-neutral; substitute the appropriate Rails environment.
+Puma 8 is a default runtime dependency, and the Rails server command below uses
+it for the required web process. Bind address and port remain the external
+supervisor's responsibility.
 
 | Process | Command | Required |
 | --- | --- | --- |

@@ -130,15 +130,22 @@ Under Ruby `3.3.12`, IRB `1.18.0`, Reline `0.7.0`, and io-console `0.9.0`:
 Verified Puma 8 result
 ----------------------
 Under Ruby `3.3.12`, Rails `7.2.3.2`, and Puma `8.0.2`:
-- only the test-only Puma server moves from `6.6.1`; nio4r remains at `2.7.5`
-  and every other locked gem remains fixed
-- Puma 8's production bind default may select IPv6, but the Capybara harness
-  supplies an explicit loopback listener and Puma is absent from production
+- only Puma moves from `6.6.1`; nio4r remains at `2.7.5` and every other locked
+  gem remains fixed
+- Puma is a default dependency because it serves the required production Rails
+  web process as well as the Capybara test server
+- Puma 8's production bind default may select IPv6, but the managed production
+  process and Capybara harness both supply explicit loopback listeners
 - all 21 headless-Chrome workflows pass with 136 assertions and no failures,
   errors, or skips
-- the complete disposable-SQLite gate passes 422 tests and 3259 assertions with
-  no failures or errors, six intentional skips, and 77.82% line coverage
-- this test-only slice requires no production deployment
+- with development and test groups excluded, the production Rails process boots
+  Puma 8.0.2, serves the admin page, enforces Resque Web authentication, and
+  shuts down gracefully
+- the complete disposable-SQLite gate passes 423 tests and 3263 assertions with
+  no failures or errors, six intentional skips, and 77.77% line coverage
+- Bolger runs Puma 8.0.2 on Ruby 3.3.12 with all five services healthy, expected
+  web and Resque Web responses, graceful shutdown, intact Redis, and the prior
+  release retained for immediate rollback
 
 Validation
 ----------
