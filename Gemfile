@@ -150,7 +150,7 @@ group :test do
   gem 'minitest', '~> 5.25'
   gem 'capybara', '~> 3.40'
   gem 'capybara-screenshot', '~> 1.0'
-  gem 'puma', '~> 6.4'
+  gem 'puma', '~> 8.0'
   gem 'rails-controller-testing', '~> 1.0'
   gem 'selenium-webdriver', '~> 4.46'
   gem 'simplecov', '~> 1.0', require: false
