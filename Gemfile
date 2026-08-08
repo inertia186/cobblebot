@@ -96,7 +96,10 @@ gem 'dentaku', '~> 4.0'
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1'
 
-# Use Unicorn as the app server
+# Puma serves the Rails web process in production and Capybara in tests.
+gem 'puma', '~> 8.0'
+
+# Use Unicorn as an alternative app server
 # gem 'unicorn'
 
 # Use Capistrano for deployment
@@ -150,7 +153,6 @@ group :test do
   gem 'minitest', '~> 5.25'
   gem 'capybara', '~> 3.40'
   gem 'capybara-screenshot', '~> 1.0'
-  gem 'puma', '~> 8.0'
   gem 'rails-controller-testing', '~> 1.0'
   gem 'selenium-webdriver', '~> 4.46'
   gem 'simplecov', '~> 1.0', require: false

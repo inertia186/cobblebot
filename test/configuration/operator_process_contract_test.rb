@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'bundler'
 
 class OperatorProcessContractTest < ActiveSupport::TestCase
   PROCESS_COMMANDS = [
@@ -17,6 +18,21 @@ class OperatorProcessContractTest < ActiveSupport::TestCase
       assert_includes readme, command
     end
     assert_includes readme, 'Each long-running command must have its own process'
+  end
+
+  def test_puma_is_available_to_the_production_web_process
+    definition = Bundler::Definition.build(
+      Rails.root.join('Gemfile'),
+      Rails.root.join('Gemfile.lock'),
+      nil
+    )
+    puma = definition.dependencies.find { |dependency| dependency.name == 'puma' }
+
+    assert puma
+    assert_equal [:default], puma.groups
+
+    readme = File.read(Rails.root.join('README.md'))
+    assert_includes readme, 'Puma 8 is a default runtime dependency'
   end
 
   def test_obsolete_process_manager_surface_is_absent

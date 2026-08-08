@@ -465,14 +465,19 @@ tests and 3259 assertions with no failures or errors, six intentional skips,
 and 77.79% line coverage. This slice changes no application source, schema, or
 runtime service behavior.
 
-The Puma 8 dependency slice is complete locally. Only the test-only server
-moves from 6.6.1 to 8.0.2; its nio4r dependency and every other locked gem
-remain fixed. Puma 8's production default may bind IPv6, but CobbleBot's
-Capybara harness supplies its own loopback listener and Puma is excluded from
-the production bundle. All 21 headless-browser workflows pass with 136
-assertions. The complete disposable-SQLite gate passes 422 tests and 3259
-assertions with no failures or errors, six intentional skips, and 77.82% line
-coverage. This slice requires no production deployment.
+The Puma 8 dependency slice is complete in production. Only Puma moves from
+6.6.1 to 8.0.2; its nio4r dependency and every other locked gem remain fixed.
+Puma is a default dependency because it serves the required production Rails
+web process as well as Capybara tests. Puma 8's production default may bind
+IPv6, but both the managed production process and Capybara supply explicit
+loopback listeners. All 21 headless-browser workflows pass with 136 assertions.
+With development and test groups excluded, the production Rails process boots
+Puma 8.0.2, serves the admin page, enforces Resque Web authentication, and shuts
+down gracefully. The complete disposable-SQLite gate passes 423 tests and 3263
+assertions with no failures or errors, six intentional skips, and 77.77% line
+coverage. Bolger runs Puma 8.0.2 on Ruby 3.3.12 with the five application
+services healthy, expected web and Resque Web responses, graceful shutdown,
+intact Redis, and the prior release retained for immediate rollback.
 
 Likely follow-on order
 ----------------------
