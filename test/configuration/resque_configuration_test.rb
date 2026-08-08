@@ -67,7 +67,7 @@ class ResqueConfigurationTest < ActiveSupport::TestCase
       namespace_class: FakeNamespace
     )
 
-    assert_equal({url: 'redis://redis.example.test:6380/9'}, FakeRedis.options)
+    assert_equal({url: 'redis://redis.example.test:6380/9', protocol: 3}, FakeRedis.options)
     assert_equal 'isolated', namespaced_client.name
     assert_equal({redis: :redis_client}, namespaced_client.options)
     assert_same namespaced_client, resque.redis

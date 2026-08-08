@@ -70,7 +70,7 @@ gem 'webrick', '~> 1.8'
 gem 'ai4r', '~> 2.0'
 
 # CobbleBot uses redis/resque to kick off the log monitor and other stuff.
-gem 'redis', '~> 5.4', '>= 5.4.1', require: false
+gem 'redis', '~> 6.0', require: false
 # CobbleBot constructs Redis::Namespace directly in its configuration service.
 gem 'redis-namespace', '~> 1.11', require: false
 gem 'resque', '~> 3.0', require: 'resque/server'

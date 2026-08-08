@@ -286,8 +286,8 @@ GEM
       tsort
     readline (0.0.4)
       reline
-    redis (5.4.1)
-      redis-client (>= 0.22.0)
+    redis (6.0.0)
+      redis-client (= 0.30.1)
     redis-client (0.30.1)
       connection_pool
     redis-namespace (1.11.0)
@@ -408,7 +408,7 @@ DEPENDENCIES
   puma (~> 8.0)
   rails (~> 7.2.3.2)
   rails-controller-testing (~> 1.0)
-  redis (~> 5.4, >= 5.4.1)
+  redis (~> 6.0)
   redis-namespace (~> 1.11)
   responders (~> 3.1)
   resque (~> 3.0)

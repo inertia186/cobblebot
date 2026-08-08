@@ -505,6 +505,21 @@ Deploy this production database dependency separately with rollback retained
 and verify schema plus ordinary read/write behavior on each SQLite-backed
 environment.
 
+The redis-rb 6 dependency slice is complete locally. Only redis-rb moves from
+5.4.1 to 6.0.0; its now-exact redis-client 0.30.1 dependency was already locked,
+so Resque 3.0.0, Scheduler 5.0.0, Namespace 1.11.0, MultiJSON 1.21.1, and every
+other package remain fixed. CobbleBot explicitly selects RESP3 through its one
+lazy Resque connection owner. The real Redis gate proves protocol 3 negotiation,
+bootstrap idempotence, legacy and current payload compatibility, active-worker
+detection, scheduler persistence, managed queue convergence, unrelated queue
+preservation, authenticated Resque Web rendering, and a forked child's clean
+Redis reconnect/write. Redis-independent boot, Zeitwerk, production schema load
+and assets, and the complete disposable-SQLite gate remain green. The complete
+gate passes 424 tests and 3267 assertions with no failures or errors, six
+intentional skips, and 77.79% line coverage. Deploy this client separately
+against Bolger's RESP3-capable Redis Server 7.0.15 with Redis left running and
+the current application release retained for rollback.
+
 Likely follow-on order
 ----------------------
 1. Deploy Dentaku 4.0.2 as a package-only slice and verify the live Calc

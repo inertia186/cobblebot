@@ -103,11 +103,12 @@ bootstrap task, and workers. Development, beta, and production use Redis databas
 connection URL and `COBBLEBOT_RESQUE_NAMESPACE` to isolate CobbleBot's Resque
 keys from other applications using the same Redis database.
 
-The supported worker client stack is redis-rb 5.4, Resque 3.0, Resque Scheduler
-5.0, and Redis Namespace 1.11. Upgrading these gems does not require flushing or
-migrating Redis: queue names, the `class`/`args` payload shape, database 1, and
-the `resque` namespace remain unchanged. Stop scheduler and worker processes
-before switching releases, then restart them in the sequence above.
+The supported worker client stack is redis-rb 6.0 using RESP3, Resque 3.0,
+Resque Scheduler 5.0, and Redis Namespace 1.11. Upgrading these gems does not
+require flushing or migrating Redis: queue names, the `class`/`args` payload
+shape, database 1, and the `resque` namespace remain unchanged. Stop scheduler
+and worker processes before switching releases, then restart them in the
+sequence above.
 
 The log monitor uses file-tail 1.4 and starts at the end of the existing
 `latest.log`, so starting a worker does not replay historical commands. It polls

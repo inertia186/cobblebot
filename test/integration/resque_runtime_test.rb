@@ -31,6 +31,7 @@ class ResqueRuntimeTest < ActionDispatch::IntegrationTest
   end
 
   def test_watchdog_bootstrap_serializes_once_and_is_idempotent
+    assert_equal 3, @namespaced_redis.redis.call('HELLO').fetch('proto')
     assert_instance_of Resque::DataStore, Resque.redis
     assert_equal :enqueued, MinecraftWatchdogBootstrap.call
     assert_equal :already_present, MinecraftWatchdogBootstrap.call
