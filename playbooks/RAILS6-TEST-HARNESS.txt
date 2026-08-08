@@ -99,6 +99,27 @@ Under Ruby `3.3.12`, Rails `7.2.3.2`, Haml `5.2.2`, and Temple `0.10.6`:
 - Temple is part of production Haml rendering, so deploy it separately and
   verify representative public and admin pages with rollback retained
 
+Verified Haml 7.3 result
+------------------------
+Under Ruby `3.3.12`, Rails `7.2.3.2`, Haml `7.3.0`, Temple `0.10.6`, and Prism
+`1.9.0`:
+- only Haml moves from `5.2.2`; Prism, Temple, Thor, Tilt, Rails, and every other
+  locked package remain fixed
+- CobbleBot uses none of the Rails buffer helpers removed by Haml 6; its two
+  `surround` calls use a helper that remains supported
+- all 63 application Haml templates compile through Tilt under the new engine
+- every controller render and all 21 headless-Chrome workflows pass, preserving
+  nested data attributes, Angular attributes, modal markup, and helper output
+- local Rouge callback markup remains active HTML while highlighted source stays
+  escaped in the admin callback view
+- the production bundle excludes development/test groups, loads schema and seed
+  data, renders the admin login page with HTTP 200, and precompiles assets
+- the complete disposable-SQLite gate passes 428 tests and 3347 assertions with
+  no failures or errors, six intentional skips, and 78.02% line coverage
+- Haml participates in every production HTML response; deploy this slice alone,
+  retain `5f0c120` for rollback, and verify representative public/admin pages
+  plus a locally highlighted callback
+
 Verified SimpleCov 1.0 result
 -----------------------------
 Under Ruby `3.3.12`, Rails `7.2.3.2`, and SimpleCov `1.0.3`:

@@ -58,6 +58,19 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_show_preserves_local_highlight_markup_and_escaped_source
+    callback = ServerCallback.first
+    callback.update_columns(
+      pretty_pattern: '<pre class="highlight"><code>&lt;script&gt;</code></pre>'
+    )
+
+    get :show, params: { id: callback }
+
+    assert_includes response.body, '<pre class="highlight"><code>&lt;script&gt;</code></pre>'
+    refute_includes response.body, '&lt;pre class="highlight"'
+    refute_includes response.body, '<script>'
+  end
+
   def test_new
     get :new
     callback = assigns :callback
