@@ -11,8 +11,8 @@ Implemented boundary
 - The historical `SqliteTransactionFix` initializer is removed.
 - Development and production SQLite connections set
   `default_transaction_mode: immediate` and retain `timeout: 15000`.
-- sqlite3 is constrained to 1.6.9 or newer within the 1.x line because 1.6.9
-  introduced the supported default transaction mode option.
+- sqlite3 is constrained to the 2.9 line, which retains the supported default
+  transaction mode option and supplies current native packages for Ruby 3.3.
 - The PostgreSQL test configuration receives only shared pool settings, not
   SQLite-specific connection options.
 - Rails again owns root transactions, commits, rollbacks, and nested savepoints.
@@ -25,10 +25,16 @@ Immediate mode acquires SQLite's write reservation when the root transaction
 materializes. The native busy timeout allows a separate CobbleBot process to
 wait for that reservation and continue after it is released.
 
-The sqlite3 1.7 native busy wait blocks the calling Ruby thread. It is therefore
+The sqlite3 native busy wait blocks the calling Ruby thread. It is therefore
 not a general solution for sustained threaded write contention in one process.
 PostgreSQL remains the recommended database for concurrent deployments; do not
 restore a broad Ruby retry loop inside the Rails adapter to hide this limitation.
+
+sqlite3 2.9 closes inherited writable connections in forked children to prevent
+database corruption. The inter-process contention test therefore disconnects
+every writable Rails/SQLite pool before forking, then lets parent and child open
+independent connections. This preserves the real lock-wait contract without
+suppressing the gem's fork-safety warning.
 
 Validation
 ----------
@@ -43,6 +49,22 @@ Then run schema load, migration status, focused model/worker/migration tests,
 Zeitwerk, routes, assets, and the admin login/preferences smoke against a
 disposable SQLite database whose URL explicitly includes
 `default_transaction_mode=immediate` and `timeout=15000`.
+
+Verified sqlite3 2.9 result
+---------------------------
+Under Ruby `3.3.12`, Rails `7.2.3.2`, sqlite3 `2.9.5`, and native SQLite
+`3.53.2`:
+- only sqlite3 moves from `1.7.3`; mini_portile2 and every other locked gem
+  remain fixed
+- immediate reservations, commit/rollback, nested savepoints, inter-process
+  writer waits, and exhausted busy-timeout errors pass before and after
+- the contention test closes writable pools before `fork`, so sqlite3 2.9's
+  safety hook remains active without warnings or inherited writable handles
+- a production-environment disposable database preserves the configured
+  immediate mode and 15-second timeout through schema load and a read/write
+  round trip with development and test groups excluded
+- the complete disposable-SQLite gate passes 424 tests and 3267 assertions with
+  no failures or errors, six intentional skips, and 77.82% line coverage
 
 Deferred work
 -------------

@@ -489,6 +489,22 @@ fixed at 3.2.6. A configuration contract guards that boundary. The complete
 disposable-SQLite gate passes 424 tests and 3267 assertions with no failures or
 errors, six intentional skips, and 77.82% line coverage.
 
+The sqlite3 2.9 dependency slice is complete locally. Only sqlite3 moves from
+1.7.3 to 2.9.5, updating its native SQLite library from 3.45.2 to 3.53.2 while
+mini_portile2 and every other locked gem remain fixed. Immediate write
+reservations, commit/rollback, nested savepoints, inter-process writer waits,
+and native busy-timeout errors remain green. sqlite3 2.9's fork-safety hook
+exposed the contention test's inherited writable connections; the test now
+closes all Rails/SQLite pools before forking and opens independent parent/child
+connections without suppressing safety warnings. The complete disposable-SQLite
+gate passes 424 tests and 3267 assertions with no failures or errors, six
+intentional skips, and 77.82% line coverage. A production-environment disposable
+database also preserves immediate mode and the 15-second timeout through schema
+load and a read/write round trip with development and test groups excluded.
+Deploy this production database dependency separately with rollback retained
+and verify schema plus ordinary read/write behavior on each SQLite-backed
+environment.
+
 Likely follow-on order
 ----------------------
 1. Deploy Dentaku 4.0.2 as a package-only slice and verify the live Calc

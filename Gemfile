@@ -16,8 +16,8 @@ gem 'rails', '~> 7.2.3.2'
 gem 'json', '>= 2.6'
 
 # Use sqlite3 as the database for Active Record
-# TEMP Ruby 3 spike cut: old sqlite3 1.3.x does not build on Ruby 3.
-gem 'sqlite3', '~> 1.6', '>= 1.6.9', require: false, platforms: :ruby
+# sqlite3 2.9 supplies current native packages for the supported Ruby 3.3 lane.
+gem 'sqlite3', '~> 2.9', require: false, platforms: :ruby
 
 # Use postgresql if you're tired of SQLite errors.
 # TEMP Ruby 3 spike cut: old pg 1.0.x still calls removed taint APIs on Ruby 3.

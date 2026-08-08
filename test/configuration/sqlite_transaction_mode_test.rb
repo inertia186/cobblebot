@@ -118,14 +118,14 @@ class SqliteTransactionModeTest < Minitest::Test
     start_reader, start_writer = IO.pipe
     result_reader, result_writer = IO.pipe
 
+    [TimeoutRecord, SecondaryRecord, PrimaryRecord, ActiveRecord::Base].each do |record|
+      record.connection_pool.disconnect!
+    end
+
     writer_pid = Process.fork do
       ready_reader.close
       start_writer.close
       result_reader.close
-
-      [TimeoutRecord, SecondaryRecord, PrimaryRecord].each do |record|
-        record.connection_pool.disconnect!
-      end
 
       SecondaryRecord.establish_connection(connection_config(timeout: 1_000))
       SecondaryWidget.reset_column_information
