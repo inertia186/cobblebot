@@ -65,4 +65,24 @@ class MinecraftWatchdogTest < ActiveSupport::TestCase
     assert_includes output.string, 'Need to finish setup:'
     assert_includes output.string, 'setup incomplete'
   end
+
+  def test_prettification_failure_is_logged_without_aborting_maintenance
+    callback = ServerCallback.first
+    callback.update_columns(pretty_pattern: nil, pretty_command: 'already pretty')
+    callbacks = Object.new
+    callbacks.define_singleton_method(:find_each) { |&block| block.call(callback) }
+
+    callback.stub(:prettify, ->(*) { raise Net::ReadTimeout }) do
+      output = StringIO.new
+
+      ServerCallback.stub(:needs_prettification, callbacks) do
+        Rails.stub(:logger, Logger.new(output)) do
+          MinecraftWatchdog.prettify_callbacks
+        end
+      end
+
+      assert_includes output.string, 'Unable to prettify ServerCallback'
+      assert_includes output.string, 'Net::ReadTimeout'
+    end
+  end
 end

@@ -250,10 +250,9 @@ class ServerCallback < ActiveRecord::Base
 
   def prettify key
     code = send(key)
-    uri = URI.parse('http://pygments-1-4.appspot.com/')
-    request = Net::HTTP.post_form(uri, {lang: 'ruby', code: code})
-    if request.code == '200'
-      update_attribute("pretty_#{key.to_s}".to_sym, request.body) # no AR callbacks
-    end
+    highlighted = Rouge.highlight(code, 'ruby', 'html')
+    html = %(<pre class="highlight"><code>#{highlighted}</code></pre>)
+
+    update_column("pretty_#{key}".to_sym, html) # no AR callbacks
   end
 end

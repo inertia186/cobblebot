@@ -122,14 +122,6 @@ module WebStubs
     remove_request_stub stub
   end
 
-  def stub_pygments(&block)
-    stub = stub_request(:post, "http://pygments-1-4.appspot.com/").
-      to_return(status: 200)
-    yield block
-  ensure
-    remove_request_stub stub
-  end
-
   def stub_minotar(nick, size, format, &block)
     status = case nick
     when 'Notch' then 404

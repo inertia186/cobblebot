@@ -26,6 +26,10 @@ gem 'pg', '~> 1.5', platforms: :ruby
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '~> 4.2'
 
+# Highlight callback Ruby locally; watchdog maintenance must not depend on the
+# retired external Pygments service.
+gem 'rouge', '~> 5.1'
+
 # Use CoffeeScript for .coffee assets and views
 gem 'coffee-rails', '~> 5.0'
 
