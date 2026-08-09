@@ -2,7 +2,11 @@ class MinecraftWatchdog
   QUEUE = :minecraft_watchdog
   @queue = QUEUE
 
-  DEFERRED_OPERATIONS = %(update_player_quotes update_player_last_ip update_player_last_location)
+  DEFERRED_OPERATIONS = %w[
+    update_player_quotes
+    update_player_last_ip
+    update_player_last_location
+  ].freeze
   DEFERRED_MAX_RETRY = 5
 
   def self.before_perform_log_job(*args)
@@ -69,14 +73,13 @@ private
         begin
           agent = CobbleBotAgent.new
           agent.get ServerProperties.resource_pack.gsub(/\\/, '')
+          return unless agent.page
 
-          resource_pack_hash = Digest::MD5.hexdigest(agent.page.body) if agent.page
+          Preference.latest_resource_pack_hash = Digest::MD5.hexdigest(agent.page.body)
+          Preference.latest_resource_pack_timestamp = Time.now.to_i
         rescue StandardError => e
-          Rails.logger.error e.inspect
+          Rails.logger.error "Resource-pack download failed: #{e.class}"
         end
-
-        Preference.latest_resource_pack_hash = resource_pack_hash
-        Preference.latest_resource_pack_timestamp = Time.now.to_i
       end
     end
   end
@@ -124,7 +127,10 @@ private
       rescue ActiveRecord::StatementInvalid => e
         Rails.logger.warn "#{e.inspect} (can retry later)"
       rescue => e
-        Rails.logger.warn CobblebotError.new(e).local_backtrace
+        Rails.logger.warn CobbleBotError.new(
+          message: 'Unable to update player stats.',
+          cause: e
+        ).local_backtrace
       end
     end
   end

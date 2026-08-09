@@ -40,4 +40,22 @@ class ReputationTest < ActiveSupport::TestCase
     duplicate = Reputation.new(truster: @truster, trustee: @trustee, rate: 2)
     refute duplicate.valid?
   end
+
+  def test_database_rejects_duplicate_reputation_pairs
+    reputation = Reputation.create!(
+      truster: @truster,
+      trustee: @trustee,
+      rate: 1
+    )
+
+    assert_raises ActiveRecord::RecordNotUnique do
+      Reputation.insert_all!([{
+        truster_id: reputation.truster_id,
+        trustee_id: reputation.trustee_id,
+        rate: 2,
+        created_at: Time.current,
+        updated_at: Time.current
+      }])
+    end
+  end
 end

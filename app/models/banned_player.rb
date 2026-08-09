@@ -11,13 +11,15 @@ class BannedPlayer
   end
   
   def self.find(options = {})
-    banned_players_data.each do |data|
-      if options[:uuid] == data['uuid'] || options[:nick] == options['name']
-        return BannedPlayer.new(uuid: data['uuid'], nick: data['name'], source: data['source'], reason: data['reason'], expires_at: data['expires'], created_at: data['created'])
-      end
+    return nil if options[:uuid].blank? && options[:nick].blank?
+
+    data = Array(banned_players_data).find do |entry|
+      (options[:uuid].present? && options[:uuid] == entry['uuid']) ||
+        (options[:nick].present? && options[:nick] == entry['name'])
     end
-    
-    nil
+    return nil unless data
+
+    BannedPlayer.new(uuid: data['uuid'], nick: data['name'], source: data['source'], reason: data['reason'], expires_at: data['expires'], created_at: data['created'])
   end
   
   def initialize(options = {})

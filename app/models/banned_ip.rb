@@ -10,13 +10,12 @@ class BannedIp
   end
   
   def self.find(options = {})
-    banned_ips_data.each do |data|
-      if options[:ip] == data['ip']
-        return BannedIp.new(ip: data['uuid'], source: data['source'], reason: data['reason'], expires_at: data['expires'], created_at: data['created'])
-      end
-    end
-    
-    nil
+    return nil if options[:ip].blank?
+
+    data = Array(banned_ips_data).find { |entry| options[:ip] == entry['ip'] }
+    return nil unless data
+
+    BannedIp.new(ip: data['ip'], source: data['source'], reason: data['reason'], expires_at: data['expires'], created_at: data['created'])
   end
   
   def initialize(options = {})

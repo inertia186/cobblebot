@@ -8,24 +8,10 @@ controller('PvpCtrl', ['$scope', '$timeout', 'Pvp', ($scope, $timeout, Pvp) ->
   $scope.didSearch = ->
     $scope.showCount = false
     $scope.countFrom = 0
-    clearTimeout($scope.lastSearchId)
-    apply = -> $scope.$apply -> $scope.showCount = true
-    $scope.lastSearchId = $timeout(apply, 250)
+    $timeout.cancel($scope.lastSearchId) if $scope.lastSearchId
+    $scope.lastSearchId = $timeout((-> $scope.showCount = true), 250)
   $scope.repeatComplete = ->
     $scope.showCount = true
     len = $scope.filteredPvps.length
     $scope.countFrom = Math.round(len / 1.01)
-]).
-filter('searchFor', ['$rootScope', ($rootScope) -> (pvps, searchString) ->
-  return pvps if !searchString
-  
-  result = []
-  searchString = searchString.toLowerCase()
-  angular.forEach pvps, (item) ->
-    text = item.body.toLowerCase()
-    text += item.loser.quote if !!item.loser
-    text += item.winner.quote if !!item.winner
-    result.push(item) if text.indexOf(searchString) != -1
-  
-  result
 ])

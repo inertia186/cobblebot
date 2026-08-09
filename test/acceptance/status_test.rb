@@ -1,9 +1,6 @@
 require 'test_helper'
 
 class StatusTest < AcceptanceTest
-  def setup
-  end
-
   def test_basic_workflow
     full_status = {
       gametype: 'SMP',

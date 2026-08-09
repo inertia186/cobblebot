@@ -15,16 +15,4 @@ controller('DonationCtrl', ['$scope', 'Donation', ($scope, Donation) ->
     $scope.showCount = true
     len = $scope.filteredDonations.length
     $scope.countFrom = Math.round(len / 1.01)
-]).
-filter('searchFor', ['$rootScope', ($rootScope) -> (donations, searchString) ->
-  return donations if !searchString
-  
-  result = []
-  searchString = searchString.toLowerCase()
-  angular.forEach donations, (item) ->
-    text = item.body.toLowerCase()
-    text += item.author.quote if !!item.author
-    result.push(item) if text.indexOf(searchString) != -1
-  
-  result
 ])

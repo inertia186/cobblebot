@@ -12,7 +12,11 @@ class Admin::LinksControllerTest < ActionController::TestCase
   end
 
   def test_index
-    get :index
+    stub_mit do
+      stub_github do
+        get :index
+      end
+    end
     links = assigns :links
     refute_equal links.count(:all), 0, 'did not expect zero count'
 
@@ -33,10 +37,50 @@ class Admin::LinksControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  def test_index_feed
-    basic = ActionController::HttpAuthentication::Basic
-    credentials = basic.encode_credentials('admin', Preference.web_admin_password)
-    request.headers['Authorization'] = credentials
+  def test_index_advertises_the_authenticated_feed_without_exposing_the_password
+    secret = 'sentinel-admin-password'
+    Preference.find_by!(key: Preference::WEB_ADMIN_PASSWORD).update!(value: secret)
+
+    stub_mit do
+      stub_github do
+        get :index
+      end
+    end
+
+    refute_includes response.body, secret
+    assert_select 'link[rel="alternate"][type="application/atom+xml"]', count: 1 do |links|
+      assert_equal admin_links_url(format: :atom), links.first['href']
+    end
+    assert_select "a[href='#{admin_resque_server_url}']", text: 'Resque'
+    assert_targeted_external_links_are_isolated
+  end
+
+  def test_atom_feed_requires_basic_authentication
+    session.delete(:admin_signed_in)
+
+    get :index, params: {format: :atom}
+
+    assert_response :unauthorized
+    assert_match 'Basic realm="Feed Administration"',
+      response.headers['WWW-Authenticate']
+  end
+
+  def test_atom_feed_rejects_invalid_basic_authentication
+    session.delete(:admin_signed_in)
+    request.headers['Authorization'] = basic_credentials('wrong-password')
+
+    get :index, params: {format: :atom}
+
+    assert_response :unauthorized
+    assert_match 'Basic realm="Feed Administration"',
+      response.headers['WWW-Authenticate']
+  end
+
+  def test_atom_feed_accepts_valid_basic_authentication
+    session.delete(:admin_signed_in)
+    request.headers['Authorization'] = basic_credentials(
+      Preference.web_admin_password
+    )
 
     stub_mit do
       stub_github do
@@ -50,7 +94,7 @@ class Admin::LinksControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  def test_index
+  def test_index_query
     stub_mit do
       get :index, params: { query: 'mit' }
     end
@@ -86,6 +130,7 @@ class Admin::LinksControllerTest < ActionController::TestCase
     assert_template :show
     assert_template 'layouts/application'
     assert_response :success
+    assert_targeted_external_links_are_isolated
   end
 
   def test_destroy
@@ -95,5 +140,23 @@ class Admin::LinksControllerTest < ActionController::TestCase
 
     assert_template nil
     assert_redirected_to admin_links_url
+  end
+
+
+private
+  def basic_credentials(password)
+    ActionController::HttpAuthentication::Basic.
+      encode_credentials('admin', password)
+  end
+
+  def assert_targeted_external_links_are_isolated
+    links = css_select("a[href^='http'][target]")
+    assert_predicate links, :present?
+
+    links.each do |link|
+      rel = link['rel'].to_s.split
+      assert_includes rel, 'noopener'
+      assert_includes rel, 'noreferrer'
+    end
   end
 end

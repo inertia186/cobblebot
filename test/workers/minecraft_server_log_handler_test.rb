@@ -3,6 +3,70 @@ require 'test_helper'
 class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   include WebStubs
 
+  PVP_CASES = {
+    slain: [
+      'Slain',
+      '[19:09:22] [Server thread/INFO]: inertia186 was slain by Dinnerbone using [Hugs IV]'
+    ],
+    slain_not_named: [
+      'Slain',
+      '[19:09:22] [Server thread/INFO]: inertia186 was slain by Dinnerbone'
+    ],
+    shot: [
+      'Shot',
+      '[09:34:15] [Server thread/INFO]: inertia186 was shot by Dinnerbone using [Spiky Hugger]'
+    ],
+    shot_not_named: [
+      'Shot',
+      '[09:34:15] [Server thread/INFO]: inertia186 was shot by Dinnerbone'
+    ],
+    killed: [
+      'Killed',
+      '[19:01:52] [Server thread/INFO]: inertia186 was killed by Dinnerbone using [Liquid Hugs]'
+    ],
+    killed_not_named: [
+      'Killed',
+      '[19:01:52] [Server thread/INFO]: inertia186 was killed by Dinnerbone'
+    ],
+    thorns: [
+      'Thorns',
+      '[17:57:25] [Server thread/INFO]: inertia186 was killed trying to hurt Dinnerbone'
+    ],
+    burnt: [
+      'Burnt',
+      '[09:55:50] [Server thread/INFO]: inertia186 was burnt to a crisp whilst fighting Dinnerbone'
+    ],
+    lava_swim: [
+      'Lava Swim',
+      '[17:11:23] [Server thread/INFO]: inertia186 tried to swim in lava to escape Dinnerbone'
+    ],
+    sploded_to_death: [
+      'Sploded to Death',
+      '[15:40:09] [Server thread/INFO]: inertia186 was blown up by Dinnerbone'
+    ]
+  }.freeze
+
+  IGNORED_LOG_CASES = {
+    duplicate_uuid_warning: '[09:45:52] [Server thread/WARN]: Tried to add entity Villager with pending removal and duplicate UUID f120c531-6b15-4f0e-889a-4e6c5a7f687e',
+    rcon_listener: '[12:00:02] [RCON Listener #2/INFO]: Rcon connection from: /127.0.0.1',
+    rcon_client: '[12:00:01] [RCON Client #294/INFO]: [Rcon: Saved the world]',
+    non_log_event: '        at lj.a(SourceFile:166) [minecraft_server.jar:?]',
+    vehicle_warning: '[04:34:21] [Server thread/WARN]: Boat (vehicle of Dinnerbone) moved too quickly! -8.011919811659027,-0.01862379291560501,7.374947875718135',
+    keeping_entity_warning: '[01:02:55] [Server thread/WARN]: Keeping entity Villager that already exists with UUID 1dcd1d24-f29b-4d90-b5a5a17f687e'
+  }.freeze
+
+  PVP_CASES.each do |name, (callback_name, log_entry)|
+    define_method("test_detect_pvp_#{name}") do
+      assert_pvp_detection(callback_name, log_entry)
+    end
+  end
+
+  IGNORED_LOG_CASES.each do |name, log_entry|
+    define_method("test_ignore_#{name}") do
+      assert_ignored_log(log_entry)
+    end
+  end
+
   def setup
     Preference.path_to_server = "#{Rails.root}/tmp"
   end
@@ -16,9 +80,14 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
 
   def test_check_version
+    ServerCommand.reset_commands_executed
+
     assert_callback_ran 'Check Version' do
       ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server version', debug: true)
     end
+
+    assert ServerCommand.commands_executed.keys.any? { |command| command.include?("CobbleBot version #{COBBLEBOT_VERSION}") },
+      'expected the in-game version response to use the application version'
   end
 
   def test_gametick
@@ -169,12 +238,27 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
 
   def test_latest_player_ip
-    assert_callback_ran 'Latest Player IP' do
-      ServerCallback::ServerEntry.handle('[17:45:49] [Server thread/INFO]: inertia186[/127.0.0.1:63640] logged in with entity id 7477 at (15.11891680919476, 63.0, 296.4194632969733)', debug: true)
+    jobs = []
+    production = ActiveSupport::EnvironmentInquirer.new('production')
+
+    Rails.stub(:env, production) do
+      Resque.stub(:enqueue, ->(worker, options) { jobs << [worker, options]; true }) do
+        assert_callback_ran 'Latest Player IP' do
+          ServerCallback::ServerEntry.handle('[17:45:49] [Server thread/INFO]: inertia186[/127.0.0.1:63640] logged in with entity id 7477 at (15.11891680919476, 63.0, 296.4194632969733)', debug: true)
+        end
+      end
     end
-    skip 'The follwing are now updated asynchronously.'
-    refute_nil Player.find_by_nick('inertia186').last_ip, 'did not expect nil last_ip'
-    refute_nil Player.find_by_nick('inertia186').last_location, 'did not expect nil last_location'
+
+    assert_equal 2, jobs.size
+    jobs.each do |worker, options|
+      assert_equal MinecraftWatchdog, worker
+      string_options = options.stringify_keys
+      MinecraftWatchdog.send(string_options.fetch('operation'), string_options)
+    end
+
+    player = Player.find_by_nick('inertia186').reload
+    assert_equal '127.0.0.1', player.last_ip
+    assert_equal 'x=15,y=63,z=296', player.last_location
   end
 
   def test_player_logged_out
@@ -264,7 +348,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     end
   end
 
-  def test_search_replace
+  def test_search_replace_with_trailing_delimiter
     assert_callback_ran 'Search Replace' do
       ServerCallback::AnyPlayerEntry.handle('[15:05:10] [Server thread/INFO]: <inertia186> %s/axe/sword/', debug: true)
     end
@@ -648,11 +732,11 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     end
   end
 
-  def test_search_replace
+  def test_search_replace_without_trailing_delimiter
     callback = ServerCallback.find_by_name('Search Replace')
 
     assert_callback_ran callback do
-      result = ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> %s/axe/sword', debug: true)
+      ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> %s/axe/sword', debug: true)
     end
   end
 
@@ -662,7 +746,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute_nil callback.help_doc, 'expect help doc for callback'
 
     assert_callback_ran callback do
-      result = ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help', debug: true)
+      ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help', debug: true)
       assert_equal 2, ServerCommand.commands_executed.keys.join.split(callback.help_doc.strip).size, 'expect help doc in command executed'
     end
   end
@@ -673,7 +757,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute_nil callback.help_doc, 'expect help doc for callback'
 
     assert_callback_ran 'Help ...' do
-      result = ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help help', debug: true)
+      ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server help help', debug: true)
       assert_equal 2, ServerCommand.commands_executed.keys.join.split(callback.help_doc.strip).size, 'expect help doc in command executed'
     end
   end
@@ -685,7 +769,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
       refute_nil callback.help_doc, 'expect help doc for callback'
 
       assert_callback_ran 'Help ...' do
-        result = ServerCallback::PlayerCommand.handle("[15:17:25] [Server thread/INFO]: <inertia186> @server help #{callback.help_doc_key}")
+        ServerCallback::PlayerCommand.handle("[15:17:25] [Server thread/INFO]: <inertia186> @server help #{callback.help_doc_key}")
         # Maybe this should use .include? instead of a funky join.
         assert (help_doc = ServerCommand.commands_executed.keys.join.downcase.split(callback.help_doc.split("\n")[0].downcase)).size > 1, "expect help doc in command executed, got: #{help_doc}"
       end
@@ -703,7 +787,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute player.registered?, 'did not expect player to be registered'
 
     assert_callback_ran callback do
-      result = ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <resnullius> @server register', debug: true)
+      ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <resnullius> @server register', debug: true)
     end
 
     assert player.reload.registered?, 'expect player to be registered'
@@ -717,7 +801,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     refute player.registered?, 'did not expect player to be registered'
 
     assert_callback_ran callback do
-      result = ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <resnullius> @server register', debug: true)
+      ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <resnullius> @server register', debug: true)
     end
 
     assert player.reload.registered?, 'did not expect player to be registered (did not explore enough, but not enough samples either)'
@@ -731,7 +815,7 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert player.registered?, 'expect player to be registered'
 
     assert_callback_ran callback do
-      result = ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server unregister', debug: true)
+      ServerCallback::PlayerCommand.handle('[15:17:25] [Server thread/INFO]: <inertia186> @server unregister', debug: true)
     end
 
     assert player.reload.registered?, 'for now, still expect player to be registered (unregister not supported yet)'
@@ -810,6 +894,23 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_callback_failures_are_logged_without_escaping_the_handler
+    callback_error = RuntimeError.new('callback failed')
+    warnings = []
+    failing_callback = ->(*_arguments) { raise callback_error }
+
+    Rails.logger.stub(:warn, ->(error) { warnings << error }) do
+      ServerCallback::AnyPlayerEntry.stub(:handle, failing_callback) do
+        assert_equal false, MinecraftServerLogHandler.handle(
+          '[15:17:25] [Server thread/INFO]: <inertia186> test',
+          debug: true
+        )
+      end
+    end
+
+    assert_equal [callback_error], warnings
+  end
+
   def test_behind
     behind_warning = '[14:50:24] [Server thread/WARN]: Can\'t keep up! Did the system time change, or is the server overloaded? Running 3454ms behind, skipping 69 tick(s)'
     refute MinecraftServerLogHandler.ignore?(behind_warning, debug: true), 'expect handler to handle behind warning'
@@ -842,30 +943,8 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     end
   end
 
-  def test_detect_pvp_slain
-    inertia186 = Player.find_by_nick('inertia186')
-    dinnerbone = Player.find_by_nick('Dinnerbone')
-
-    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
-      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
-        assert_callback_ran "Slain" do
-          MinecraftServerLogHandler.handle('[19:09:22] [Server thread/INFO]: inertia186 was slain by Dinnerbone using [Hugs IV]', debug: true)
-        end
-      end
-    end
-  end
-
   def test_detect_pvp_slain_with_quotes
-    inertia186 = Player.find_by_nick('inertia186')
-    dinnerbone = Player.find_by_nick('Dinnerbone')
-
-    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
-      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
-        assert_callback_ran "Slain" do
-          MinecraftServerLogHandler.handle('[19:09:22] [Server thread/INFO]: inertia186 was slain by Dinnerbone using [Hugs IV]', debug: true)
-        end
-      end
-    end
+    assert_pvp_detection('Slain', PVP_CASES.fetch(:slain).last)
 
     assert_callback_ran "Latest Player Chat" do
       ServerCallback::AnyPlayerEntry.handle('[15:17:25] [Server thread/INFO]: <inertia186> Darn.', debug: true)
@@ -880,179 +959,14 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_equal 'Yeah!', pvp.winner_quote
   end
 
-  def test_detect_pvp_slain_not_named
-    inertia186 = Player.find_by_nick('inertia186')
-    dinnerbone = Player.find_by_nick('Dinnerbone')
-
-    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
-      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
-        assert_callback_ran "Slain" do
-          MinecraftServerLogHandler.handle('[19:09:22] [Server thread/INFO]: inertia186 was slain by Dinnerbone', debug: true)
-        end
-      end
-    end
-  end
-
-  def test_detect_pvp_shot
-    inertia186 = Player.find_by_nick('inertia186')
-    dinnerbone = Player.find_by_nick('Dinnerbone')
-
-    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
-      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
-        assert_callback_ran "Shot" do
-          MinecraftServerLogHandler.handle('[09:34:15] [Server thread/INFO]: inertia186 was shot by Dinnerbone using [Spiky Hugger]', debug: true)
-        end
-      end
-    end
-  end
-
-  def test_detect_pvp_shot_not_named
-    inertia186 = Player.find_by_nick('inertia186')
-    dinnerbone = Player.find_by_nick('Dinnerbone')
-
-    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
-      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
-        assert_callback_ran "Shot" do
-          MinecraftServerLogHandler.handle('[09:34:15] [Server thread/INFO]: inertia186 was shot by Dinnerbone', debug: true)
-        end
-      end
-    end
-  end
-
-  def test_detect_pvp_killed
-    inertia186 = Player.find_by_nick('inertia186')
-    dinnerbone = Player.find_by_nick('Dinnerbone')
-
-    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
-      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
-        assert_callback_ran "Killed" do
-          MinecraftServerLogHandler.handle('[19:01:52] [Server thread/INFO]: inertia186 was killed by Dinnerbone using [Liquid Hugs]', debug: true)
-        end
-      end
-    end
-  end
-
-  def test_detect_pvp_killed_not_named
-    inertia186 = Player.find_by_nick('inertia186')
-    dinnerbone = Player.find_by_nick('Dinnerbone')
-
-    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
-      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
-        assert_callback_ran "Killed" do
-          MinecraftServerLogHandler.handle('[19:01:52] [Server thread/INFO]: inertia186 was killed by Dinnerbone', debug: true)
-        end
-      end
-    end
-  end
-
-  def test_detect_pvp_thorns
-    inertia186 = Player.find_by_nick('inertia186')
-    dinnerbone = Player.find_by_nick('Dinnerbone')
-
-    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
-      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
-        assert_callback_ran "Thorns" do
-          MinecraftServerLogHandler.handle('[17:57:25] [Server thread/INFO]: inertia186 was killed trying to hurt Dinnerbone', debug: true)
-        end
-      end
-    end
-  end
-
-  def test_detect_pvp_burnt
-    inertia186 = Player.find_by_nick('inertia186')
-    dinnerbone = Player.find_by_nick('Dinnerbone')
-
-    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
-      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
-        assert_callback_ran "Burnt" do
-          MinecraftServerLogHandler.handle('[09:55:50] [Server thread/INFO]: inertia186 was burnt to a crisp whilst fighting Dinnerbone', debug: true)
-        end
-      end
-    end
-  end
-
-  def test_detect_pvp_lava_swim
-    inertia186 = Player.find_by_nick('inertia186')
-    dinnerbone = Player.find_by_nick('Dinnerbone')
-
-    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
-      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
-        assert_callback_ran "Lava Swim" do
-          MinecraftServerLogHandler.handle('[17:11:23] [Server thread/INFO]: inertia186 tried to swim in lava to escape Dinnerbone', debug: true)
-        end
-      end
-    end
-  end
-
-  def test_detect_pvp_sploded_to_death
-    inertia186 = Player.find_by_nick('inertia186')
-    dinnerbone = Player.find_by_nick('Dinnerbone')
-
-    assert_difference -> { inertia186.pvp_losses.count }, 1, 'expected new pvp loss' do
-      assert_difference -> { dinnerbone.pvp_wins.count }, 1, 'expected new pvp win' do
-        assert_callback_ran "Sploded to Death" do
-          MinecraftServerLogHandler.handle('[15:40:09] [Server thread/INFO]: inertia186 was blown up by Dinnerbone', debug: true)
-        end
-      end
-    end
-  end
-
-  def test_ignore_duplicate_uuid_warning
-    duplicate_uuid_warning = '[09:45:52] [Server thread/WARN]: Tried to add entity Villager with pending removal and duplicate UUID f120c531-6b15-4f0e-889a-4e6c5a7f687e'
-    assert MinecraftServerLogHandler.ignore?(duplicate_uuid_warning, debug: true), 'expect handler to ignore duplicate UUID warning'
-    refute_callback_ran do
-      MinecraftServerLogHandler.handle(duplicate_uuid_warning, debug: true)
-    end
-  end
-
-  def test_ignore_rcon_listener
-    rcon_listener = '[12:00:02] [RCON Listener #2/INFO]: Rcon connection from: /127.0.0.1'
-    assert MinecraftServerLogHandler.ignore?(rcon_listener, debug: true), 'expect handler to ignore RCON listener'
-    refute_callback_ran do
-      MinecraftServerLogHandler.handle(rcon_listener, debug: true)
-    end
-  end
-
-  def test_ignore_rcon_client
-    rcon_client = '[12:00:01] [RCON Client #294/INFO]: [Rcon: Saved the world]'
-    assert MinecraftServerLogHandler.ignore?(rcon_client, debug: true), 'expect handler to ignore RCON client'
-    refute_callback_ran do
-      MinecraftServerLogHandler.handle(rcon_client, debug: true)
-    end
-  end
-
-  def test_ignore_non_log_event
-    non_log_event = '        at lj.a(SourceFile:166) [minecraft_server.jar:?]'
-    assert MinecraftServerLogHandler.ignore?(non_log_event, debug: true), 'expect handler to ignore non-log event'
-    refute_callback_ran do
-      MinecraftServerLogHandler.handle(non_log_event, debug: true)
-    end
-  end
-
   def test_ignore_moved_too_quickly_warning
     moved_too_quickly_warning = '[20:35:30] [Server thread/WARN]: Dinnerbone moved too quickly! -10.384319517739641,-0.01250004768370161,0.37003998965519713'
     refute MinecraftServerLogHandler.ignore?(moved_too_quickly_warning, debug: true), 'did not expect handler to ignore moved too quickly warning'
     refute_callback_ran do
-      MinecraftServerLogHandler.handle(keeping_entity_warning, debug: true)
+      MinecraftServerLogHandler.handle(moved_too_quickly_warning, debug: true)
     end
   end
 
-  def test_ignore_vehicle_warning
-    vehicle_warning = '[04:34:21] [Server thread/WARN]: Boat (vehicle of Dinnerbone) moved too quickly! -8.011919811659027,-0.01862379291560501,7.374947875718135'
-    assert MinecraftServerLogHandler.ignore?(vehicle_warning, debug: true), 'expect handler to ignore vehicle warning'
-    refute_callback_ran do
-      MinecraftServerLogHandler.handle(vehicle_warning, debug: true)
-    end
-  end
-
-  def test_ignore_keeping_entity_warning
-    keeping_entity_warning = '[01:02:55] [Server thread/WARN]: Keeping entity Villager that already exists with UUID 1dcd1d24-f29b-4d90-b5cb-2847fd9c7949'
-    assert MinecraftServerLogHandler.ignore?(keeping_entity_warning, debug: true), 'expect handler to ignore keeping entity warning'
-    refute_callback_ran do
-      MinecraftServerLogHandler.handle(keeping_entity_warning, debug: true)
-    end
-  end
-  
   def test_calc
     assert_calc_response '128/8', '16=128/8'
   end
@@ -1070,6 +984,27 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
 
   private
+
+  def assert_ignored_log(log_entry)
+    assert MinecraftServerLogHandler.ignore?(log_entry, debug: true),
+      "expected handler to ignore: #{log_entry}"
+    refute_callback_ran do
+      MinecraftServerLogHandler.handle(log_entry, debug: true)
+    end
+  end
+
+  def assert_pvp_detection(callback_name, log_entry)
+    loser = Player.find_by_nick('inertia186')
+    winner = Player.find_by_nick('Dinnerbone')
+
+    assert_difference -> { loser.pvp_losses.count }, 1, 'expected new pvp loss' do
+      assert_difference -> { winner.pvp_wins.count }, 1, 'expected new pvp win' do
+        assert_callback_ran callback_name do
+          MinecraftServerLogHandler.handle(log_entry, debug: true)
+        end
+      end
+    end
+  end
 
   def assert_calc_response(expression, response)
     calc = ServerCallback.find_by_name 'Calc'

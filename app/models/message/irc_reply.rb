@@ -1,6 +1,6 @@
 class Message::IrcReply < Message
   after_initialize :setup_defaults
-  after_create { Message::IrcReply.cull }
+  after_create_commit { Message::IrcReply.cull }
   
   def self.cull
     retained = order(created_at: :desc, id: :desc).limit(10).select(:id)

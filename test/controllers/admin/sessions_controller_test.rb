@@ -1,9 +1,6 @@
 require 'test_helper'
 
 class Admin::SessionsControllerTest < ActionController::TestCase
-  def setup
-  end
-
   def test_routings
     assert_routing({ method: 'get', path: 'admin/session/new' }, controller: 'admin/sessions', action: 'new')
     assert_routing({ method: 'post', path: 'admin/session' }, controller: 'admin/sessions', action: 'create')
@@ -20,6 +17,7 @@ class Admin::SessionsControllerTest < ActionController::TestCase
   def test_create
     post :create, params: { admin_password: Preference.web_admin_password }
 
+    assert_equal true, session[:admin_signed_in]
     assert_template nil
     assert_redirected_to admin_preferences_url
   end
@@ -27,14 +25,18 @@ class Admin::SessionsControllerTest < ActionController::TestCase
   def test_create_wrong
     post :create, params: { admin_password: 'wrong' }
 
+    refute session[:admin_signed_in]
     assert_template nil
     assert_redirected_to new_admin_session_url
   end
 
   def test_destroy
     post :create, params: { admin_password: Preference.web_admin_password }
-    get :destroy
+    assert_equal true, session[:admin_signed_in]
 
+    delete :destroy
+
+    refute session[:admin_signed_in]
     assert_template nil
     assert_redirected_to new_admin_session_url
   end

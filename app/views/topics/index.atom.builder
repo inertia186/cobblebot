@@ -1,6 +1,6 @@
 atom_feed do |feed|
-  feed.body "#{ServerProperties.level_name.titleize} PVPs"
-  feed.updated @topics.maximum(:created_at)
+  feed.title "#{ServerProperties.level_name.titleize} Topics"
+  feed.updated @topics.maximum(:created_at) || Time.current
   
   @topics.each do |topic|
     feed.entry topic, url: topics_path do |entry|

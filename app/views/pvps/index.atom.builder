@@ -1,10 +1,11 @@
 atom_feed do |feed|
-  feed.body "#{ServerProperties.level_name.titleize} Topics"
-  feed.updated @pvps.maximum(:created_at)
+  feed.title "#{ServerProperties.level_name.titleize} PVPs"
+  feed.updated @pvps.maximum(:created_at) || Time.current
   
   @pvps.each do |pvp|
     feed.entry pvp, url: pvps_path do |entry|
-      entry.title "#{pvp.recipient.nick} vs. #{pvp.author.nick}"
+      participants = [pvp.recipient&.nick, pvp.author&.nick].compact
+      entry.title participants.any? ? participants.join(' vs. ') : pvp.body
       entry.content pvp.body
       if !!pvp.author
         entry.author do |author|

@@ -69,7 +69,7 @@ Rails.application.routes.draw do
       end
       member do
         patch :toggle_enabled
-        get :execute_command
+        patch :execute_command
         patch :reset_cooldown
         get :gist_callback
       end

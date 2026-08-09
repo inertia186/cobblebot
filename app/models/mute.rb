@@ -2,8 +2,12 @@ class Mute < ActiveRecord::Base
   belongs_to :player
   belongs_to :muted_player, class_name: 'Player'
 
-  validate do |mute|
-    errors.add(:player, "cannot mute self") if mute.player == mute.muted_player
-    errors.add(:muted_player, "already muted") if mute.player.muted_players.include?(mute.muted_player)
+  validates :player, :muted_player, presence: true
+  validates :muted_player_id, uniqueness: { scope: :player_id }
+
+  validate do
+    if player.present? && muted_player.present? && player == muted_player
+      errors.add(:player, 'cannot mute self')
+    end
   end
 end

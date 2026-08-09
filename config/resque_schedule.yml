@@ -1,2 +1,4 @@
 MinecraftWatchdog:
   cron: "*/5 * * * *"
+  class: MinecraftWatchdogDispatcher
+  queue: minecraft_watchdog

@@ -25,6 +25,63 @@ class IpTest < ActiveSupport::TestCase
     assert_equal({'CA' => 2, 'US' => 1}, Ip.cc_count(:unsorted))
   end
 
+  def test_database_rejects_duplicate_addresses_for_the_same_player
+    ip = build_ip(address: '203.0.113.10', player: players(:Dinnerbone))
+    ip.save!
+
+    assert_raises ActiveRecord::RecordNotUnique do
+      Ip.insert_all!([{
+        address: ip.address,
+        player_id: ip.player_id,
+        origin: ip.origin,
+        created_at: ip.created_at
+      }])
+    end
+  end
+
+  def test_address_must_be_a_valid_ip_without_running_a_lookup
+    Ip.stub(:update_cc, ->(*) { flunk 'invalid addresses must not be looked up' }) do
+      ip = Ip.new(address: '127.0.0.1; touch unsafe', player: players(:Dinnerbone))
+
+      refute ip.valid?
+      assert_includes ip.errors[:address], 'must be a valid IP address'
+    end
+  end
+
+  def test_country_lookup_fallback_passes_the_address_as_one_argument
+    Preference.db_ip_api_key = nil
+    captured_arguments = nil
+    success = Struct.new(:success?).new(true)
+
+    Open3.stub(:capture3, ->(*arguments) {
+      captured_arguments = arguments
+      ["Country: US United States\n", '', success]
+    }) do
+      result = Ip.send(:update_cc, '203.0.113.9')
+
+      assert_equal ['ip2cc', '203.0.113.9'], captured_arguments
+      assert_equal({ country: 'US', state: nil, city: nil }, result)
+    end
+  end
+
+  def test_country_lookup_uses_the_db_ip_v2_https_api
+    Preference.db_ip_api_key = 'FAKE_API_KEY'
+    request = stub_request(
+      :get,
+      'https://api.db-ip.com/v2/FAKE_API_KEY/203.0.113.9'
+    ).to_return(
+      status: 200,
+      body: {
+        countryCode: 'US', stateProv: 'California', city: 'Los Angeles'
+      }.to_json
+    )
+
+    result = Ip.send(:update_cc, '203.0.113.9')
+
+    assert_equal({ country: 'US', state: 'California', city: 'Los Angeles' }, result)
+    assert_requested request
+  end
+
 private
   def build_ip(attributes)
     Ip.new(attributes).tap { |ip| ip.no_cc_lookup = true }

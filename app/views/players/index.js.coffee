@@ -3,12 +3,12 @@ $("#public-players").replaceWith("<div id=\"public-players\"><%= raw escape_java
 <%
 @new_chat.each do |chat|
   nick = chat.keys.first
-  no_tags_text = text = chat.values.first
-  text.gsub!(/(http[^ ]+)/, link_to("\\1", "\\1", target: '_new').html_safe) %>
-e = $("#player_nick_<%= nick %>")
+  no_tags_text = chat.values.first.to_s
+  text = no_tags_text %>
+e = $("#player_nick_<%= raw escape_javascript(nick) %>")
 no_tags_text = '<%= raw escape_javascript(no_tags_text) %>'
-after = '<%= @after %>'
-nick = '<%= nick %>'
+after = '<%= raw escape_javascript(@after.to_s) %>'
+nick = '<%= raw escape_javascript(nick) %>'
 text = '<%= raw escape_javascript(text) %>'
 e.attr('data-title', no_tags_text)
 document.chat.appendText(nick, text)

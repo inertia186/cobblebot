@@ -11,8 +11,6 @@ class ResqueRuntimeTest < ActionDispatch::IntegrationTest
   end
 
   def setup
-    skip 'Set REDIS_INTEGRATION=1 to run the isolated Redis integration test.' unless ENV['REDIS_INTEGRATION'] == '1'
-
     @original_data_store = Resque.redis
     namespace = "cobblebot-test-#{Process.pid}-#{SecureRandom.hex(6)}"
     env = {
@@ -20,6 +18,9 @@ class ResqueRuntimeTest < ActionDispatch::IntegrationTest
       'COBBLEBOT_RESQUE_NAMESPACE' => namespace
     }.reject { |_key, value| value.to_s.empty? }
     @namespaced_redis = ResqueConfiguration.load(environment: 'test', env: env).apply
+    @namespaced_redis.ping
+  rescue Redis::BaseConnectionError, SystemCallError, SocketError => error
+    flunk "Redis is required for the default test suite: #{error.class}"
   end
 
   def teardown
@@ -44,16 +45,26 @@ class ResqueRuntimeTest < ActionDispatch::IntegrationTest
     schedule = YAML.safe_load(File.read(Rails.root.join('config/resque_schedule.yml')))
     Resque.schedule = schedule
     assert_equal '*/5 * * * *', Resque.schedule.fetch('MinecraftWatchdog').fetch('cron')
+    assert_equal 'MinecraftWatchdogDispatcher',
+      Resque.schedule.fetch('MinecraftWatchdog').fetch('class')
+    assert_equal 'minecraft_watchdog',
+      Resque.schedule.fetch('MinecraftWatchdog').fetch('queue')
 
-    Resque.dequeue(MinecraftWatchdog)
     worker = Resque::Worker.new(MinecraftWatchdog::QUEUE)
     Resque.redis.register_worker(worker)
-    worker.working_on(Resque::Job.new(
-      MinecraftWatchdog::QUEUE,
-      {'class' => MinecraftWatchdog.name, 'args' => []}
-    ))
+    job = worker.reserve
+
+    assert_equal MinecraftWatchdog.name, job.payload.fetch('class')
+    assert_equal 0, Resque.size(MinecraftWatchdog::QUEUE)
+    assert_equal MinecraftWatchdog.name,
+      worker.job.fetch('payload').fetch('class'),
+      'reservation must publish working state in the same Redis operation as the pop'
 
     assert_equal :already_present, MinecraftWatchdogBootstrap.call
+    Resque.enqueue(MinecraftWatchdog)
+    assert_equal :already_present, MinecraftWatchdogBootstrap.call
+    assert_equal 0, Resque.size(MinecraftWatchdog::QUEUE),
+      'a running watchdog must atomically suppress a concurrently queued duplicate'
 
     get '/admin/resque/'
     assert_response :unauthorized
@@ -111,6 +122,104 @@ class ResqueRuntimeTest < ActionDispatch::IntegrationTest
       server_log: '/minecraft/logs/latest.log'
     ).fetch(MinecraftServerLogMonitor::QUEUE)
     assert_equal 1, Resque.size(:unmanaged_runtime_test)
+  end
+
+  def test_concurrent_bootstrap_and_policy_calls_leave_one_canonical_job
+    bootstrap_results = run_concurrently(8) do
+      MinecraftWatchdogBootstrap.call
+    end
+
+    assert_equal 1, bootstrap_results.count(:enqueued)
+    assert_equal 7, bootstrap_results.count(:already_present)
+    assert_equal 1, Resque.size(MinecraftWatchdog::QUEUE)
+
+    policy_results = run_concurrently(8) do
+      MinecraftWorkerQueuePolicy.call(
+        irc_enabled: false,
+        server_log: '/minecraft/logs/latest.log'
+      ).fetch(MinecraftServerLogMonitor::QUEUE)
+    end
+
+    assert_equal 1, policy_results.count(:enqueued)
+    assert_equal 7, policy_results.count(:already_present)
+    assert_equal 1, Resque.size(MinecraftServerLogMonitor::QUEUE)
+  end
+
+  def test_atomic_reset_preserves_unrelated_payload_order
+    queue = MinecraftServerLogMonitor::QUEUE
+    before = {'class' => UnmanagedWorker.name, 'args' => [{'position' => 'before'}]}
+    after = {'class' => UnmanagedWorker.name, 'args' => [{'position' => 'after'}]}
+    Resque.push(queue, before)
+    Resque.enqueue(MinecraftServerLogMonitor, stale: 1)
+    Resque.enqueue(MinecraftServerLogMonitor, stale: 2)
+    Resque.push(queue, after)
+
+    result = ResqueQueueReconciler.call(
+      worker_class: MinecraftServerLogMonitor,
+      args: [{server_log: '/canonical/latest.log', max_ticks: 1200}]
+    )
+
+    assert_equal :reset, result.status
+    assert_equal 2, result.pending
+    assert_equal [
+      before,
+      {
+        'class' => MinecraftServerLogMonitor.name,
+        'args' => [{
+          'server_log' => '/canonical/latest.log',
+          'max_ticks' => 1200
+        }]
+      },
+      after
+    ], Resque.peek(queue, 0, Resque.size(queue))
+  end
+
+  def test_single_stale_payload_is_replaced_with_the_canonical_payload
+    Resque.enqueue(MinecraftServerLogMonitor, server_log: '/stale.log', max_ticks: 1)
+
+    result = ResqueQueueReconciler.call(
+      worker_class: MinecraftServerLogMonitor,
+      args: [{server_log: '/current.log', max_ticks: 1200}]
+    )
+
+    assert_equal :reset, result.status
+    assert_equal 1, result.pending
+    assert_equal [{
+      'server_log' => '/current.log',
+      'max_ticks' => 1200
+    }], Resque.peek(MinecraftServerLogMonitor::QUEUE, 0).fetch('args')
+  end
+
+  def test_malformed_payload_is_not_lost_when_atomic_reservation_rejects_it
+    queue = MinecraftWatchdog::QUEUE
+    @namespaced_redis.sadd('queues', queue)
+    @namespaced_redis.rpush("queue:#{queue}", '{malformed')
+    worker = Resque::Worker.new(queue)
+    Resque.redis.register_worker(worker)
+
+    assert_raises(Redis::CommandError) { worker.reserve }
+    assert_equal '{malformed', @namespaced_redis.lindex("queue:#{queue}", 0)
+    assert_nil worker.job.fetch('payload', nil)
+  ensure
+    worker&.unregister_worker
+  end
+
+private
+  def run_concurrently(count)
+    ready = Queue.new
+    start = Queue.new
+    results = Queue.new
+    threads = count.times.map do
+      Thread.new do
+        ready << true
+        start.pop
+        results << yield
+      end
+    end
+    count.times { ready.pop }
+    count.times { start << true }
+    threads.each(&:join)
+    count.times.map { results.pop }
   end
 
 end

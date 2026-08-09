@@ -18,17 +18,22 @@ class PlayersControllerTest < ActionController::TestCase
 
         assert_template 'layouts/application'
         assert_response :success
+        assert_select 'table > tbody', count: 1
+        assert_select 'table tr tr', count: 0
+        assert_select 'table > tbody > tr > th[colspan="6"]',
+          text: /Logged in Today/
       end
     end
   end
 
   def test_index_down
-    get :index
-    players = assigns :players
-    refute players, 'did not expect players'
+    Server.mock_mode(up: false, player_nicks: []) do
+      get :index
+    end
 
+    refute assigns(:players), 'did not expect players'
     assert_template 'layouts/application'
-    assert_response 500 # because the minecraft server isn't responding to the socket
+    assert_response :internal_server_error
   end
 
   def test_index_js_server_down
@@ -41,6 +46,15 @@ class PlayersControllerTest < ActionController::TestCase
     get :index, params: { format: :js, after: 'undefined' }
 
     assert_response 204
+  end
+
+  def test_index_js_rejects_invalid_polling_cursors
+    Server.mock_mode(up: true, latest_log_entry_at: Time.now, player_nicks: []) do
+      ['not-a-timestamp', '-1', '9' * 1000].each do |cursor|
+        get :index, params: {format: :js, after: cursor}
+        assert_response 204
+      end
+    end
   end
 
   def test_index_js_log_old
@@ -96,6 +110,31 @@ class PlayersControllerTest < ActionController::TestCase
         get :index, params: { format: :js, after: after.to_i.to_s }, xhr: true
 
         assert_response 200
+      end
+    end
+  end
+
+  def test_index_js_safely_autolinks_hostile_chat
+    after = 10.minutes.ago
+    player = Player.last
+    player.update!(
+      last_chat: 'Visit http://example.test/path"><img src=x onerror=alert(1)>',
+      last_chat_at: Time.current
+    )
+
+    Server.mock_mode(
+      up: true, latest_log_entry_at: Time.current, player_nicks: [player.nick]
+    ) do
+      ServerQuery.mock_mode(full_query: {numplayers: '1', maxplayers: '20'}) do
+        get :index, params: {format: :js, after: after.to_i.to_s}, xhr: true
+
+        assert_response :success
+        assert_includes response.body, 'http://example.test/path'
+        linked_text = response.body.lines.find do |line|
+          line.strip.start_with?("text = '")
+        end
+        assert_includes linked_text, '<img src=x onerror=alert(1)>'
+        refute_includes response.body, '<a target='
       end
     end
   end

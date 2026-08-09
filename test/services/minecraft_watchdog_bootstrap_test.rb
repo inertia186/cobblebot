@@ -1,78 +1,69 @@
 require 'test_helper'
+require Rails.root.join('test/support/queue_reconciler_recorder')
+require 'stringio'
 
 class MinecraftWatchdogBootstrapTest < ActiveSupport::TestCase
-  FakeWorker = Struct.new(:job)
-
-  class FakeResque
-    attr_reader :enqueued
-
-    def initialize(queue_size: 0, working: [], error: nil)
-      @queue_size = queue_size
-      @working = working
-      @error = error
-      @enqueued = []
-    end
-
-    def size(queue)
-      raise error if error
-
-      assert_queue queue
-      queue_size
-    end
-
-    def working
-      @working
-    end
-
-    def enqueue(worker)
-      enqueued << worker
-    end
-
-  private
-    attr_reader :error, :queue_size
-
-    def assert_queue(queue)
-      raise "Unexpected queue: #{queue}" unless queue == MinecraftWatchdog::QUEUE.to_s
-    end
+  def setup
+    @resque = Object.new
+    @log_output = StringIO.new
+    @logger = Logger.new(@log_output)
   end
 
-  def test_enqueues_when_watchdog_is_absent
-    resque = FakeResque.new
+  def test_delegates_singleton_ownership_to_the_reconciler
+    reconciler = recorder(status: :enqueued, pending: 0)
 
-    result = MinecraftWatchdogBootstrap.call(resque: resque, logger: Logger.new(nil))
-
-    assert_equal :enqueued, result
-    assert_equal [MinecraftWatchdog], resque.enqueued
+    assert_equal :enqueued, call_bootstrap(reconciler)
+    assert_equal [{
+      resque: @resque,
+      worker_class: MinecraftWatchdog,
+      args: [],
+      consider_running: true
+    }], reconciler.calls
+    assert_includes @log_output.string, 'Enqueued Minecraft watchdog.'
   end
 
-  def test_does_not_enqueue_when_watchdog_is_pending
-    resque = FakeResque.new(queue_size: 1)
+  def test_reports_an_existing_queued_or_running_watchdog
+    reconciler = recorder(status: :already_present, pending: 1)
 
-    result = MinecraftWatchdogBootstrap.call(resque: resque, logger: Logger.new(nil))
-
-    assert_equal :already_present, result
-    assert_empty resque.enqueued
+    assert_equal :already_present, call_bootstrap(reconciler)
+    assert_includes @log_output.string,
+      'Minecraft watchdog is already queued or running.'
   end
 
-  def test_does_not_enqueue_when_watchdog_is_running
-    worker = FakeWorker.new({'payload' => {'class' => MinecraftWatchdog.name}})
-    resque = FakeResque.new(working: [worker])
-
-    result = MinecraftWatchdogBootstrap.call(resque: resque, logger: Logger.new(nil))
-
-    assert_equal :already_present, result
-    assert_empty resque.enqueued
-  end
-
-  def test_raises_cobblebot_error_when_redis_is_unavailable
+  def test_wraps_redis_connection_errors
     redis_error = Redis::CannotConnectError.new('connection refused')
-    resque = FakeResque.new(error: redis_error)
+    reconciler = QueueReconcilerRecorder.new(error: redis_error)
 
-    error = assert_raises CobbleBotError do
-      MinecraftWatchdogBootstrap.call(resque: resque, logger: Logger.new(nil))
-    end
+    error = assert_raises(CobbleBotError) { call_bootstrap(reconciler) }
 
     assert_equal MinecraftWatchdogBootstrap::REDIS_UNAVAILABLE_MESSAGE, error.message
-    assert_empty resque.enqueued
+    assert_same redis_error, error.cause
+  end
+
+  def test_logger_system_errors_are_not_misreported_as_redis_failures
+    reconciler = recorder(status: :enqueued, pending: 0)
+    @logger.define_singleton_method(:info) { |_message| raise Errno::EIO, 'logger' }
+
+    assert_raises(Errno::EIO) { call_bootstrap(reconciler) }
+  end
+
+private
+  def call_bootstrap(reconciler)
+    MinecraftWatchdogBootstrap.call(
+      resque: @resque,
+      logger: @logger,
+      queue_reconciler: reconciler
+    )
+  end
+
+  def recorder(status:, pending:)
+    QueueReconcilerRecorder.new(
+      results: {
+        MinecraftWatchdog => ResqueQueueReconciler::Result.new(
+          status: status,
+          pending: pending
+        )
+      }
+    )
   end
 end

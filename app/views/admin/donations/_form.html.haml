@@ -1,4 +1,6 @@
-= form_for [:admin, @donation], role: :form do |f|
+= form_for @donation,
+  url: @donation.persisted? ? admin_message_donation_path(@donation) : admin_message_donations_path,
+  role: :form do |f|
   = f.hidden_field :author_type, value: 'Player'
   
   - if @donation.errors.any?

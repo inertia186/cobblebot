@@ -14,6 +14,10 @@ class Player < ActiveRecord::Base
   LANG_ES = %w(AR VE BO CL CO CR DO EC SV GT HN MX NI PA PY PE PR ES US UY)
   
   validates :uuid, presence: true
+  validates :uuid, format: {
+    with: /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i,
+    message: 'must be a canonical UUID'
+  }, allow_blank: true
   validates_uniqueness_of :uuid, case_sensitive: true
   validates :nick, presence: true
   validates_uniqueness_of :nick, case_sensitive: false
@@ -227,7 +231,7 @@ class Player < ActiveRecord::Base
     # Favor an exact match (ignoring case).
     players = nick(nick)
     # Next, favor player who matches with a preference for the most recent activity.
-    players = any_nick(nick).order(:updated_at) if players.none?
+    players = any_nick(nick).order(updated_at: :desc, id: :desc) if players.none?
     
     player = players.first
     
@@ -370,15 +374,15 @@ class Player < ActiveRecord::Base
   end
   
   def banned_at
-    nil unless banned?
-    
-    Time.parse(Server.banned_players.select { |player| player["uuid"] == uuid }.first['created'])
+    ban = Server.banned_players.find { |player| player['uuid'] == uuid }
+    return nil unless ban
+
+    Time.parse(ban['created'])
   end
   
   def banned_reason
-    nil unless banned?
-    
-    Server.banned_players.select { |player| player["uuid"] == uuid }.first['reason']
+    ban = Server.banned_players.find { |player| player['uuid'] == uuid }
+    ban['reason'] if ban
   end
   
   def ban!(reason = '', options = {announce: false})
@@ -448,8 +452,20 @@ class Player < ActiveRecord::Base
 
   def stats_file_path
     raise CobbleBotError.new(message: "Level name is incorrect.") if ServerProperties.path_to_server.nil?
-    
-    @stats_file_path ||= "#{ServerProperties.path_to_server}/#{ServerProperties.level_name}/stats/#{uuid}.json"
+
+    @stats_file_path ||= begin
+      stats_root = Pathname.new(
+        File.join(ServerProperties.path_to_server, ServerProperties.level_name, 'stats')
+      ).expand_path
+      candidate = stats_root.join("#{uuid}.json").expand_path
+      prefix = "#{stats_root}#{File::SEPARATOR}"
+
+      unless candidate.to_s.start_with?(prefix)
+        raise CobbleBotError.new(message: 'Player UUID produced an invalid statistics path.')
+      end
+
+      candidate.to_s
+    end
   end
   
   def player_data
@@ -575,7 +591,7 @@ class Player < ActiveRecord::Base
   
   # To check if a player has voted or not in the last 24 hours.
   def mmp_vote_status
-    url = "http://minecraft-mp.com/api/?object=votes&element=claim&key=#{Preference.mmp_api_key}&username=#{nick}"
+    url = "https://minecraft-mp.com/api/?object=votes&element=claim&key=#{Preference.mmp_api_key}&username=#{nick}"
     response = Net::HTTP.get_response(URI.parse(url))
     # 0	Not found
     # 1	Has voted and not claimed
@@ -594,7 +610,7 @@ class Player < ActiveRecord::Base
   
   # To set a vote as claimed for a player.
   def mmp_vote_claim!
-    uri = URI.parse('http://minecraft-mp.com/api/')
+    uri = URI.parse('https://minecraft-mp.com/api/')
     options = {
       action: 'post',
       object: 'votes',

@@ -1,5 +1,5 @@
 class DonationsController < ApplicationController
-  respond_to :json
+  respond_to :html, :json, :atom
 
   def index
     @donations = Message::Donation.order('messages.created_at DESC')
@@ -8,6 +8,7 @@ class DonationsController < ApplicationController
     respond_to do |format|
       format.html
       format.json { respond_with @donations }
+      format.atom
     end
   end
 end

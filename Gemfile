@@ -83,6 +83,8 @@ gem 'resque-scheduler', '~> 5.0', require: false
 gem 'sinatra', '~> 4.2', require: false
 
 # IRC
+# Bound IRC command execution without creating one native thread per message.
+gem 'concurrent-ruby', '~> 1.3'
 gem 'summer', '~> 1.0'
 
 # Use this if there are problems with the latest version.

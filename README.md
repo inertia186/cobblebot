@@ -31,7 +31,8 @@ There is also an optional IRC bot that allows players to interact.
 ## Installation
 
 CobbleBot's only supported runtime is Ruby 3.3.12 with Bundler 2.6.6 and Rails
-7.2.3.2. The repository includes `.ruby-version`; install that Ruby with your
+8.1.3.1 using Rails 8.1 configuration defaults. The repository includes
+`.ruby-version`; install that Ruby with your
 preferred version manager before running Bundler. Historical Rails 4 revisions
 remain in git history but are not maintained or tested.
 
@@ -40,16 +41,20 @@ remain in git history but are not maintained or tested.
     $ git clone https://github.com/inertia186/cobblebot.git .
     $ bundle install
     $ bundle exec rails db:migrate
+    $ read -s COBBLEBOT_WEB_ADMIN_PASSWORD
+    $ export COBBLEBOT_WEB_ADMIN_PASSWORD
     $ bundle exec rails db:seed
+    $ unset COBBLEBOT_WEB_ADMIN_PASSWORD
     $ bundle exec rails server
 
 Open `http://localhost:3000/admin/session/new`.
 
-Now, use the default admin password to log in: `123456`
+Use the administrator password supplied through
+`COBBLEBOT_WEB_ADMIN_PASSWORD`. A new database cannot be seeded without this
+value. Subsequent seed runs preserve the credential already stored in the
+database and do not require the environment variable.
 
 Click on the Admin drop-down, and select Preferences.
-
-Edit the `web_admin_password` key and change it to something better.
 
 Edit the `path_to_server` key and change it to the absolute path of your Minecraft Server.
 
@@ -94,14 +99,24 @@ restart them in the same order. CobbleBot does not supervise the Minecraft
 server itself.
 
 The bootstrap task immediately enqueues the watchdog unless one is already
-queued or running. It exits with an error if Redis is unavailable; the scheduler
-continues to provide the existing five-minute safety net. Rails itself no longer
-contacts Redis while booting, so web, console, route, migration, and asset
-commands can initialize without Redis. Redis is required for the scheduler,
-bootstrap task, and workers. Development, beta, and production use Redis database
-1 by default; tests use database 3. Set `COBBLEBOT_REDIS_URL` to override the
-connection URL and `COBBLEBOT_RESQUE_NAMESPACE` to isolate CobbleBot's Resque
-keys from other applications using the same Redis database.
+queued or running. It exits with an error if Redis is unavailable. Every five
+minutes the scheduler enqueues a lightweight dispatcher, which invokes that same
+bootstrap path instead of directly enqueuing another watchdog. Rails itself no
+longer contacts Redis while booting, so web, console, route, migration, and
+asset commands can initialize without Redis. Redis is required for the
+scheduler, bootstrap task, and workers. Development, beta, and production use
+Redis database 1 by default; tests use database 3. Set `COBBLEBOT_REDIS_URL` to
+override the connection URL and `COBBLEBOT_RESQUE_NAMESPACE` to isolate
+CobbleBot's Resque keys from other applications using the same Redis database.
+
+Watchdog, log-monitor, and IRC standby reconciliation is one atomic Redis Lua
+operation. Concurrent bootstrap or maintenance calls therefore cannot both
+observe an empty managed queue and enqueue duplicate canonical jobs. Duplicate
+managed payloads are replaced in place while unrelated payloads and their order
+are preserved. Resque workers also pop a job and publish their working payload
+in one Lua operation, so reconciliation cannot run between those lifecycle
+changes and mistake an active watchdog for an absent one. These operations do
+not use lease keys, TTLs, or cleanup locks.
 
 The supported worker client stack is redis-rb 6.0 using RESP3, Resque 3.0,
 Resque Scheduler 5.0, and Redis Namespace 1.11. Upgrading these gems does not
@@ -131,12 +146,21 @@ CobbleBot does not configure a shared Rails cache, so the Rails 7.1 cache format
 does not require an operational cache migration or flush. Resque payloads and
 Redis keys are independent of these Rails message and cache formats.
 
-Each scheduled watchdog job is a one-shot maintenance pass; it does not sleep or
-replenish its own queue. During that pass, the worker queue policy keeps one
-pending standby for the five-minute log monitor and, when enabled, IRC. Active
-jobs are deliberately not counted toward that pending standby. If IRC is
-disabled, pending IRC jobs are cleared, but an already-running IRC worker is not
-terminated.
+Each dispatched watchdog is a one-shot maintenance pass; it does not sleep or
+replenish its own queue. During that pass, the worker queue policy atomically
+keeps one pending standby for the five-minute log monitor and, when enabled,
+IRC. Active jobs are deliberately not counted toward that pending standby. If
+IRC is disabled, pending IRC jobs are cleared, but an already-running IRC worker
+is not terminated.
+
+Matching callbacks use a PostgreSQL advisory lock or, on SQLite, an OS file lock
+scoped to the callback ID, then reload and recheck cooldown readiness. The lock
+does not hold a database transaction across callback code, which may sleep,
+perform external side effects, or start a background thread. Concurrent log
+handlers therefore cannot execute the same callback during one cooldown window.
+A normally rescued command error retains the existing error and cooldown
+records; termination releases the lock and leaves the callback available for
+retry.
 
 ### Take it for a spin
 
@@ -163,6 +187,13 @@ In IRC, messages can be sent back to the game by typing, for example:
 ```
 @cb say Hello, Minecraft!
 ```
+
+Privileged IRC commands require a server-authenticated identity. Configure
+`irc_channel_ops` with space- or comma-separated `irc:<account>` entries for
+IRCv3 services accounts or `twitch:<user-id>` entries for Twitch. Nicknames are
+not credentials and do not authorize operator commands. If the IRC server does
+not provide the required `account-tag` or `twitch.tv/tags` capability, CobbleBot
+continues serving ordinary commands but denies every privileged command.
 
 Enjoy!
 
@@ -203,19 +234,37 @@ In early stages of development, migrations were non-cumulative.  This meant that
 
 ## Testing and coverage
 
-The test environment is configured for PostgreSQL. Run the complete suite with:
+The test environment requires PostgreSQL and Redis. Redis runtime coverage is
+part of the default suite and fails rather than skips when Redis is unavailable.
+The Redis tests use a unique namespace per test process and remove only that
+namespace's keys. Start both services, then run the complete suite with:
 
-    $ RAILS_ENV=test bundle exec rails test
+    $ bundle exec rails test
 
-The coverage gate runs that same suite from a clean, unmerged SimpleCov result
-and requires at least 75% line coverage:
+The complete suite uses isolated process workers by default. Set
+`PARALLEL_WORKERS` to control the worker count, or set `HELL_ENABLED=0` for a
+serial debugging run:
+
+    $ PARALLEL_WORKERS=4 bundle exec rails test
+    $ HELL_ENABLED=0 bundle exec rails test
+
+Set `COBBLEBOT_REDIS_URL` when the test Redis service is not available at the
+URL configured for `test` in `config/resque.yml`.
+
+The coverage gate runs the complete suite serially from a clean, unmerged
+SimpleCov result and requires at least 75% line coverage:
 
     $ RAILS_ENV=test bundle exec rake cobblebot:test:coverage
 
 Focused test commands continue to produce mergeable coverage reports without
-enforcing the aggregate floor. On Ruby 3.3.12 and Rails 7.2.3.2 with Rails 7.2
+enforcing the aggregate floor. On Ruby 3.3.12 and Rails 8.1.3.1 with Rails 8.1
 configuration defaults, the current PostgreSQL complete-suite baseline is
-77.31%.
+82.59%.
+
+The GitHub Actions `test` job provides PostgreSQL and Redis services, runs the
+concurrency tests serially for diagnostics, runs the complete default parallel
+suite, and then runs the complete serial coverage gate. Configure that check as
+required in repository branch protection.
 
 ## Export/Import
 
@@ -233,19 +282,22 @@ To export CobbleBot's database, make sure the rails server is stopped.  Also sto
     $ rake db:migrate
     $ rake db:seed
 
-You can import your data as follows:
+You can import your data as follows. Run the commands in one shell with
+`set -e`; if any import fails, correct it before running the final seed or
+starting services.
     
-    $ rake db:drop # only needed if previous migrations fail
-    $ rake db:migrate
-    $ cat preferences.csv | rake cobblebot:import:preferences
-    $ cat players.csv | rake cobblebot:import:players
-    $ cat links.csv | rake cobblebot:import:links
-    $ cat server_callbacks.csv | rake cobblebot:import:server_callbacks
-    $ cat messages.csv | rake cobblebot:import:messages
-    $ cat ips.csv | rake cobblebot:import:ips
-    $ cat mutes.csv | rake cobblebot:import:mutes
-    $ cat reputations.csv | rake cobblebot:reputations:mutes
-    $ rake db:seed
+    $ set -e
+    $ bundle exec rake db:drop # only needed if previous migrations fail
+    $ bundle exec rake db:migrate
+    $ cat preferences.csv | bundle exec rake cobblebot:import:preferences
+    $ cat players.csv | bundle exec rake cobblebot:import:players
+    $ cat links.csv | bundle exec rake cobblebot:import:links
+    $ cat server_callbacks.csv | bundle exec rake cobblebot:import:server_callbacks
+    $ cat messages.csv | bundle exec rake cobblebot:import:messages
+    $ cat ips.csv | bundle exec rake cobblebot:import:ips
+    $ cat mutes.csv | bundle exec rake cobblebot:import:mutes
+    $ cat reputations.csv | bundle exec rake cobblebot:import:reputations
+    $ bundle exec rake db:seed
     
 Now you can start rails and resque.
 

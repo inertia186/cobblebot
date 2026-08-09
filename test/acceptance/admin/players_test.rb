@@ -5,25 +5,17 @@ class Admin::PlayersTest < AcceptanceTest
     preferences(:path_to_server).update!(value: "#{Rails.root}/tmp")
   end
 
-  def test_basic_workflow
+  def test_navigation_and_query
     Server.mock_mode(up: true, player_nicks: []) do
       ServerQuery.mock_mode(full_query: {numplayers: "0", maxplayers: "20"}) do
         admin_sign_in
         admin_navigate('Players')
-        assert page.has_content?('Players'), 'expect Players.  We should now be on the Players page.'
-      end
-    end
-  end
+        assert page.has_content?('Players')
 
-  def test_query
-    test_basic_workflow
-    results_container = 'div.tab-contents > div > div > table > tbody'
-
-    Server.mock_mode(up: true, player_nicks: []) do
-      ServerQuery.mock_mode(full_query: {numplayers: "0", maxplayers: "20"}) do
+        results_container = 'div.tab-contents > div > div > table > tbody'
         within(:css, results_container) do
-          assert page.has_content?('inertia186'), 'expect inertia186 in initial results'
-          assert page.has_content?('Dinnerbone'), 'expect Dinnerbone in initial results'
+          assert page.has_content?('inertia186')
+          assert page.has_content?('Dinnerbone')
         end
 
         fill_in('query', with: 'inertia')
@@ -31,8 +23,8 @@ class Admin::PlayersTest < AcceptanceTest
         assert_selector 'input#query[value="inertia"]'
 
         within(:css, results_container) do
-          assert page.has_content?('inertia186'), 'expect inertia186 in inertia results'
-          assert page.has_no_content?('Dinnerbone'), 'did not expect Dinnerbone in inertia results'
+          assert page.has_content?('inertia186')
+          assert page.has_no_content?('Dinnerbone')
         end
       end
     end

@@ -5,33 +5,25 @@ class Admin::CallbacksTest < AcceptanceTest
     preferences(:path_to_server).update!(value: "#{Rails.root}/tmp")
   end
 
-  def test_basic_workflow
+  def test_navigation_and_query
     Server.mock_mode(up: true, player_nicks: []) do
       ServerQuery.mock_mode(full_query: {numplayers: "0", maxplayers: "20"}) do
         admin_sign_in
         admin_navigate('Callbacks')
-        assert page.has_content?('Callbacks'), 'expect Callbacks.  We should now be on the Callbacks page.'
-      end
-    end
-  end
+        assert page.has_content?('Callbacks')
 
-  def test_query
-    test_basic_workflow
-    results_container = 'div.tab-contents > div > div > table > tbody'
-
-    Server.mock_mode(up: true, player_nicks: []) do
-      ServerQuery.mock_mode(full_query: {numplayers: "0", maxplayers: "20"}) do
+        results_container = 'div.tab-contents > div > div > table > tbody'
         within(:css, results_container) do
-          assert page.has_content?('Spammy'), 'expect Spammy in initial results'
-          assert page.has_content?('Read Mail'), 'expect Read Mail in initial results'
+          assert page.has_content?('Spammy')
+          assert page.has_content?('Read Mail')
         end
 
         fill_in('query', with: 'spammy')
         click_on('Search')
 
         within(:css, results_container) do
-          assert page.has_content?('Spammy'), 'expect Spammy in spammy results'
-          assert page.has_no_content?('Read Mail'), 'expect Read Mail in spammy results'
+          assert page.has_content?('Spammy')
+          assert page.has_no_content?('Read Mail')
         end
       end
     end

@@ -10,9 +10,9 @@ module Tellable
     def tell(selector, message, options = {as: 'Server'})
       return if selector.nil?
     
-      execute <<-DONE
-        tellraw #{selector} { "color": "gray", "text":"#{options[:as]} whispers to you: #{message}" }
-      DONE
+      execute_tellraw(selector, {
+        color: 'gray', text: "#{options[:as]} whispers to you: #{message}"
+      })
     end
 
     def tell_motd(selector)
@@ -21,27 +21,15 @@ module Tellable
     
       return if selector.nil?
     
-      results << execute(
-      <<-DONE
-        tellraw #{selector} { "text": "Message of the Day", "color": "green" }
-      DONE
-      )
-      results << execute(
-      <<-DONE
-        tellraw #{selector} { "text": "===", "color": "green" }
-      DONE
-      )
+      results << execute_tellraw(selector, {text: 'Message of the Day', color: 'green'})
+      results << execute_tellraw(selector, {text: '===', color: 'green'})
 
       Preference.motd.split("\n").each do |line|
         line = line.gsub(/\r/, '')
         if line =~ /^http.*/i
           results << say_link(selector, line, only_title: true)
         else
-          results << execute(
-          <<-DONE
-            tellraw #{selector} { "text": "#{line}", "color": "green" }
-          DONE
-          )
+          results << execute_tellraw(selector, {text: line, color: 'green'})
         end
       end
     end
@@ -162,29 +150,25 @@ module Tellable
       if (mail = player.messages.deleted(false).muted(false)).any?
         mail.each do |message|
           author_nick = message.author.nick rescue '???'
-          body = escape(message.body)
+          body = message.body
           color = if message.read_at.nil?
             'gray'
           else
             'dark_gray'
           end
           
-          execute <<-DONE
-            tellraw #{nick} [
-              {
-                "color": "#{color}", "text": "#{distance_of_time_in_words_to_now(message.created_at)} ago: ",
-                "hoverEvent": {
-                  "action": "show_text", "value": "#{message.created_at.to_s}"
-                }
-              },
-              { "color": "#{color}", "text": "<" }, {
-                "color": "dark_purple", "underlined": "true", "text": "#{author_nick}",
-                "clickEvent": {
-                  "action": "suggest_command", "value": "@#{author_nick} "
-                }
-              }, { "color": "#{color}", "text": "> #{body}" }
-            ]
-          DONE
+          execute_tellraw(nick, [
+            {
+              color: color, text: "#{distance_of_time_in_words_to_now(message.created_at)} ago: ",
+              hoverEvent: {action: 'show_text', value: message.created_at.to_s}
+            },
+            {color: color, text: '<'},
+            {
+              color: 'dark_purple', underlined: true, text: author_nick,
+              clickEvent: {action: 'suggest_command', value: "@#{author_nick} "}
+            },
+            {color: color, text: "> #{body}"}
+          ])
           say_link(nick, body, nick: author_nick) if body =~ /^http.*/i
         
           message.touch(:read_at) # no AR callbacks
@@ -200,33 +184,17 @@ module Tellable
       topic = latest_topic.last
       
       if topic.nil?
-        results << execute(
-        <<-DONE
-          tellraw #{selector} { "text": "There is no topic.", "color": "green" }
-        DONE
-        )
+        results << execute_tellraw(selector, {text: 'There is no topic.', color: 'green'})
 
         return results
       end
       
       author_nick = topic.author.nick rescue '???'
-      body = escape(topic.body)
+      body = topic.body
       
-      results << execute(
-      <<-DONE
-        tellraw #{selector} { "text": "Current Topic", "color": "green" }
-      DONE
-      )
-      results << execute(
-      <<-DONE
-        tellraw #{selector} { "text": "===", "color": "green" }
-      DONE
-      )
-      results << execute(
-      <<-DONE
-        tellraw #{selector} { "text": "#{body}", "color": "green" }
-      DONE
-      )
+      results << execute_tellraw(selector, {text: 'Current Topic', color: 'green'})
+      results << execute_tellraw(selector, {text: '===', color: 'green'})
+      results << execute_tellraw(selector, {text: body, color: 'green'})
       
       say_link(selector, body, nick: author_nick) if body =~ /^http.*/i
     end
@@ -257,24 +225,16 @@ module Tellable
       results = []
       
       unless (donations = Message::Donation.order(:created_at)).any?
-        results << execute(
-        <<-DONE
-          tellraw #{selector} { "text": "No donations have been received.", "color": "green" }
-        DONE
-        )
+        results << execute_tellraw(selector, {text: 'No donations have been received.', color: 'green'})
 
         return results
       end
 
       donations.each do |donation|
         author_nick = donation.author.nick rescue '???'
-        body = escape(donation.body)
+        body = donation.body
       
-        results << execute(
-        <<-DONE
-          tellraw #{selector} { "text": "#{body}", "color": "green" }
-        DONE
-        )
+        results << execute_tellraw(selector, {text: body, color: 'green'})
       
         say_link(selector, body, nick: author_nick) if body =~ /^http.*/i
       end

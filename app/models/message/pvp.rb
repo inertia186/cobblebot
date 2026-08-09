@@ -33,14 +33,20 @@ class Message::Pvp < Message
   end
   
   def loser_quote
-    return '' if recipient.nil?
-    
-    recipient.quotes.where("created_at > ?", created_at).order(:created_at).limit(1).first.body rescue recipient.last_chat
+    player = recipient
+    return '' if player.nil?
+
+    quote = player.quotes.where("created_at > ?", created_at)
+      .order(:created_at).limit(1).first
+    quote&.body || player.last_chat
   end
   
   def winner_quote
-    return '' if author.nil?
+    player = author
+    return '' if player.nil?
 
-    author.quotes.where("created_at > ?", created_at).order(:created_at).limit(1).first.body rescue author.last_chat
+    quote = player.quotes.where("created_at > ?", created_at)
+      .order(:created_at).limit(1).first
+    quote&.body || player.last_chat
   end
 end

@@ -57,8 +57,7 @@ module Detectable
       return if ServerQuery.numplayers.to_i < 2
     
       server_log = "#{ServerProperties.path_to_server}/logs/latest.log"
-      lines = IO.readlines(server_log)
-      lines = lines[([-(lines.size - 1), -50].max)..-1]
+      lines = tail_lines(server_log, 50)
       return if lines.nil?
     
       player = Player.find_by_nick(nick)
@@ -132,7 +131,7 @@ module Detectable
       
       entities = []
       
-      TROUBLE_ENTITIES.map { |data| data[0] }.uniq do |type|
+      TROUBLE_ENTITIES.map { |data| data[0] }.uniq.each do |type|
         entities += Server.entity_data(selector: "@e[type=#{type}]")
       end
       
@@ -171,6 +170,22 @@ module Detectable
       winner.pvp_wins.create(body: message, recipient: loser)
     end
   private
+    def tail_lines(path, count)
+      File.open(path, 'rb') do |file|
+        buffer = String.new(encoding: Encoding::BINARY)
+        position = file.size
+
+        while position.positive? && buffer.count("\n") <= count
+          bytes = [4096, position].min
+          position -= bytes
+          file.seek(position)
+          buffer.prepend(file.read(bytes))
+        end
+
+        buffer.force_encoding(Encoding.default_external).lines.last(count)
+      end
+    end
+
     def player_input_regexp(nick, message, col)
       %w( [ ] \\ ^ $ . | ? * + \( \)).each do |c|
         message.gsub!(c, "\\#{c}")

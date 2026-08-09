@@ -1,10 +1,50 @@
 require 'test_helper'
 
 class PlayerTest < ActiveSupport::TestCase
+  def test_best_match_by_historical_nick_prefers_recent_activity
+    older = players(:inertia186)
+    newer = players(:Dinnerbone)
+    older.update_columns(last_nick: 'SharedHistory', updated_at: 2.days.ago)
+    newer.update_columns(last_nick: 'SharedHistory', updated_at: 1.day.ago)
+
+    assert_equal newer, Player.best_match_by_nick('SharedHistory')
+  end
+
   include WebStubs
 
   def setup
     Preference.path_to_server = "#{Rails.root}/tmp"
+  end
+
+  def test_uuid_must_use_canonical_format
+    player = Player.new(uuid: '../../outside', nick: 'Traversal')
+
+    refute player.valid?
+    assert_includes player.errors[:uuid], 'must be a canonical UUID'
+  end
+
+  def test_stats_path_rejects_a_uuid_that_bypassed_validation
+    player = players(:inertia186)
+    player.update_column(:uuid, '../../../outside')
+
+    ServerProperties.stub(:path_to_server, '/srv/minecraft') do
+      ServerProperties.stub(:level_name, 'world') do
+        error = assert_raises(CobbleBotError) { player.reload.stats_file_path }
+
+        assert_includes error.message, 'invalid statistics path'
+      end
+    end
+  end
+
+  def test_stats_path_keeps_a_canonical_uuid_under_the_stats_directory
+    player = players(:inertia186)
+
+    ServerProperties.stub(:path_to_server, '/srv/minecraft') do
+      ServerProperties.stub(:level_name, 'world') do
+        assert_equal "/srv/minecraft/world/stats/#{player.uuid}.json",
+          player.stats_file_path
+      end
+    end
   end
 
   def test_max_explore_all_biome_progress
@@ -38,6 +78,29 @@ class PlayerTest < ActiveSupport::TestCase
   def test_mode_banned_players
     refute (relation = Player.mode(:banned_players)).any?, "did not expect banned players, got: #{relation.map(&:nick)}"
     assert Player.mode(:banned_players, false).any?, 'expect non-banned players'
+  end
+
+  def test_ban_metadata_is_nil_for_an_unbanned_player
+    Server.stub(:banned_players, []) do
+      player = players(:inertia186)
+
+      assert_nil player.banned_at
+      assert_nil player.banned_reason
+    end
+  end
+
+  def test_ban_metadata_uses_the_matching_entry
+    player = players(:inertia186)
+    created = '2026-08-09 03:00:00 +0000'
+    entries = [
+      { 'uuid' => 'someone-else', 'created' => created, 'reason' => 'other' },
+      { 'uuid' => player.uuid, 'created' => created, 'reason' => 'test reason' }
+    ]
+
+    Server.stub(:banned_players, entries) do
+      assert_equal Time.parse(created), player.banned_at
+      assert_equal 'test reason', player.banned_reason
+    end
   end
 
   def test_mode_whitelist
@@ -326,14 +389,11 @@ class PlayerTest < ActiveSupport::TestCase
     Player.all.find_each do |player|
       assert player.itself, "expect method to exist"
 
-      begin
-        refute player.method_that_does_not_exist, 'did not expect method to exist'
-        # :nocov:
-        fail 'did not expect method to exist'
-        # :nocov:
-      rescue NoMethodError => e
-        # success
+      error = assert_raises(NoMethodError) do
+        player.method_that_does_not_exist
       end
+      assert_equal :method_that_does_not_exist, error.name
+      assert_same player, error.receiver
     end
   end
 end

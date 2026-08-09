@@ -12,39 +12,27 @@ module Sayable
     
       if options[:as].present?
         if !!(hover_text = options[:hover_text]) && hover_text.present?
-          execute <<-DONE
-            tellraw #{selector} [
-              { "color": "white", "text": "[#{options[:as]}] "},
-              {
-                "color": "#{options[:color]}", "text": "#{message}",
-                "hoverEvent": {
-                  "action": "show_text", "value": "#{hover_text}"
-                }
-              }
-            ]
-          DONE
+          execute_tellraw(selector, [
+            {color: 'white', text: "[#{options[:as]}] "},
+            {
+              color: options[:color], text: message,
+              hoverEvent: {action: 'show_text', value: hover_text}
+            }
+          ])
         else
-          execute <<-DONE
-            tellraw #{selector} [{ "color": "white", "text": "[#{options[:as]}] "}, { "color": "#{options[:color]}", "text": "#{message}" }]
-          DONE
+          execute_tellraw(selector, [
+            {color: 'white', text: "[#{options[:as]}] "},
+            {color: options[:color], text: message}
+          ])
         end
       else
         if !!(hover_text = options[:hover_text]) && hover_text.present?
-          execute <<-DONE
-            tellraw #{selector} [
-              { "color": "white", "text": "[#{options[:as]}] "},
-              {
-                "color": "#{options[:color]}", "text": "#{message}",
-                "hoverEvent": {
-                  "action": "show_text", "value": "#{hover_text}"
-                }
-              }
-            ]
-          DONE
+          execute_tellraw(selector, {
+            color: options[:color], text: message,
+            hoverEvent: {action: 'show_text', value: hover_text}
+          })
         else
-          execute <<-DONE
-            tellraw #{selector} { "color": "#{options[:color]}", "text": "#{message}" }
-          DONE
+          execute_tellraw(selector, {color: options[:color], text: message})
         end
       end
       
@@ -64,20 +52,14 @@ module Sayable
         end
         line_1c = player.last_chat_at.to_s
         line_1d = ' ago.'
-        execute(
-        <<-DONE
-          tellraw #{selector} [
-            { "color": "white", "text": "[Server] #{line_1a}" },
-            {
-              "color": "white", "text": "#{line_1b}",
-              "hoverEvent": {
-                "action": "show_text", "value": "#{line_1c}"
-              }
-            },
-            { "color": "white", "text": "#{line_1d}" }
-          ]
-        DONE
-        ) unless selector.nil?
+        execute_tellraw(selector, [
+          {color: 'white', text: "[Server] #{line_1a}"},
+          {
+            color: 'white', text: line_1b,
+            hoverEvent: {action: 'show_text', value: line_1c}
+          },
+          {color: 'white', text: line_1d}
+        ]) unless selector.nil?
       
         results = ["#{line_1a}#{line_1b}#{line_1d} (#{line_1c})"]
         results += say_last_chat(selector, nick, player: player)
@@ -135,19 +117,13 @@ module Sayable
         results << line_2 = "Did you mean: #{players.first.nick}"
         if !!selector && !!options[:command]
           cmd = options[:command].gsub("%nick%", players.first.nick)
-          execute(
-          <<-DONE
-            tellraw #{selector} [
-              {"color": "white", "text": "[Server] Did you mean: "},
-              {
-                "color": "dark_purple", "underlined": "true", "text": "#{players.first.nick}",
-                "clickEvent": {
-                  "action": "suggest_command", "value": "#{cmd}"
-                }
-              }
-            ]
-          DONE
-          )
+          execute_tellraw(selector, [
+            {color: 'white', text: '[Server] Did you mean: '},
+            {
+              color: 'dark_purple', underlined: true, text: players.first.nick,
+              clickEvent: {action: 'suggest_command', value: cmd}
+            }
+          ])
         else
           say(selector, line_2)
         end
@@ -161,7 +137,7 @@ module Sayable
       return if selector.nil?
     
       lines.split("\n").each do |line|
-        execute "tellraw #{selector} #{line}"
+        execute_tellraw(selector, JSON.parse(line))
       end
     end
     
@@ -328,9 +304,10 @@ module Sayable
         # FIXME The 'command' option should come from the callback record, not hardcoded.
         say_nick_not_found(selector, nick, command: '@server origin %nick%')
       }) do |target|
-        execute <<-DONE
-          tellraw #{selector} [{ "color": "white", "text": "[Server] Origin of #{target.nick}: "}, { "color": "green", "text": "#{target.origins.join(', ')}" }]
-        DONE
+        execute_tellraw(selector, [
+          {color: 'white', text: "[Server] Origin of #{target.nick}: "},
+          {color: 'green', text: target.origins.join(', ')}
+        ])
       end
     end
     
@@ -385,25 +362,17 @@ module Sayable
         "#{loser_quote}\n#{winner_quote}"
       end
       
-      execute(
-      <<-DONE
-        tellraw #{selector} [
-          { "color": "white", "text": "[Server] " },
-          {
-            "color": "white", "text": "#{distance_of_time_in_words_to_now(pvp.created_at)} ago ",
-            "hoverEvent": {
-              "action": "show_text", "value": "#{pvp.created_at.to_s}"
-            }
-          },
-          {
-            "color": "white", "text": "#{pvp_log}",
-            "hoverEvent": {
-              "action": "show_text", "value": "#{pvp_quotes}"
-            }
-          }
-        ]
-      DONE
-      ) unless selector.nil?
+      execute_tellraw(selector, [
+        {color: 'white', text: '[Server] '},
+        {
+          color: 'white', text: "#{distance_of_time_in_words_to_now(pvp.created_at)} ago ",
+          hoverEvent: {action: 'show_text', value: pvp.created_at.to_s}
+        },
+        {
+          color: 'white', text: pvp_log,
+          hoverEvent: {action: 'show_text', value: pvp_quotes}
+        }
+      ]) unless selector.nil?
     end
     
     def say_trust(selector, truster_nick, trustee_nick)
@@ -423,39 +392,53 @@ module Sayable
       }) do |target|
         trustee = target
       end
+
+      return if truster.nil? || trustee.nil?
       
       if truster == trustee
-        execute <<-DONE
-          tellraw #{selector} [{"color": "green", "text": "There is infinite trust for #{trustee.nick} by #{truster.nick}."}]
-        DONE
+        execute_tellraw(selector, [
+          {color: 'green', text: "There is infinite trust for #{trustee.nick} by #{truster.nick}."}
+        ])
       else
         level1 = trustee.reputation_sum(level: 'I', truster: truster)
         level2 = trustee.reputation_sum(level: 'II', truster: truster)
         
         if level1 != 0 || level2 != 0
           if level1 != 0
-            execute <<-DONE
-              tellraw #{selector} [{"color": "dark_purple", "text": "Level I Trust", "hoverEvent": {"action": "show_text", "value":"This is the sum of direct trust for #{trustee.nick} by #{truster.nick}."}}, {"color": "green", "text": " for #{trustee.nick} by #{truster.nick}: "}, {"color": "blue", "text": "#{level1}"}]
-            DONE
+            execute_tellraw(selector, [
+              {
+                color: 'dark_purple', text: 'Level I Trust',
+                hoverEvent: {
+                  action: 'show_text',
+                  value: "This is the sum of direct trust for #{trustee.nick} by #{truster.nick}."
+                }
+              },
+              {color: 'green', text: " for #{trustee.nick} by #{truster.nick}: "},
+              {color: 'blue', text: level1.to_s}
+            ])
           end
           
           if level2 != 0
-            execute <<-DONE
-              tellraw #{selector} [{"color": "dark_purple", "text": "Level II Trust", "hoverEvent": {"action": "show_text", "value":"This is the sum of all trust for #{trustee.nick} by those #{truster.nick} trusts."}}, {"color": "green", "text": " for #{trustee.nick} via #{truster.nick}: "}, {"color": "blue", "text": "#{level2}"}]
-            DONE
+            execute_tellraw(selector, [
+              {
+                color: 'dark_purple', text: 'Level II Trust',
+                hoverEvent: {
+                  action: 'show_text',
+                  value: "This is the sum of all trust for #{trustee.nick} by those #{truster.nick} trusts."
+                }
+              },
+              {color: 'green', text: " for #{trustee.nick} via #{truster.nick}: "},
+              {color: 'blue', text: level2.to_s}
+            ])
           end
         elsif !trustee.registered?
-          execute <<-DONE
-            tellraw #{selector} [{"color": "green", "text": "#{trustee.nick} cannot be trusted."}]
-          DONE
+          execute_tellraw(selector, [{color: 'green', text: "#{trustee.nick} cannot be trusted."}])
         elsif !truster.registered?
-          execute <<-DONE
-            tellraw #{selector} [{"color": "green", "text": "#{truster.nick} cannot trust."}]
-          DONE
+          execute_tellraw(selector, [{color: 'green', text: "#{truster.nick} cannot trust."}])
         else
-          execute <<-DONE
-            tellraw #{selector} [{"color": "green", "text": "No trust exists for #{trustee.nick} by #{truster.nick}."}]
-          DONE
+          execute_tellraw(selector, [
+            {color: 'green', text: "No trust exists for #{trustee.nick} by #{truster.nick}."}
+          ])
         end
       end
     end

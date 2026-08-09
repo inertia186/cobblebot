@@ -27,6 +27,14 @@ angular.module('angularCancelOnNavigateModule')
       return cancelPromise.promise;
     }
 
+    function removeTimeout(timeout) {
+      for (var index = cancelPromises.length - 1; index >= 0; index -= 1) {
+        if (cancelPromises[index].promise === timeout) {
+          cancelPromises.splice(index, 1);
+        }
+      }
+    }
+
     function cancelAll() {
       angular.forEach(cancelPromises, function (cancelPromise) {
         cancelPromise.promise.isGloballyCancelled = true;
@@ -37,6 +45,7 @@ angular.module('angularCancelOnNavigateModule')
 
     return {
       newTimeout: newTimeout,
+      removeTimeout: removeTimeout,
       cancelAll: cancelAll
     };
   }]);
@@ -52,8 +61,16 @@ angular.module('angularCancelOnNavigateModule')
         return config;
       },
 
+      response: function (response) {
+        var timeout = response && response.config && response.config.timeout;
+        HttpPendingRequestsService.removeTimeout(timeout);
+        return response;
+      },
+
       responseError: function (response) {
-        if (response.config.timeout.isGloballyCancelled) {
+        var timeout = response && response.config && response.config.timeout;
+        HttpPendingRequestsService.removeTimeout(timeout);
+        if (timeout && timeout.isGloballyCancelled) {
           return $q.defer().promise;
         }
         return $q.reject(response);

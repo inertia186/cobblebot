@@ -1,9 +1,14 @@
+require 'cgi'
+require 'ipaddr'
+require 'open3'
+
 class Ip < ActiveRecord::Base
   attr_accessor :no_cc_lookup
 
   belongs_to :player
   
   validates_uniqueness_of :address, scope: :player
+  validate :address_must_be_an_ip
   
   scope :query, lambda { |query|
     q = "%#{query}%"
@@ -18,7 +23,7 @@ class Ip < ActiveRecord::Base
   }
   
   after_validation do
-    if new_record?
+    if new_record? && errors[:address].empty?
       salt = Preference.origin_salt.strip
       hash = Digest::MD5.hexdigest "#{salt} :: #{address.split('.')[0..2].join('.')}\n"
       self.origin = hash[0..2]
@@ -47,33 +52,55 @@ class Ip < ActiveRecord::Base
   end
 private
   def self.update_cc(ip_address)
+    cc = state = city = nil
+
     begin
-      cc = nil, state = nil, city = nil
+      canonical_address = IPAddr.new(ip_address).to_s
       
-      if !!(key = Preference.db_ip_api_key)
-        url = "http://api.db-ip.com/addrinfo?addr=#{ip_address}&api_key=#{key}"
+      if (key = Preference.db_ip_api_key).present?
+        encoded_key = CGI.escape(key)
+        encoded_address = CGI.escape(canonical_address)
+        url = "https://api.db-ip.com/v2/#{encoded_key}/#{encoded_address}"
         response = Net::HTTP.get_response(URI.parse(url))
-        json = JSON.parse(response.body)
-        cc = json['country']
-        state = json['stateprov']
-        city = json['city']
+        if response.is_a?(Net::HTTPSuccess)
+          json = JSON.parse(response.body)
+          cc = json['countryCode']
+          state = json['stateProv']
+          city = json['city']
+        end
       end
     
       if cc.nil? # Fallback to ip2cc shell command.
-        cc_result = `ip2cc #{ip_address}`
-        return false if cc_result.nil?
+        cc_result, _error, status = Open3.capture3('ip2cc', canonical_address)
+        return false unless status.success?
     
         cc_result = cc_result.split('Country: ')[1]
         return false if cc_result.nil?
     
         cc = cc_result.split(' ')[0]
       end
-    
-      Ip.where(cc: nil).where(address: ip_address).update_all("cc = '#{cc}', state = '#{state}', city = '#{city}'")
+
+      return false unless cc.is_a?(String) && cc.match?(/\A[A-Z]{2}\z/)
+
+      result = {
+        country: cc,
+        state: state.is_a?(String) ? state : nil,
+        city: city.is_a?(String) ? city : nil
+      }
+      Ip.where(cc: nil, address: ip_address).update_all(
+        cc: result[:country], state: result[:state], city: result[:city]
+      )
     rescue StandardError => e
       Rails.logger.error "Problem looking up country code for #{ip_address}: #{e.inspect}"
+      return false
     end
 
-    {country: cc, state: state, city: city}
+    result
+  end
+
+  def address_must_be_an_ip
+    IPAddr.new(address.to_s)
+  rescue IPAddr::InvalidAddressError
+    errors.add(:address, 'must be a valid IP address')
   end
 end

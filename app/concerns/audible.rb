@@ -22,13 +22,14 @@ module Audible
         # Slight delay here to make sure resource packs have loaded.
         sleep(5)
       
-        execute <<-DONE
-          tellraw #{nick} {"color": "green", "text": "You have ", "extra": [
-            {"text": "#{pluralize(count, 'unread message')}", "color": "dark_purple", "underlined": "true", "clickEvent": {
-              "action": "run_command", "value": "@server mail"}, "hoverEvent":  {"action": "show_text", "value": "Type: @server mail"
-            }}
-          ]}
-        DONE
+        execute_tellraw(nick, {
+          color: 'green', text: 'You have ',
+          extra: [{
+            text: pluralize(count, 'unread message'), color: 'dark_purple', underlined: true,
+            clickEvent: {action: 'run_command', value: '@server mail'},
+            hoverEvent: {action: 'show_text', value: 'Type: @server mail'}
+          }]
+        })
       
         play_sound(nick, 'mailsound')
       end
@@ -36,8 +37,14 @@ module Audible
   private
     def prep_play_sound_selector(selector)
       return nil if Server.players.none?
-      
+
       if (disabled = Server.players.play_sounds(false)).any?
+        unless selector.to_s.start_with?('@')
+          return nil if disabled.any? { |player| player.nick.casecmp?(selector.to_s) }
+
+          return selector
+        end
+
         subs = disabled.map { |p| "name=!#{p.nick}" }
         selector = merge_selectors(selector, "@#{selector[1]}[#{subs.join(',')}]")
       end

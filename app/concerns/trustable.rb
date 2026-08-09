@@ -15,7 +15,7 @@ module Trustable
         return
       end
 
-      if trustee_nick =~ /@/
+      if trustee_nick.include?('@')
         tell(truster.nick, 'Sorry, you can only rate specific players.')
         return
       end
@@ -49,7 +49,7 @@ module Trustable
         return
       end
 
-      if nick =~ '@'
+      if nick.include?('@')
         tell(voter.nick, 'Sorry, you can only votekick specific players.')
         return
       end

@@ -1,9 +1,23 @@
 require 'test_helper'
 
 class TestRuntimeNoiseTest < Minitest::Test
+  def test_application_version
+    assert_equal '1.58.0', COBBLEBOT_VERSION
+  end
+
   def test_minitest_6_and_extracted_mock_runtime_are_loaded
     assert_equal '6.0.6', Minitest::VERSION
     assert defined?(Minitest::Mock)
+  end
+
+  def test_hell_mode_uses_the_rails_parallel_executor
+    if HELL_MODE_ENABLED
+      assert_instance_of ActiveSupport::Testing::ParallelizeExecutor,
+        Minitest.parallel_executor
+    else
+      refute_instance_of ActiveSupport::Testing::ParallelizeExecutor,
+        Minitest.parallel_executor
+    end
   end
 
   def test_rails_8_1_framework_and_defaults_are_loaded
@@ -50,13 +64,11 @@ class TestRuntimeNoiseTest < Minitest::Test
   end
 
   def test_postgresql_adapter_decodes_dates
-    if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
-      value = ActiveRecord::Base.connection.select_value("SELECT DATE '2026-08-05'")
-      assert_instance_of Date, value
-      assert_equal Date.new(2026, 8, 5), value
-    else
-      assert Rails.application.config.active_record.postgresql_adapter_decode_dates
-    end
+    assert_equal 'PostgreSQL', ActiveRecord::Base.connection.adapter_name
+
+    value = ActiveRecord::Base.connection.select_value("SELECT DATE '2026-08-05'")
+    assert_instance_of Date, value
+    assert_equal Date.new(2026, 8, 5), value
   end
 
   def test_rails_7_1_runtime_defaults_are_active
@@ -118,14 +130,15 @@ class TestRuntimeNoiseTest < Minitest::Test
   end
 
   def test_simplecov_uses_an_explicit_suite_name
-    assert_equal 'Rails Tests', SimpleCov.command_name
+    assert_match(/\ARails Tests(?: \(subprocess: \d+\))?\z/,
+      SimpleCov.command_name)
   end
 
   def test_focused_runs_keep_coverage_merging_without_a_floor
     return if ENV['COBBLEBOT_COVERAGE_GATE'] == '1'
 
     assert SimpleCov.merging
-    assert_empty SimpleCov.minimum_coverage
+    assert_includes [{}, {line: 0}], SimpleCov.minimum_coverage
   end
 
   def test_coverage_gate_is_unmerged_and_requires_75_percent

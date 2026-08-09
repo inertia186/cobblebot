@@ -3,6 +3,8 @@ class Link < ActiveRecord::Base
   
   belongs_to :actor, polymorphic: true, optional: true
 
+  validate :url_must_be_public, if: -> { url.present? && (new_record? || will_save_change_to_url?) }
+
   scope :optionally_for_url, lambda { |url = nil|
     if !!url
       where(url: url)
@@ -42,16 +44,19 @@ class Link < ActiveRecord::Base
 
     if new_record?
       agent = populate_from_get_response(url, self)
-    
-      return unless agent.page
+      page = agent&.page
+
+      return unless page
     elsif expired?
       agent = CobbleBotAgent.new
       page = agent.head url
 
       if page.nil? || page.title.nil?
         agent = populate_from_get_response(self.url, self)
+        page = agent&.page
       elsif !!( timestamp = page.response['last-modified'] ) && Time.parse(timestamp) != last_modified_at
         agent = populate_from_get_response(self.url, self)
+        page = agent&.page
       end
     end
 
@@ -72,7 +77,7 @@ class Link < ActiveRecord::Base
   end
 
   def expired?
-    expires_at.present? && expires_at < Time.now
+    expires_at.nil? || expires_at < Time.now
   end
   
   def embedded_url
@@ -88,20 +93,22 @@ class Link < ActiveRecord::Base
   end
   
   def can_embed?
-    return can_embed unless can_embed.nil?
+    persisted_can_embed = self[:can_embed]
+    return persisted_can_embed unless persisted_can_embed.nil?
     
     agent = CobbleBotAgent.new
     page = agent.head embedded_url
     
     return unless !!page.response
     
-    can_embed = page.response['x-frame-options'] != 'deny'
-    update_attribute(:can_embed, can_embed) # no AR callbacks
-    
-    can_embed
-  rescue Mechanize::ResponseCodeError => e
+    fetched_can_embed = response_embeddable?(page.response)
+    update_attribute(:can_embed, fetched_can_embed) # no AR callbacks
+
+    fetched_can_embed
+  rescue Mechanize::ResponseCodeError
     update_attribute(:can_embed, false) # no AR callbacks
-  rescue Errno::ENETUNREACH => e
+    false
+  rescue Errno::ENETUNREACH
     # try again later
   end
 private
@@ -113,8 +120,7 @@ private
 
       return unless !!page.response
 
-      can_embed = page.response['x-frame-options'] != 'deny'
-      link.can_embed = can_embed
+      link.can_embed = response_embeddable?(page.response)
 
       link.title = if page && defined?(page.title) && page.title
         page.title.strip
@@ -122,7 +128,9 @@ private
         url
       end
     rescue SocketError => e
-      Rails.logger.warn "Ignoring url: #{link.url}" && return
+      link.title ||= url
+      Rails.logger.warn "Ignoring url: #{link.url}"
+      return
     rescue Net::OpenTimeout => e
       link.title = url
     rescue Net::HTTP::Persistent::Error => e
@@ -134,6 +142,20 @@ private
     agent
   end
 
+  def url_must_be_public
+    CobbleBotAgent.validate_url!(url)
+  rescue CobbleBotAgent::UnsafeUrlError => e
+    errors.add(:url, e.message)
+  end
+
+  def response_embeddable?(response)
+    policies = response['x-frame-options'].to_s.split(',').map do |policy|
+      policy.strip.downcase
+    end
+
+    policies.none? { |policy| %w[deny sameorigin].include?(policy) }
+  end
+
   def extract_expires_at(response)
     response_date = if !!response['date']
       Time.parse(response['date'])
@@ -142,8 +164,16 @@ private
     end
     
     if !!(cache_control = response['cache-control'])
-      return response_date + 3600.seconds if cache_control == 'no-cache'
-      return response_date + cache_control.split('=').last.to_i
+      directives = cache_control.split(',').map { |directive| directive.strip.downcase }
+      return response_date if directives.any? { |directive| %w[no-cache no-store].include?(directive) }
+
+      max_age = directives.filter_map do |directive|
+        match = directive.match(/\Amax-age\s*=\s*"?(\d+)"?\z/)
+        Integer(match[1], 10) if match
+      end.first
+      return response_date + max_age if max_age
+
+      return response_date
     elsif !!(expires = response['Expires'])
       return Time.parse(expires)
     else

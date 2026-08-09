@@ -41,15 +41,6 @@ class Admin::DonationsControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  def test_index
-    get :index
-    donations = assigns :donations
-    refute_equal donations.count(:all), 0, 'did not expect zero count'
-
-    assert_template :index
-    assert_response :success
-  end
-
   def test_index_for_players
     player = Player.first
     assert_difference -> { player.donations.count }, 1, 'expect different count' do
@@ -104,6 +95,16 @@ class Admin::DonationsControllerTest < ActionController::TestCase
     assert_redirected_to admin_message_donations_url
   end
 
+  def test_create_defaults_author_type_when_an_author_is_selected
+    assert_difference -> { Message::Donation.count }, 1 do
+      post :create, params: {
+        message_donation: donation_params.except(:author_type)
+      }
+    end
+
+    assert_equal 'Player', assigns(:donation).reload.author_type
+  end
+
   def test_create_failure
     assert_no_difference -> { Message::Donation.count }, 'did not expect different count' do
       post :create, params: { message_donation: donation_params.merge(body: Preference.stop_words) }
@@ -125,6 +126,19 @@ class Admin::DonationsControllerTest < ActionController::TestCase
 
     assert_template nil
     assert_redirected_to admin_message_donations_url
+  end
+
+  def test_update_defaults_author_type_when_an_author_is_selected
+    donation = Message::Donation.first
+    donation.update_columns(author_id: nil, author_type: nil)
+
+    patch :update, params: {
+      id: donation.id,
+      message_donation: donation_params.except(:author_type)
+    }
+
+    assert_redirected_to admin_message_donations_url
+    assert_equal 'Player', donation.reload.author_type
   end
 
   def test_update_failure

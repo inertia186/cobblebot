@@ -10,6 +10,13 @@ class ResqueWebTest < ActionDispatch::IntegrationTest
     get '/admin/resque/', headers: authorization_headers('wrong-password')
 
     assert_response :unauthorized
+
+    get '/admin/resque/', headers: authorization_headers(
+      Preference.web_admin_password,
+      username: 'not-admin'
+    )
+
+    assert_response :unauthorized
   end
 
   def test_authenticated_mount_redirects_to_overview
@@ -28,8 +35,8 @@ class ResqueWebTest < ActionDispatch::IntegrationTest
 
   private
 
-  def authorization_headers(password)
-    credentials = ActionController::HttpAuthentication::Basic.encode_credentials('admin', password)
+  def authorization_headers(password, username: 'admin')
+    credentials = ActionController::HttpAuthentication::Basic.encode_credentials(username, password)
     {'HTTP_AUTHORIZATION' => credentials}
   end
 end

@@ -3,13 +3,21 @@ json.(@pvps) do |pvp|
   json.body pvp.body
   json.created_at pvp.created_at
 
-  json.loser do
-    json.nick pvp.recipient.nick
-    json.quote pvp.loser_quote
+  if pvp.recipient
+    json.loser do
+      json.nick pvp.recipient.nick
+      json.quote pvp.loser_quote
+    end
+  else
+    json.loser nil
   end
 
-  json.winner do
-    json.nick pvp.author.nick
-    json.quote pvp.winner_quote
+  if pvp.author
+    json.winner do
+      json.nick pvp.author.nick
+      json.quote pvp.winner_quote
+    end
+  else
+    json.winner nil
   end
 end

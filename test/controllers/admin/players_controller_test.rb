@@ -34,12 +34,22 @@ class Admin::PlayersControllerTest < ActionController::TestCase
   end
 
   def test_index_json
-    get :index, params: { format: :json, select: '*' }
+    get :index, params: { format: :json, select: 'id,nick,last_nick' }
     players = assigns :players
-    refute_equal players.count, 0, 'did not expect zero count'
+    refute_empty players.to_a, 'did not expect zero count'
+    assert_equal %w[id last_nick nick], players.first.attributes.keys.sort
 
     assert_template nil
     assert_response :success
+  end
+
+  def test_index_rejects_unapproved_select_expressions
+    get :index, params: {
+      format: :json,
+      select: 'id,(SELECT COUNT(*) FROM messages) AS messages_count'
+    }
+
+    assert_response :bad_request
   end
 
   def test_show

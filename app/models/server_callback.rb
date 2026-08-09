@@ -165,14 +165,19 @@ class ServerCallback < ActiveRecord::Base
   end
 
   def handle_entry(player, message, line, options = {})
-    case message
-    when ServerCommand.eval_pattern(pattern, to_param)
-      execute_command(player, message, options)
-      update_column(:last_match, line) # no AR callbacks
-      true
-    else
-      nil
+    return unless message&.match?(ServerCommand.eval_pattern(pattern, to_param))
+
+    executed = false
+    ServerCallbackExecutionLock.synchronize(self) do
+      reload
+      if ready?
+        execute_command(player, message, options)
+        update_column(:last_match, line) # no AR callbacks
+        executed = true
+      end
     end
+
+    true if executed
   end
 
   def execute_command(nick, message, options = {})

@@ -1,4 +1,5 @@
 class Preference < ActiveRecord::Base
+  WEB_ADMIN_PASSWORD_ENV = 'COBBLEBOT_WEB_ADMIN_PASSWORD'
   TRY_MAX = 'try_max'
   WEB_ADMIN_PASSWORD = 'web_admin_password'
   PATH_TO_SERVER = 'path_to_server'
@@ -22,6 +23,11 @@ class Preference < ActiveRecord::Base
   ORIGIN_SALT = 'origin_salt'
   DB_IP_API_KEY = 'db_ip_api_key'
   MMP_API_KEY = 'mmp_api_key'
+
+  SECURE_KEYS = [
+    WEB_ADMIN_PASSWORD, IRC_NICKSERV_PASSWORD, ORIGIN_SALT, DB_IP_API_KEY,
+    MMP_API_KEY
+  ].freeze
 
   # System keys are used internally, typically hidden from the web views.
   LATEST_RESOURCE_PACK_HASH = 'latest_resource_pack_hash'
@@ -78,9 +84,12 @@ class Preference < ActiveRecord::Base
   def to_param
     key.parameterize
   end
+
+  def secure?
+    SECURE_KEYS.include?(key)
+  end
   
   def self.find_or_create_all(system = true)
-    result = []
     keys = ALL_KEYS
     keys -= SYSTEM_KEYS unless system
     
@@ -88,10 +97,23 @@ class Preference < ActiveRecord::Base
     return r if r.count == keys.size
     
     keys.each do |key|
-      result << Preference.find_or_create_by(key: key)
+      Preference.find_or_create_by(key: key)
     end
-    
-    result
+
+    Preference.where(key: keys)
+  end
+
+  def self.provision_web_admin_password!(environment: ENV)
+    existing = find_by(key: WEB_ADMIN_PASSWORD)
+    return existing if existing
+
+    password = environment[WEB_ADMIN_PASSWORD_ENV].to_s
+    if password.blank?
+      raise ArgumentError,
+        "Set #{WEB_ADMIN_PASSWORD_ENV} before seeding a new database."
+    end
+
+    create!(key: WEB_ADMIN_PASSWORD, value: password, system: false)
   end
 private
   def self.prefixed?(method, op)

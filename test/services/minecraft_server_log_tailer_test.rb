@@ -42,7 +42,7 @@ class MinecraftServerLogTailerTest < ActiveSupport::TestCase
       @paths << path
       raise @error if @error
 
-      yield @log
+      @log
     end
   end
 
@@ -95,16 +95,16 @@ class MinecraftServerLogTailerTest < ActiveSupport::TestCase
     assert_equal 0.25, log.interval
     assert_equal 0.5, log.max_interval
     assert log.return_if_eof
-    assert_equal ["first\n", "second\n"], @handler.lines
+    assert_equal ["first\n", "first\n", "second\n"], @handler.lines
     assert_equal [0.25, 0.25, 0.25], @sleeper.intervals
   end
 
-  def test_duplicate_cache_resets_after_log_length_lines
+  def test_distinct_records_with_identical_content_are_all_delivered
     log = FakeLog.new([["same\n", "same\n"], ["same\n"]])
 
     call_tailer(log: log, max_ticks: 2, log_length: 2)
 
-    assert_equal ["same\n", "same\n"], @handler.lines
+    assert_equal ["same\n", "same\n", "same\n"], @handler.lines
   end
 
   def test_logs_a_slow_handler
@@ -133,6 +133,14 @@ class MinecraftServerLogTailerTest < ActiveSupport::TestCase
 
     assert_equal :terminated, call_tailer(log: log)
     assert_includes @log_output.string, 'Detected ^C'
+  end
+
+  def test_handler_file_errors_are_not_misreported_as_a_missing_log
+    @handler.define_singleton_method(:handle) { |_line| raise Errno::ENOENT, 'handler' }
+    log = FakeLog.new([["line\n"]])
+
+    assert_raises(Errno::ENOENT) { call_tailer(log: log) }
+    refute_includes @log_output.string, 'Need to finish setup:'
   end
 
 private

@@ -1,4 +1,4 @@
-= content_for :head, auto_discovery_link_tag(:atom, "http://#{donations_url(format: :atom).split('://')[1]}")
+= content_for :head, auto_discovery_link_tag(:atom, donations_url(format: :atom))
 
 %div{data: {preload_resource: '/donations.json', data: (render template: '/donations/index', formats: [:json])}}
 
@@ -25,12 +25,13 @@
           %th Created
       %tbody.animate-container
         %tr.animate-repeat{ng_if: 'donations.length == 0'}
-          %td{cell_span: 4} Searching ...
+          %td{colspan: 3} Searching ...
         %tr.animate-repeat{ng_repeat: 'donation in (filteredDonations = ( donations | searchFor:searchString | filter:query ) )', repeat_complete: 'repeatComplete()'}
           %td {{donation.body}}
           %td
-            %a.tip{data: { title: "{{donation.author.quote}}" }}
-              %img{ng_src: "/player_images/{{donation.author.nick}}.png", width: 16, height: 16, alt: '{{donation.author.nick}}'}
-            {{donation.author.nick}}
+            %a.tip{'ng-if' => 'donation.author', data: { title: "{{donation.author.quote}}" }}
+              %img{'ng-src' => "/player_images/{{donation.author.nick}}.png", width: 16, height: 16, alt: '{{donation.author.nick}}'}
+            %span{'ng-if' => 'donation.author'} {{donation.author.nick}}
+            %span{'ng-if' => '!donation.author'} Anonymous
           %td{data: {title: '{{donation.created_at}}'}}
             {{donation.createdAgo()}}

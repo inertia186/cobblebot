@@ -27,6 +27,26 @@ class Admin::PreferencesControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_index_redacts_secure_values_from_json_and_html
+    preference = preferences(:irc_nickserv_password)
+    secret = preference.value
+
+    get :index, params: { format: :json }
+
+    rendered = JSON.parse(response.body).find { |item| item['key'] == preference.key }
+    assert_nil rendered['value']
+    assert_equal true, rendered['secure']
+    assert_equal true, rendered['has_value']
+    refute_includes response.body, secret
+    assert_equal 'no-store', response.headers['Cache-Control']
+
+    get :index
+
+    refute_includes response.body, secret
+    assert_equal 'no-store', response.headers['Cache-Control']
+    assert_equal 'no-cache', response.headers['Pragma']
+  end
+
   def test_edit_cell
     get :edit_cell
 
@@ -40,7 +60,7 @@ class Admin::PreferencesControllerTest < ActionController::TestCase
       value: 'value'
     }
 
-    post :update, params: { format: :json, id: preference, preference: preference_params }
+    patch :update, params: { format: :json, id: preference, preference: preference_params }
 
     preference = assigns :preference
     assert preference.errors.empty?, preference.errors.inspect
@@ -49,13 +69,39 @@ class Admin::PreferencesControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_blank_secure_update_preserves_the_existing_value
+    preference = preferences(:irc_nickserv_password)
+    original_value = preference.value
+
+    patch :update, params: {
+      format: :json, id: preference, preference: { value: '' }
+    }
+
+    assert_response :accepted
+    assert_equal original_value, preference.reload.value
+    assert_equal 'no-store', response.headers['Cache-Control']
+  end
+
+  def test_secure_update_accepts_a_replacement_without_returning_it
+    preference = preferences(:irc_nickserv_password)
+    replacement = 'replacement-secret'
+
+    patch :update, params: {
+      format: :json, id: preference, preference: { value: replacement }
+    }
+
+    assert_response :accepted
+    assert_equal replacement, preference.reload.value
+    refute_includes response.body, replacement
+  end
+
   def test_update_rejects_invalid_json
     preference = Preference.where("key LIKE '%_json'").first
     preference_params = {
       value: 'WRONG'
     }
 
-    post :update, params: { format: :json, id: preference, preference: preference_params }
+    patch :update, params: { format: :json, id: preference, preference: preference_params }
 
     preference = assigns :preference
     assert_equal 1, preference.errors[:value].size
@@ -67,7 +113,7 @@ class Admin::PreferencesControllerTest < ActionController::TestCase
   end
 
   def test_update_rejects_a_missing_server_path
-    post :update, params: {
+    patch :update, params: {
       format: :json,
       id: Preference::PATH_TO_SERVER,
       preference: { value: Rails.root.join('missing-minecraft-server').to_s }
@@ -80,7 +126,7 @@ class Admin::PreferencesControllerTest < ActionController::TestCase
   end
 
   def test_update_rejects_a_non_integer_irc_port
-    post :update, params: {
+    patch :update, params: {
       format: :json,
       id: Preference::IRC_SERVER_PORT,
       preference: { value: 'not-a-port' }

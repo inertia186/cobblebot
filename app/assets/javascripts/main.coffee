@@ -12,6 +12,21 @@ config(["$httpProvider", ($httpProvider) ->
 factory("resourceCache", ["$cacheFactory", ($cacheFactory) ->
   $cacheFactory("resourceCache")
 ]).
+filter('searchFor', -> (items, searchString) ->
+  return items unless searchString
+
+  normalize = (value) ->
+    if angular.isString(value) then value.toLowerCase() else ''
+
+  query = normalize(searchString)
+  result = []
+  angular.forEach items, (item) ->
+    text = normalize(item.body)
+    angular.forEach [item.author, item.loser, item.winner], (player) ->
+      text += " " + normalize(player.quote) if player
+    result.push(item) if text.indexOf(query) != -1
+  result
+).
 directive("preloadResource", ["resourceCache", (resourceCache) ->
   link: (scope, element, attrs) ->
     resourceCache.put(attrs.preloadResource, attrs.data)
@@ -65,27 +80,27 @@ directive('flash', ['Flash', '$compile', (Flash, $compile) ->
       Flash.create('success', message, "#{alertType} nga-fast nga-slide-up")
   ]
 ]).
-directive('formErrors', ['$compile', ($compile) ->
+directive('formErrors', ->
   restrict: 'E'
   scope:
     errors: '=errors'
   controller: ['$scope', '$element', '$attrs', ($scope, $element, $attrs) ->
     return if $scope.errors.length == 0
     
-    template = '''
-      <div role="alert" class="center-block alert alert-danger">
-      <h2>Form is invalid</h2>
-      <ul>
-    '''
-      
+    container = $('<div>',
+      role: 'alert'
+      class: 'center-block alert alert-danger'
+    )
+    container.append $('<h2>').text('Form is invalid')
+    list = $('<ul>')
+
     angular.forEach $scope.errors, (msg) ->
-      template += '<li>' + msg
-        
-    template += '</ul></div>'
-      
-    $element.append $compile(template)($scope)
+      list.append $('<li>').text(msg)
+
+    container.append list
+    $element.empty().append container
   ]
-]).
+).
 directive('suggestion', -> {
   restrict: 'E',
   templateUrl: (e, attr) ->
@@ -184,7 +199,7 @@ factory('Preference', ['$resource', 'resourceCache', ($resource, resourceCache) 
       ( @value.length >= MAX + ELLIPSIS.length ||
       @value.indexOf("\n") != -1 || @isJson() )
     isTruthy: -> /_enabled$|latest_gametick_in_progress/.test @key
-    isSecure: -> /password|_key$|_salt$/.test @key
+    isSecure: -> @secure == true
     isCommandScheme: -> /command_scheme/.test @key
     isTextField: ->
       !@isCommandScheme() && !@isTruthy() && !@isVerbose()
@@ -203,7 +218,7 @@ factory('Preference', ['$resource', 'resourceCache', ($resource, resourceCache) 
         when 'irc_server_port' then 'IRC Server Port'
         when 'irc_nick' then 'IRC Nick'
         when 'irc_channel' then 'IRC Channel'
-        when 'irc_channel_ops' then 'IRC Channel OPs'
+        when 'irc_channel_ops' then 'IRC Operator Identities'
         when 'irc_nickserv_password' then 'IRC NICKSERV Password'
         when 'rules_json' then 'Rules JSON'
         when 'tutorial_json' then 'Tutorial JSON'
@@ -215,7 +230,7 @@ factory('Preference', ['$resource', 'resourceCache', ($resource, resourceCache) 
         else @key
     displayValue: ->
       if @isSecure()
-        '********'
+        if @has_value then '********' else ''
       else if @isTruthy()
         @value == '1' || @value == 't'
       else if @isTimestamp()

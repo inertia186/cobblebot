@@ -12,27 +12,21 @@ module Relayable
       Rails.logger.info "From IRC: #{message}"
     
       if Preference.irc_web_chat_enabled?
-        execute <<-DONE
-          tellraw #{selector} [
-            { "color": "white", "text": "[" },
-            {
-              "color": "gold", "text": "irc", "hoverEvent": {
-                "action": "show_text", "value": "#{Preference.irc_web_chat_url_label}"
-              }, "clickEvent": {
-                "action": "open_url", "value": "#{Preference.irc_web_chat_url}"
-              }
-            },
-            { "color": "white", "text":"] #{message}" }
-          ]
-        DONE
+        execute_tellraw(selector, [
+          {color: 'white', text: '['},
+          {
+            color: 'gold', text: 'irc',
+            hoverEvent: {action: 'show_text', value: Preference.irc_web_chat_url_label},
+            clickEvent: {action: 'open_url', value: Preference.irc_web_chat_url}
+          },
+          {color: 'white', text: "] #{message}"}
+        ])
       else
-        execute <<-DONE
-          tellraw @a [
-            { "color": "white", "text": "[" },
-            { "color": "gold", "text": "irc" },
-            { "color": "white", "text": "] #{message}" }
-          ]
-        DONE
+        execute_tellraw(selector, [
+          {color: 'white', text: '['},
+          {color: 'gold', text: 'irc'},
+          {color: 'white', text: "] #{message}"}
+        ])
       end
     end
     
@@ -42,27 +36,21 @@ module Relayable
       Rails.logger.info "From IRC: <#{irc_nick}> #{message}"
     
       if Preference.irc_web_chat_enabled?
-        execute <<-DONE
-          tellraw #{selector} [
-            { "color": "white", "text": "[" },
-            {
-              "color": "gold", "text": "irc", "hoverEvent": {
-                "action": "show_text", "value": "#{Preference.irc_web_chat_url_label}"
-              }, "clickEvent": {
-                "action": "open_url", "value": "#{Preference.irc_web_chat_url}"
-              }
-            },
-            { "color": "white", "text":"] <#{irc_nick}> #{message}" }
-          ]
-        DONE
+        execute_tellraw(selector, [
+          {color: 'white', text: '['},
+          {
+            color: 'gold', text: 'irc',
+            hoverEvent: {action: 'show_text', value: Preference.irc_web_chat_url_label},
+            clickEvent: {action: 'open_url', value: Preference.irc_web_chat_url}
+          },
+          {color: 'white', text: "] <#{irc_nick}> #{message}"}
+        ])
       else
-        execute <<-DONE
-          tellraw @a [
-            { "color": "white", "text": "[" },
-            { "color": "gold", "text": "irc" },
-            { "color": "white", "text": "] <#{irc_nick}> #{message}" }
-          ]
-        DONE
+        execute_tellraw(selector, [
+          {color: 'white', text: '['},
+          {color: 'gold', text: 'irc'},
+          {color: 'white', text: "] <#{irc_nick}> #{message}"}
+        ])
       end
     end
     
