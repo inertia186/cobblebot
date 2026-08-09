@@ -13,31 +13,18 @@ previous_button = $('#previous_player')
 next_button = $('#next_player')
 last_button = $('#last_player')
 
-if first_player_row.length == 0 || first_player_row.data('id') == next_player_row.data('id')
-  first_button.attr('disabled', 'disabled')
+configure_nav = (button, row, disabled) ->
+  button.off('.playerNavigation')
+  if disabled || row.length == 0 || !row.data('id')
+    button.addClass('disabled').attr('aria-disabled', 'true').removeAttr('href')
+    button.on 'click.playerNavigation', (event) -> event.preventDefault()
+  else
+    button.removeClass('disabled').removeAttr('aria-disabled')
+    button.attr('href', '<%= j admin_players_path %>/' + row.data('id'))
 
-if previous_player_row.length == 0
-  previous_button.attr('disabled', 'disabled')
-
-if next_player_row.length == 0
-  next_button.attr('disabled', 'disabled')
-
-if last_player_row.length == 0 || last_player_row.data('id') == previous_player_row.data('id')
-  last_button.attr('disabled', 'disabled')
-
-first_button.click ->
-  id = first_player_row.data('id')
-  @href = @href + '/' + id
-
-previous_button.click ->
-  id = previous_player_row.data('id')
-  @href = @href + '/' + id
-
-next_button.click ->
-  id = next_player_row.data('id')
-  @href = @href + '/' + id
-
-last_button.click ->
-  id = last_player_row.data('id')
-  @href = @href + '/' + id
-
+configure_nav first_button, first_player_row,
+  first_player_row.length == 0 || first_player_row.data('id') == next_player_row.data('id')
+configure_nav previous_button, previous_player_row, previous_player_row.length == 0
+configure_nav next_button, next_player_row, next_player_row.length == 0
+configure_nav last_button, last_player_row,
+  last_player_row.length == 0 || last_player_row.data('id') == previous_player_row.data('id')

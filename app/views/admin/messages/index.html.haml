@@ -1,4 +1,4 @@
-= content_for :head, auto_discovery_link_tag(:atom, "http://admin:#{Preference.web_admin_password}@#{admin_messages_url(format: :atom).split('://')[1]}")
+= content_for :head, auto_discovery_link_tag(:atom, admin_messages_url(format: :atom))
 
 .row
   .col-sm-3

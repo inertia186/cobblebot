@@ -92,11 +92,16 @@ class ServerCommand
     lines = IO.readlines(server_log)
     return if lines.nil?
 
+    escaped_nick = Regexp.escape(nick.to_s)
     if !!containing
-      lines.reject! { |line| line =~ %r(: \<#{nick}\> .*%s*)i }
-      line = lines.select { |line| line =~ %r(: \<#{nick}\> .*#{containing}.*)i }.last
+      escaped_text = Regexp.escape(containing.to_s)
+      line = lines.select do |entry|
+        entry.match?(%r(: <#{escaped_nick}> .*#{escaped_text}.*)i)
+      end.last
     else
-      line = lines.select { |line| line =~ %r(: \<#{nick}\> .*)i }.last
+      line = lines.select do |entry|
+        entry.match?(%r(: <#{escaped_nick}> .*)i)
+      end.last
     end
 
     line.split(' ')[4..-1].join(' ') unless line.nil?

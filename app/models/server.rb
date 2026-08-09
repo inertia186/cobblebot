@@ -17,8 +17,12 @@ class Server
     @mock_options = nil
   end
 
-  def self.try_max
-    Rails.env == 'test' ? 1 : Preference.try_max.to_i || TRY_MAX
+  def self.try_max(preference_value: Preference.try_max,
+                   test_environment: Rails.env.test?)
+    return 1 if test_environment
+
+    attempts = Integer(preference_value, exception: false)
+    attempts&.positive? ? attempts : TRY_MAX
   end
   
   def self.retry_sleep
@@ -102,61 +106,73 @@ class Server
     return @mock_options[:entity_data] if !!@mock_options
     
     error_response = 'The entity UUID provided is in an invalid format'
-    rcon = RCON::Minecraft.new(ServerProperties.server_ip, ServerProperties.rcon_port)
-    rcon.auth(ServerProperties.rcon_password)
+    rcon = RCON::Minecraft.new(
+      ServerProperties.server_ip, ServerProperties.rcon_port
+    )
     response = []
-    
-    selector = if !!options[:selector]
-      options[:selector]
-    elsif !!options[:near_player] && !!options[:radius]
-      radius = options[:radius]
-      player = options[:near_player]
-      player = Player.find_by_nick player if player.class == String
-      
-      pos = player.current_pos
-      raise CobbleBotError.new(message: "Unable to find #{player.nick} position.") unless !!pos
-      
-      "@e[r=#{radius},x=#{pos[0].to_i},y=#{pos[1].to_i},z=#{pos[2].to_i}]"
-    elsif !!options[:only_type]
-      s = '@e['
-      if options[:only_type].class == Array
-        # FIXME This actually does not work.  Only the last type added to the selector will be recognized. See: http://gaming.stackexchange.com/questions/166679/how-do-i-select-two-types-of-entities-in-minecraft-with-the-type-selector
-        options[:only_type].each do |type|
-          s += ',' unless s == '@e['
-          s += "type=#{type}"
-        end
-      else
-        s += "type=#{options[:only_type]}"
-      end
-      
-      s += ']'
-    elsif !!options[:except_type]
-      s = '@e['
-      if options[:except_type].class == Array
-        # FIXME See above fixme for why this doesn't work.
-        options[:except_type].each do |type|
-          s += ',' unless s == '@e['
-          s += "type=!#{type}"
-        end
-      else
-        s += "type=!#{options[:except_type]}"
-      end
-      
-      s += ']'
-    end
 
-    response << rcon.command("entitydata #{selector} {}")
     begin
-      MAX_ENTITY_DATA_RESPONSE_PACKETS.times do
-        r = rcon.command('')
-        break if r.to_s.match?(EMPTY_RCON_COMMAND_RESPONSE)
+      rcon.auth(ServerProperties.rcon_password)
+      selector = if !!options[:selector]
+        options[:selector]
+      elsif !!options[:near_player] && !!options[:radius]
+        radius = options[:radius]
+        player = options[:near_player]
+        player = Player.find_by_nick player if player.class == String
 
-        response << r
+        pos = player.current_pos
+        unless !!pos
+          raise CobbleBotError.new(
+            message: "Unable to find #{player.nick} position."
+          )
+        end
+
+        "@e[r=#{radius},x=#{pos[0].to_i},y=#{pos[1].to_i},z=#{pos[2].to_i}]"
+      elsif !!options[:only_type]
+        s = '@e['
+        if options[:only_type].class == Array
+          # FIXME Only the last repeated type selector is recognized.
+          options[:only_type].each do |type|
+            s += ',' unless s == '@e['
+            s += "type=#{type}"
+          end
+        else
+          s += "type=#{options[:only_type]}"
+        end
+
+        s += ']'
+      elsif !!options[:except_type]
+        s = '@e['
+        if options[:except_type].class == Array
+          # FIXME See above fixme for why repeated type selectors do not work.
+          options[:except_type].each do |type|
+            s += ',' unless s == '@e['
+            s += "type=!#{type}"
+          end
+        else
+          s += "type=!#{options[:except_type]}"
+        end
+
+        s += ']'
       end
-    rescue StandardError => e
-      Rails.logger.warn "#{self} :: #{e.inspect}"
+
+      response << rcon.command("entitydata #{selector} {}")
+      begin
+        MAX_ENTITY_DATA_RESPONSE_PACKETS.times do
+          r = rcon.command('')
+          break if r.to_s.match?(EMPTY_RCON_COMMAND_RESPONSE)
+
+          response << r
+        end
+      rescue StandardError => e
+        Rails.logger.warn "#{self} :: #{e.inspect}"
+      end
     ensure
-      rcon.disconnect
+      begin
+        rcon.disconnect
+      rescue StandardError => e
+        Rails.logger.warn "Unable to disconnect RCON: #{e.class}"
+      end
     end
     response -= [error_response]
 
@@ -276,15 +292,33 @@ class Server
 
   # To get the full list of votes.
   def self.mmp_votes
-    url = "http://minecraft-mp.com/api/?object=servers&element=votes&key=#{Preference.mmp_api_key}&format=json"
-    response = Net::HTTP.get_response(URI.parse(url))
-    json = JSON.parse(response.body)
+    minecraft_mp_json(
+      "https://minecraft-mp.com/api/?object=servers&element=votes" \
+      "&key=#{Preference.mmp_api_key}&format=json"
+    )
   end
 
   # To get the full detail of this server.  
   def self.mmp_status
-    url = "http://minecraft-mp.com/api/?object=servers&element=detail&key=#{Preference.mmp_api_key}"
+    minecraft_mp_json(
+      "https://minecraft-mp.com/api/?object=servers&element=detail" \
+      "&key=#{Preference.mmp_api_key}"
+    )
+  end
+
+  def self.minecraft_mp_json(url)
     response = Net::HTTP.get_response(URI.parse(url))
-    json = JSON.parse(response.body)
+    unless response.is_a?(Net::HTTPSuccess)
+      raise CobbleBotError.new(
+        message: "Minecraft-MP request failed with HTTP #{response.code}."
+      )
+    end
+
+    JSON.parse(response.body)
+  rescue CobbleBotError
+    raise
+  rescue StandardError => e
+    Rails.logger.warn "Minecraft-MP request failed: #{e.class}"
+    raise CobbleBotError.new(message: 'Minecraft-MP request failed.')
   end
 end

@@ -1,22 +1,20 @@
 require "test_helper"
 
 class TopicsTest < AcceptanceTest
-  def setup
-  end
-
   def test_basic_workflow
+    topic = Message::Topic.create!(
+      body: 'Representative acceptance topic',
+      author: players(:inertia186),
+      recipient_term: '@a'
+    )
+
     Server.mock_mode(up: true) do
       visit '/topics'
 
       assert page.has_no_content?('Searching ...'), 'did not expect "Searching ..." text showing'
+      assert_selector 'table > tbody > tr', minimum: 2
+      assert page.has_content?(topic.body), 'expected representative topic data'
+      assert page.has_content?(topic.author.nick), 'expected topic author data'
     end
   end
-
-  # def test_basic_json
-  #   Server.mock_mode(up: true) do
-  #     visit '/topics.json'
-  #     assert_equal 'application/json; charset=utf-8', page.response_headers['Content-Type']
-  #     refute_match '[]', page.source
-  #   end
-  # end
 end

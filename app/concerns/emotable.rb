@@ -11,21 +11,18 @@ module Emotable
       return if selector.nil?
     
       if !!(hover_text = options[:hover_text]) && hover_text.present?
-        execute <<-DONE
-          tellraw #{selector} [
-            { "color": "white", "text": "* #{options[:as]} "},
-            { 
-              "color": "#{options[:color]}", "text": "#{message}",
-              "hoverEvent": {
-                "action": "show_text", "value": "#{hover_text}"
-              }
-            }
-          ]
-        DONE
+        execute_tellraw(selector, [
+          {color: 'white', text: "* #{options[:as]} "},
+          {
+            color: options[:color], text: message,
+            hoverEvent: {action: 'show_text', value: hover_text}
+          }
+        ])
       else
-        execute <<-DONE
-          tellraw #{selector} [{ "color": "white", "text": "* #{options[:as]} "}, { "color": "#{options[:color]}", "text": "#{message}" }]
-        DONE
+        execute_tellraw(selector, [
+          {color: 'white', text: "* #{options[:as]} "},
+          {color: options[:color], text: message}
+        ])
       end
     end
     

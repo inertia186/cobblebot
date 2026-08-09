@@ -1,4 +1,5 @@
 require 'rcon/rcon'
+require 'json'
 
 module Commandable
   extend Runnable
@@ -22,6 +23,7 @@ module Commandable
     def reset_vars
       @command_scheme = nil
       @rcon = nil
+      @rcon_connected_at = nil
       @rcon_auth_success = nil
       @multiplexor = nil
     end
@@ -40,7 +42,7 @@ module Commandable
 
       try_max.times do
 
-        if @rcon.nil? || @rcon_connected_at.nil? || @rcon_connected_at > 15.minutes.ago
+        if @rcon.nil? || @rcon_connected_at.nil? || @rcon_connected_at < 15.minutes.ago
           @rcon = RCON::Minecraft.new(ServerProperties.server_ip, ServerProperties.rcon_port)
           @rcon_connected_at = Time.now
           @rcon_auth_success = nil
@@ -76,8 +78,9 @@ module Commandable
         begin
           case command_scheme
           when 'rcon'
-            raise CobbleBotError.new(message: "Cannot get instance of RCON.") if rcon.nil?
-            return rcon.command(command)
+            connection = rcon
+            raise CobbleBotError.new(message: "Cannot get instance of RCON.") if connection.nil?
+            return connection.command(command)
           when 'multiplexor'
             # TODO Something like: `bash -c "screen -p 0 -S minecraft -X eval 'stuff \"#{command}\"\015'"`
             raise CobbleBotError.new(message: "Multiplexor not currently supported.")
@@ -103,6 +106,14 @@ module Commandable
   
     def escape(message)
       message.gsub(/"/, "\\\"").force_encoding('US-ASCII')
+    end
+
+    def execute_tellraw(selector, payload)
+      target = selector.to_s
+      valid_target = target.match?(/\A(?:[A-Za-z0-9_]{1,16}|@[pares](?:\[[A-Za-z0-9_!,=.+:\-]*\])?)\z/)
+      raise CobbleBotError.new(message: 'Invalid Minecraft target selector.') unless valid_target
+
+      execute "tellraw #{target} #{JSON.generate(payload)}"
     end
   
     def register(nick)

@@ -1,6 +1,8 @@
 require 'digest/md5'
 
 class Admin::PlayersController < Admin::AdminController
+  SELECTABLE_COLUMNS = %w[id nick last_nick].freeze
+
   before_action :authenticate_admin!
   before_action :setup_params, only: :index
   
@@ -9,7 +11,7 @@ class Admin::PlayersController < Admin::AdminController
   def index
     @sort_field = params[:sort_field].present? ? params[:sort_field] : 'last_login_at'
     @origin = params[:origin]
-    @select = params[:select]
+    @select = params[:select].to_s.split(',').map(&:strip) if params[:select].present?
     @cc = params[:cc]
     
     @players = Player.all
@@ -17,8 +19,10 @@ class Admin::PlayersController < Admin::AdminController
     @players = @players.where(id: Ip.where(origin: @origin).select(:player_id)) if !!@origin
     @players = @players.where(id: Ip.where(cc: @cc).select(:player_id)) if !!@cc
 
-    if !!@select
-      @players = @players.select(@select)
+    if @select
+      return head :bad_request unless @select.present? && (@select - SELECTABLE_COLUMNS).empty?
+
+      @players = @players.select(*@select.map(&:to_sym))
     else
       @players = @players.select <<-DONE
         players.*,

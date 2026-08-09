@@ -77,7 +77,7 @@
                 = link_to 'Server Properties', admin_config_server_properties_path
               %li.dropdown-item
                 %span.glyphicon.glyphicon-dashboard
-                = link_to 'Resque', "http://admin:#{Preference.web_admin_password}@#{admin_resque_server_url.split('://')[1]}", target: '_new'
+                = link_to 'Resque', admin_resque_server_url, target: '_blank', rel: 'noopener noreferrer'
               %li.dropdown-item
                 %span.glyphicon.glyphicon-minus-sign
                 = link_to 'Admin Log Out', admin_destroy_session_path, method: :delete, data: { confirm: 'Are you sure?' }

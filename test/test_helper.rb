@@ -1,11 +1,13 @@
 ENV['RAILS_ENV'] ||= 'test'
+ENV['COBBLEBOT_WEB_ADMIN_PASSWORD'] ||= 'test-admin-password'
 
 require 'simplecov'
+require 'timeout'
+SimpleCov.start 'rails'
 if ENV['COBBLEBOT_COVERAGE_GATE'] == '1'
   SimpleCov.merging false
   SimpleCov.minimum_coverage 75
 end
-SimpleCov.start 'rails'
 SimpleCov.command_name 'Rails Tests'
 SimpleCov.merge_timeout 3600
 
@@ -19,8 +21,15 @@ require 'capybara/rails'
 require 'capybara-screenshot/minitest'
 require 'selenium/webdriver'
 
-if ENV["HELL_ENABLED"]
-  require "minitest/hell"
+HELL_MODE_ENABLED = !!ActiveModel::Type::Boolean.new.cast(
+  ENV.fetch('HELL_ENABLED', '1')
+)
+
+if HELL_MODE_ENABLED
+  # Rails coordinates process isolation, worker databases, and fixture setup.
+  # minitest/hell uses threads and can share a PostgreSQL connection between
+  # concurrent transactional tests.
+  ActiveSupport::TestCase.parallelize(workers: :number_of_processors)
 else
   require "minitest/pride"
 end
@@ -47,6 +56,12 @@ Capybara.default_max_wait_time = 15
 Capybara::Screenshot.prune_strategy = { keep: 20 }
 
 Rails.application.load_seed
+
+if HELL_MODE_ENABLED
+  ActiveSupport::TestCase.parallelize_setup do
+    Rails.application.load_seed
+  end
+end
 
 module ApplicationTaskTestSupport
   LOAD_MUTEX = Mutex.new
@@ -82,11 +97,48 @@ module TestTools
   end
 end
 
+module ConcurrentTestTools
+  SYNCHRONIZATION_TIMEOUT = 5
+
+  def bounded_queue_pop(queue, message, timeout: SYNCHRONIZATION_TIMEOUT)
+    Timeout.timeout(timeout) { queue.pop }
+  rescue Timeout::Error
+    flunk message
+  end
+
+  def join_threads(threads, message, timeout: SYNCHRONIZATION_TIMEOUT)
+    threads.each do |thread|
+      flunk message unless thread.join(timeout)
+
+      thread.value
+    end
+  end
+end
+
+ActiveSupport::TestCase.include ConcurrentTestTools
+
 module WebStubs
+  PUBLIC_TEST_ADDRESS = '93.184.216.34'
+  PUBLIC_DNS_STUB_DEPTH = :cobblebot_public_dns_stub_depth
+
+  def stub_public_dns(&block)
+    previous_depth = Thread.current[PUBLIC_DNS_STUB_DEPTH].to_i
+    Thread.current[PUBLIC_DNS_STUB_DEPTH] = previous_depth + 1
+
+    if previous_depth.positive?
+      return yield
+    end
+
+    resolver = ->(_hostname) { [PUBLIC_TEST_ADDRESS] }
+    CobbleBotAgent.stub(:resolve_addresses, resolver, &block)
+  ensure
+    Thread.current[PUBLIC_DNS_STUB_DEPTH] = previous_depth
+  end
+
   def stub_mit(&block)
     stub = stub_request(:head, "http://www.mit.edu/").
       to_return(status: 200)
-    yield block
+    stub_public_dns(&block)
   ensure
     remove_request_stub stub
   end
@@ -94,16 +146,17 @@ module WebStubs
   def stub_github(&block)
     stub = stub_request(:head, "http://github.com/inertia186/cobblebot").
       to_return(status: 200)
-    yield block
+    stub_public_dns(&block)
   ensure
     remove_request_stub stub
   end
 
   def stub_googleapis(&block)
+    response_body = {responseData: {results: []}}.to_json
     stub_florida_man = stub_request(:get, "https://ajax.googleapis.com/ajax/services/search/news?q=florida%20man&v=1.0").
-      to_return(status: 200)
+      to_return(status: 200, body: response_body)
     stub_man = stub_request(:get, "https://ajax.googleapis.com/ajax/services/search/news?q=%20man&v=1.0").
-      to_return(status: 200)
+      to_return(status: 200, body: response_body)
     yield block
   ensure
     remove_request_stub stub_man
@@ -115,7 +168,7 @@ module WebStubs
       to_return(status: 200)
     stub_the_office = stub_request(:get, "https://www.youtube.com/watch?v=OdSkx7QmO7k").
       to_return(status: 200)
-    yield block
+    stub_public_dns(&block)
   ensure
     remove_request_stub stub_the_office
     remove_request_stub stub_doobie_bros
@@ -132,7 +185,7 @@ module WebStubs
   def stub_resource_pack(&block)
     stub = stub_request(:get, ServerProperties.resource_pack).
       to_return(status: 200)
-    yield block
+    stub_public_dns(&block)
   ensure
     remove_request_stub stub
   end
@@ -213,7 +266,7 @@ module WebStubs
     when 'resnullius' then '2'
     else raise "unknown nick: #{nick}"
     end
-    stub = stub_request(:get, "http://minecraft-mp.com/api/?element=claim&key=#{Preference.mmp_api_key}&object=votes&username=#{nick}").
+    stub = stub_request(:get, "https://minecraft-mp.com/api/?element=claim&key=#{Preference.mmp_api_key}&object=votes&username=#{nick}").
       to_return(status: 200, body: body)
     yield block
   ensure
@@ -221,7 +274,7 @@ module WebStubs
   end
 
   def stub_mmp_vote_claim(options, &block)
-    stub = stub_request(:post, "http://minecraft-mp.com/api/").
+    stub = stub_request(:post, "https://minecraft-mp.com/api/").
       with(body: options).
       to_return(status: 200, body: '1')
     yield block
@@ -749,7 +802,7 @@ File.open(fake_whitelist, 'a') do |f|
   f.sync
 end
 
-if !!ENV['HELL_ENABLED'] # No colors in hell.
+if HELL_MODE_ENABLED # No colors in hell.
   COLORS =
     {
       "black"   => 0,

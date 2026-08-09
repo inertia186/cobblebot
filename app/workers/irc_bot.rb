@@ -16,11 +16,15 @@ class IrcBot < SummerBot
   end
   
   def self.perform(options = {})
-    unless Preference.irc_server_host && Preference.irc_server_port.to_i
+    options = options.with_indifferent_access
+    port = Integer(Preference.irc_server_port, exception: false)
+
+    unless Preference.irc_server_host.present? && port&.between?(1, 65_535)
       Rails.logger.info "IRC Bot not started."
+      return self
     end
     
-    if options['start_irc_bot'] && Preference.irc_enabled?
+    if options[:start_irc_bot] && Preference.irc_enabled?
       Rails.logger.info "Starting IRC Bot"
       options = {debug: options[:debug], throttle: options[:throttle]}
       options[:op_commands] = %w(opself opme quit_irc kick latest chatlog rcon)
@@ -49,7 +53,7 @@ class IrcBot < SummerBot
   end
 
   def quit_irc(options = {})
-    shall_monitor = false
+    self.shall_monitor = false
     response 'QUIT :Connection reset by beer.'
   end
 

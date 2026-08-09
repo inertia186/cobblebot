@@ -27,9 +27,9 @@ class SqliteTransactionModeTest < Minitest::Test
   end
 
   def setup
-    database = Tempfile.new(['cobblebot-transactions', '.sqlite3'])
-    @database_path = database.path
-    database.close
+    @database_file = Tempfile.new(['cobblebot-transactions', '.sqlite3'])
+    @database_path = database_file.path
+    database_file.close
 
     PrimaryRecord.establish_connection(connection_config(timeout: 1_000))
     SecondaryRecord.establish_connection(connection_config(timeout: 1_000))
@@ -49,7 +49,7 @@ class SqliteTransactionModeTest < Minitest::Test
       nil
     end
 
-    File.delete(database_path) if database_path && File.exist?(database_path)
+    database_file.close! if database_file
   end
 
   def test_application_configures_only_sqlite_environments_for_immediate_transactions
@@ -116,6 +116,7 @@ class SqliteTransactionModeTest < Minitest::Test
   def test_concurrent_process_writer_waits_for_the_first_transaction
     ready_reader, ready_writer = IO.pipe
     start_reader, start_writer = IO.pipe
+    attempt_reader, attempt_writer = IO.pipe
     result_reader, result_writer = IO.pipe
 
     [TimeoutRecord, SecondaryRecord, PrimaryRecord, ActiveRecord::Base].each do |record|
@@ -125,6 +126,7 @@ class SqliteTransactionModeTest < Minitest::Test
     writer_pid = Process.fork do
       ready_reader.close
       start_writer.close
+      attempt_reader.close
       result_reader.close
 
       SecondaryRecord.establish_connection(connection_config(timeout: 1_000))
@@ -132,6 +134,8 @@ class SqliteTransactionModeTest < Minitest::Test
       ready_writer.write('1')
       ready_writer.close
       start_reader.read(1)
+      attempt_writer.write('1')
+      attempt_writer.close
 
       SecondaryRecord.transaction do
         SecondaryWidget.create!(name: 'secondary')
@@ -143,12 +147,14 @@ class SqliteTransactionModeTest < Minitest::Test
     ensure
       SecondaryRecord.connection_pool.disconnect! rescue nil
       start_reader.close rescue nil
+      attempt_writer.close rescue nil
       result_writer.close rescue nil
       exit! 0
     end
 
     ready_writer.close
     start_reader.close
+    attempt_writer.close
     result_writer.close
 
     assert IO.select([ready_reader], nil, nil, 2), 'concurrent writer did not initialize'
@@ -158,7 +164,11 @@ class SqliteTransactionModeTest < Minitest::Test
       PrimaryWidget.create!(name: 'primary')
       start_writer.write('1')
       start_writer.close
-      sleep 0.1
+      assert IO.select([attempt_reader], nil, nil, 2),
+        'concurrent writer did not attempt its transaction'
+      attempt_reader.read(1)
+      refute IO.select([result_reader], nil, nil, 0.1),
+        'concurrent writer completed while the first transaction held the lock'
     end
 
     assert IO.select([result_reader], nil, nil, 2), 'concurrent writer did not finish'
@@ -167,7 +177,8 @@ class SqliteTransactionModeTest < Minitest::Test
     writer_pid = nil
     assert_equal ['primary', 'secondary'], PrimaryWidget.order(:id).pluck(:name)
   ensure
-    [ready_reader, ready_writer, start_reader, start_writer, result_reader, result_writer].compact.each do |io|
+    [ready_reader, ready_writer, start_reader, start_writer,
+     attempt_reader, attempt_writer, result_reader, result_writer].compact.each do |io|
       io.close unless io.closed?
     rescue IOError
       nil
@@ -199,7 +210,7 @@ class SqliteTransactionModeTest < Minitest::Test
   end
 
 private
-  attr_reader :database_path
+  attr_reader :database_file, :database_path
 
   def connection_config(timeout:)
     {

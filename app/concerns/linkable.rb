@@ -23,7 +23,7 @@ module Linkable
         title = if !!options[:only_title]
           options[:title]
         else
-          "#{url.split('/')[2]} :: #{title.strip}"
+          "#{url.split('/')[2]} :: #{options[:title].strip}"
         end
         last_modified_at = Time.now
       else
@@ -52,16 +52,17 @@ module Linkable
     
       as = "[#{options[:as]}] " if !!options[:as]
     
-      execute(<<-DONE
-        tellraw #{selector} { "text": "#{as}", "extra": [{
-          "text": "#{escape(title)}", "color": "dark_purple", "underlined": "true", "hoverEvent": {
-            "action": "show_text", "value": "Last Modified: #{last_modified_at ? last_modified_at : '???'}"
-          }, "clickEvent": {
-            "action": "open_url", "value": "#{url}"
-          }
-        }]}
-      DONE
-      ) unless selector.nil?
+      execute_tellraw(selector, {
+        text: as,
+        extra: [{
+          text: title, color: 'dark_purple', underlined: true,
+          hoverEvent: {
+            action: 'show_text',
+            value: "Last Modified: #{last_modified_at ? last_modified_at : '???'}"
+          },
+          clickEvent: {action: 'open_url', value: url}
+        }]
+      }) unless selector.nil?
     
       if !!link
         link

@@ -1,4 +1,5 @@
-json.(@query) do |stat|
-  json.key stat[0]
-  json.value stat[1]
+json.array!(@query) do |stat|
+  key, value = stat.first
+  json.key key
+  json.value value
 end

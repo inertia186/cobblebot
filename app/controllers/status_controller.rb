@@ -5,15 +5,15 @@ class StatusController < ApplicationController
     @query = ServerQuery.full_query
     @query = @query.merge(params.permit('angular.version').to_h)
     
-    @query = @query.map do |q|
-      if q[1].class == Time
-        {q[0] => q[1].to_i}
-      elsif q[1].class == String
-        {q[0] => q[1].unpack("C*").pack("U*")}
+    @query = @query.map do |key, value|
+      if value.is_a?(Time) || value.is_a?(ActiveSupport::TimeWithZone)
+        {key => value.to_i}
+      elsif value.is_a?(String)
+        {key => value.unpack("C*").pack("U*")}
       else
-        {q[0] => q[1]}
+        {key => value}
       end
-    end.reduce(Hash.new, :merge)
+    end
     
     respond_to do |format|
       format.html { }

@@ -5,24 +5,16 @@ class Admin::DonationsTest < AcceptanceTest
     preferences(:path_to_server).update!(value: "#{Rails.root}/tmp")
   end
 
-  def test_basic_workflow
+  def test_navigation_and_query
     Server.mock_mode(up: true, player_nicks: []) do
       ServerQuery.mock_mode(full_query: {numplayers: "0", maxplayers: "20"}) do
         admin_sign_in
         admin_navigate('Donations')
-        assert page.has_content?('Donations'), 'expect Donations.  We should now be on the Donations page.'
-      end
-    end
-  end
+        assert page.has_content?('Donations')
 
-  def test_query
-    test_basic_workflow
-    results_container = 'div.tab-contents > div > div > table > tbody'
-
-    Server.mock_mode(up: true, player_nicks: []) do
-      ServerQuery.mock_mode(full_query: {numplayers: "0", maxplayers: "20"}) do
+        results_container = 'div.tab-contents > div > div > table > tbody'
         within(:css, results_container) do
-          assert page.has_content?('resnullius'), 'expect resnullius in initial results'
+          assert page.has_content?('resnullius')
         end
 
         fill_in('query', with: 'inertia')
@@ -30,7 +22,7 @@ class Admin::DonationsTest < AcceptanceTest
         assert_selector 'input#query[value="inertia"]'
 
         within(:css, results_container) do
-          assert page.has_no_content?('resnullius'), 'did not expect resnullius in inertia results'
+          assert page.has_no_content?('resnullius')
         end
       end
     end

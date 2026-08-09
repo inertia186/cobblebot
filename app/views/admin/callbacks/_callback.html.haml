@@ -39,7 +39,7 @@
     %td{id: "callback_status_#{callback.id}"}=callback_status(callback)
   %tr
     %th{nowrap: :nowrap} Last Match
-    %td= callback_last_match(callback)
+    %td{id: "callback_last_match_#{callback.id}"}= callback_last_match(callback)
   %tr
     %th{nowrap: :nowrap} Last Command Output
     %td
@@ -60,4 +60,3 @@
       %button.btn.btn-default{type: "button", data: { dismiss: :modal } } Close
     - else
       = link_to 'Close', admin_server_callbacks_path, class: 'btn btn-default'
-  

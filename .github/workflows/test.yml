@@ -1,0 +1,61 @@
+name: test
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: cobblebot
+          POSTGRES_PASSWORD: cobblebot
+          POSTGRES_DB: cobblebot_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cobblebot -d cobblebot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgresql://cobblebot:cobblebot@127.0.0.1:5432/cobblebot_test
+      COBBLEBOT_REDIS_URL: redis://127.0.0.1:6379/3
+      COBBLEBOT_WEB_ADMIN_PASSWORD: ci-test-admin-password
+      PARALLEL_WORKERS: 4
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1
+        with:
+          bundler-cache: true
+      - name: Prepare database
+        run: bundle exec rails db:prepare
+      - name: Run concurrency diagnostics serially
+        env:
+          HELL_ENABLED: 0
+        run: >-
+          bundle exec rails test
+          test/models/server_callback_concurrency_test.rb
+          test/services/server_callback_execution_lock_test.rb
+          test/integration/resque_runtime_test.rb
+      - name: Run complete parallel suite
+        run: bundle exec rails test
+      - name: Run complete serial coverage gate
+        run: bundle exec rake cobblebot:test:coverage

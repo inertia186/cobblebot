@@ -17,10 +17,32 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
     assert_routing({ method: 'delete', path: 'admin/callbacks/42.js' }, controller: 'admin/callbacks', action: 'destroy', id: '42', format: 'js')
     assert_routing({ method: 'patch', path: 'admin/callbacks/42/toggle_enabled' }, controller: 'admin/callbacks', action: 'toggle_enabled', id: '42')
     assert_routing({ method: 'patch', path: 'admin/callbacks/42/toggle_enabled.js' }, controller: 'admin/callbacks', action: 'toggle_enabled', id: '42', format: 'js')
-    assert_routing({ method: 'get', path: 'admin/callbacks/42/execute_command' }, controller: 'admin/callbacks', action: 'execute_command', id: '42')
-    assert_routing({ method: 'get', path: 'admin/callbacks/42/execute_command.js' }, controller: 'admin/callbacks', action: 'execute_command', id: '42', format: 'js')
+    assert_routing({ method: 'patch', path: 'admin/callbacks/42/execute_command' }, controller: 'admin/callbacks', action: 'execute_command', id: '42')
+    assert_routing({ method: 'patch', path: 'admin/callbacks/42/execute_command.js' }, controller: 'admin/callbacks', action: 'execute_command', id: '42', format: 'js')
     assert_routing({ method: 'patch', path: 'admin/callbacks/42/reset_cooldown' }, controller: 'admin/callbacks', action: 'reset_cooldown', id: '42')
     assert_routing({ method: 'patch', path: 'admin/callbacks/42/reset_cooldown.js' }, controller: 'admin/callbacks', action: 'reset_cooldown', id: '42', format: 'js')
+  end
+
+  def test_execute_command_is_not_routable_via_get
+    assert_raises ActionController::RoutingError do
+      Rails.application.routes.recognize_path(
+        '/admin/callbacks/42/execute_command', method: :get
+      )
+    end
+  end
+
+  def test_execute_command_rejects_patch_without_an_authenticity_token
+    callback = ServerCallback.first
+    original_forgery_protection = ActionController::Base.allow_forgery_protection
+    ActionController::Base.allow_forgery_protection = true
+
+    assert_no_difference -> { ServerCallback.where.not(ran_at: nil).count } do
+      assert_raises ActionController::InvalidAuthenticityToken do
+        patch :execute_command, params: { id: callback }
+      end
+    end
+  ensure
+    ActionController::Base.allow_forgery_protection = original_forgery_protection
   end
 
   def test_index
@@ -41,6 +63,10 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
     refute_nil row
     assert_equal callback.id.to_s, row['data-id']
     assert_includes response.body, "window.document.location = '#{admin_server_callback_path(callback)}';"
+    run_link = css_select("a[href='#{execute_command_admin_server_callback_path(callback)}']").first
+    refute_nil run_link
+    assert_equal 'patch', run_link['data-method']
+    assert_equal 'true', run_link['data-remote']
   end
 
   def test_index_all_status
@@ -151,7 +177,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
   def test_execute_command
     callback = ServerCallback.first
     assert_difference -> { ServerCallback.where.not(ran_at: nil).count }, 1, 'expect different count' do
-      get :execute_command, params: { id: callback }
+      patch :execute_command, params: { id: callback }
     end
 
     assert_template nil
@@ -161,7 +187,7 @@ class Admin::CallbacksControllerTest < ActionController::TestCase
   def test_execute_command_js
     callback = ServerCallback.first
     assert_difference -> { ServerCallback.where.not(ran_at: nil).count }, 1, 'expect different count' do
-      get :execute_command, params: { format: :js, id: callback }, xhr: true
+      patch :execute_command, params: { format: :js, id: callback }, xhr: true
     end
 
     assert_template :replace_visible_callbacks

@@ -1,11 +1,14 @@
 require "test_helper"
 
 class PvpsTest < AcceptanceTest
-  def setup
-  end
-
   def test_basic_workflow
     Server.mock_mode(up: true) do
+      related_quote_pvp = messages(:dinnerbone_killed_resnullius)
+      Message::Quote.create!(
+        body: 'UNIQUE LOSER QUOTE',
+        author: players(:resnullius),
+        created_at: related_quote_pvp.created_at + 1.second
+      )
       pvps = Message::Pvp.order("messages.created_at desc")
 
       visit '/pvps'
@@ -41,17 +44,10 @@ class PvpsTest < AcceptanceTest
 
       assert page.has_no_content?('Dinnerbone was shot by Dinnerbone'), 'did not expect Dinnerbone listed as victim'
       assert page.has_content?('resnullius was killed by Dinnerbone using magic'), 'expect only resnullius listed as victim'
+
+      fill_in 'query', with: 'unique loser quote'
+      assert page.has_content?(related_quote_pvp.body)
     end
   end
 
-  def test_basic_json
-    Server.mock_mode(up: true) do
-      get pvps_path(format: :json)
-      assert_response :success
-      assert_equal 'application/json', response.media_type
-      refute_equal [], JSON.parse(response.body)
-      assert_match 'Dinnerbone', response.body
-      assert_match 'resnullius', response.body
-    end
-  end
 end

@@ -27,23 +27,17 @@ class ServerQuery
     
     query = nil
   
-    try_max.times do
+    try_max.times do |attempt|
       begin
         query = Query.send(method, ServerProperties.server_ip, ServerProperties.server_port)
-
-        if query.class != Hash
-          ServerProperties.reset_vars
-          ServerCommand.reset_vars
-        end
-        
-        break
+        return query if query.is_a?(Hash)
       rescue StandardError => e
         Rails.logger.warn e.inspect
-        sleep retry_sleep
-        ServerProperties.reset_vars
       end
-      
-      break
+
+      ServerProperties.reset_vars
+      ServerCommand.reset_vars
+      sleep retry_sleep if attempt + 1 < try_max
     end
 
     raise CobbleBotError.new(message: "Minecraft Server not started? #{query}") if query.class != Hash

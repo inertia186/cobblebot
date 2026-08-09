@@ -4,8 +4,6 @@ class Admin::MessagesController < Admin::AdminController
   before_action :setup_params, only: :index
   
   def index
-    cache_key = request.env["HTTP_IF_NONE_MATCH"]
-    
     @author_id = params[:author_id]
     @author_type = params[:author_type] || 'Player'
 
@@ -24,8 +22,8 @@ class Admin::MessagesController < Admin::AdminController
       @messages = @messages.muted(params[:muted] == 'true')
     end
     if @author_id.present? && @author_type == 'Player'
-      @recipient = Player.where(id: @author_id)
-      @messages = @messages.where(recipient_type: @author_type, author_id: @author_id)
+      @author = Player.where(id: @author_id)
+      @messages = @messages.where(author_type: @author_type, author_id: @author_id)
     end
       
     if @recipient_id.present? && @recipient_type == 'Player'
@@ -41,13 +39,16 @@ class Admin::MessagesController < Admin::AdminController
     sort
     paginate
     
-    head 304 and return if cache_key == etag
-    
-    response.headers['ETag'] = etag
+    fresh_when etag: etag
   end
 
   def show
     @message = Message.find(params[:id])
+  end
+
+  def destroy
+    super Message, 'message', params[:id], admin_messages_url,
+      'remove_message_row'
   end
 private
   def timeframe
@@ -84,6 +85,18 @@ private
   end
   
   def etag
-    Digest::MD5.hexdigest @messages.except(:order).pluck(:id).to_s
+    message_state = @messages.except(:select, :order).pluck(
+      :id, :updated_at, :author_id, :author_type, :recipient_id, :recipient_type
+    )
+    player_ids = message_state.flat_map do |_id, _updated_at, author_id, author_type, recipient_id, recipient_type|
+      [
+        (author_id if author_type == 'Player'),
+        (recipient_id if recipient_type == 'Player')
+      ]
+    end.compact.uniq
+    player_state = Player.where(id: player_ids).order(:id).pluck(:id, :updated_at)
+    mute_state = Mute.order(:id).pluck(:id, :player_id, :muted_player_id, :created_at)
+
+    Digest::MD5.hexdigest [@messages.total_entries, message_state, player_state, mute_state].to_s
   end
 end

@@ -1,7 +1,18 @@
-method ||= :create # Switch to :create! if you want to test full validation.
+ActiveRecord::Base.define_singleton_method(:seed_create!) do |**attributes|
+  identity_key = %i[key name body].find { |key| attributes.key?(key) }
+  raise ArgumentError, 'Seed record has no stable identity.' if identity_key.nil?
 
+  record = find_or_initialize_by(identity_key => attributes.fetch(identity_key))
+  record.assign_attributes(attributes) if record.new_record?
+  record.save!
+  record
+end
+
+ActiveRecord::Base.transaction do
+method = :seed_create!
+
+Preference.provision_web_admin_password!
 Preference.send method, key: Preference::TRY_MAX, value: '5', system: 'f'
-Preference.send method, key: Preference::WEB_ADMIN_PASSWORD, value: '123456', system: 'f'
 Preference.send method, key: Preference::PATH_TO_SERVER, value: '/path/to/minecraft/server', system: 'f'
 Preference.send method, key: Preference::COMMAND_SCHEME, value: 'rcon', system: 'f'
 Preference.send method, key: Preference::MOTD, value: 'Welcome to the server!', system: 'f'
@@ -19,7 +30,7 @@ Preference.send method, key: Preference::IRC_SERVER_PORT, value: '8000', system:
 Preference.send method, key: Preference::IRC_NICK, value: "cobblebot#{Random.rand(100)}", system: 'f'
 Preference.send method, key: Preference::IRC_CHANNEL, value: '#my_channel', system: 'f'
 Preference.send method, key: Preference::IRC_CHANNEL_OPS, value: '', system: 'f'
-Preference.send method, key: Preference::IRC_NICKSERV_PASSWORD, value: 'secret', system: 'f'
+Preference.send method, key: Preference::IRC_NICKSERV_PASSWORD, value: '', system: 'f'
 Preference.send method, key: Preference::ORIGIN_SALT, value: "#{Random.rand(100000)}", system: 'f'
 Preference.send method, key: Preference::STOP_WORDS, value: '@$$ ahole amcik andskota anus arschloch arse ash0le ash0les asholes ass assface assh0le assh0lez asshole assholes assholz assmonkey assrammer asswipe ayir azzhole b!+ch b!tch b00b b00bs b17ch b1tch bassterds bastard bastards bastardz basterds basterdz bi+ch bi7ch biatch bird bitch bitches blowjob boffing boiolas bollock boobs buceta butt-pirate butthole buttwipe c0ck c0cks c0k cabron cawk cawks cazzo chink chraa chuj cipa clit clits cnts cntz cock cock-head cock-sucker cockhead cocks cocksucker cum cunt cunts cuntz d4mn damn daygo dego dick dike dild0 dild0s dildo dildos dilld0 dilld0s dirsa dominatricks dominatrics dominatrix dupa dyke dziwka ejackulate ejakulate ekrem ekto enculer enema faen fag fag1t faget fagg1t faggit faggot fagit fags fagz faig faigs fanculo fanny fart fatass fcuk feces feg felcher ficken fitt flikker flipping foreskin fotze fu fuck fucker fuckin fucking fucks fuk fukah fuken fuker fukin fukk fukkah fukken fukker fukkin futkretzn fux0r g00k gay gayboy gaygirl gays gayz god-damned gook guiena h00r h0ar h0r h0re hells helvete hoar hoer hoor hoore hore huevon hui injun jackoff jap japs jerk-off jisim jism jiss jizm jizz kanker kawk kike klootzak knobz knulle kraut kuk kuksuger kunt kunts kuntz kurac kurwa kusi kyrpa l3i+ch l3itch lesbian lesbo lezzian lipshits lipshitz mamhoon masochist masokist massterbait masstrbait masstrbate masterbaiter masterbat masterbat3 masterbate masterbates masturbat masturbate merd mibun mofo monkleigh motherfucker mouliewop muie mulkku muschi n1gr nastt nazis nepesaurio nigga nigger nigur niiger niigr nutsack orafis orgasim orgasm orgasum oriface orifice orifiss orospu p0rn packi packie packy paki pakie paky paska peeenus peeenusss peenus peinus pen1s penas penis-breath penus penuus perse phuc phuck phuk phuker phukker picka pierdol pillu pimmel pimpis piss pizda polac polack polak poonani poontsee porn pr0n pr1c pr1ck pr1k preteen pula pule pusse pussee pussy puta puto puuke puuker qahbeh queef queer queers queerz qweers qweerz qweir rautenberg recktum rectum s.o.b. sadist scank schaffer scheiss schlampe schlong schmuck screw scrotum semen sex sexy sh!+ sh!t sh1t sh1ter sh1ts sh1tter sh1tz sharmuta sharmute shemale shi+ shipal shit shits shitter shitty shity shitz shiz shyt shyte shytty shyty skanck skank skankee skankey skanks skanky skribz skurwysyn slut sluts slutty slutz smut son-of-a-bitch sphencter spic spierdalaj splooge suka teets teez testical testicle tit tits titt turd twat va1jina vag1na vagiina vagina vaj1na vajina vittu vullva vulva w00se w0p wank wetback wh00r wh0re whoar whore wichser wop xrated xxx yed zabourah', system: 't'
 
@@ -99,7 +110,7 @@ ServerCallback::PlayerEmote.send method, name: 'Facepalm', pattern: "/facepalms/
 
 # Death sounds ...
 ServerCallback::DeathAnnouncement.send method, name: 'Killed Using Magic', pattern: "/was killed.*using magic/", command: "play_sound \"@a\", \"family_guy_bruce_oh_no\"", cooldown: '+15 minutes', system: 'f'
-ServerCallback::DeathAnnouncement.send method, name: 'Fell Out of the World', pattern: "/^[a-zA-A0-9_]+ fell out of the world/", command: "play_sound \"@a\", \"goofy_holler\"", cooldown: '+15 minutes', system: 'f'
+ServerCallback::DeathAnnouncement.send method, name: 'Fell Out of the World', pattern: "/^[a-zA-Z0-9_]+ fell out of the world/", command: "play_sound \"@a\", \"goofy_holler\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::DeathAnnouncement.send method, name: 'Knocked Into the Void', pattern: "/was knocked into the void/", command: "play_sound \"@a\", \"goofy_holler\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::DeathAnnouncement.send method, name: 'Fell', pattern: "/^[a-zA-Z0-9_]+ fell from a high place/", command: "play_sound \"@a\", \"fallen\"", cooldown: '+15 minutes', system: 'f'
 ServerCallback::DeathAnnouncement.send method, name: 'Doomed to Fall', pattern: "/was doomed to fall/", command: "play_sound \"@a\", \"wilhelm\"", cooldown: '+15 minutes', system: 'f'
@@ -199,3 +210,4 @@ Message::Tip.send method, body: 'Server is up, what more do you want?', keywords
 Message::Tip.send method, body: 'Herobrine is alyways watching...', keywords: 'never'
 Message::Tip.send method, body: 'slap @r', keywords: 'fish slappers'
 Message::Tip.send method, body: '>mfw', keywords: 'my face when'
+end

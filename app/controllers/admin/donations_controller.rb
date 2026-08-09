@@ -38,9 +38,9 @@ class Admin::DonationsController < Admin::AdminController
   end
   
   def create
-    donation_params[:author_type] ||= 'Player' unless donation_params[:author_id].nil?
-    
-    @donation = Message::Donation.new(donation_params)
+    attributes = donation_params
+    attributes[:author_type] ||= 'Player' if attributes[:author_id].present?
+    @donation = Message::Donation.new(attributes)
 
     if @donation.save
       redirect_to admin_message_donations_url
@@ -50,11 +50,11 @@ class Admin::DonationsController < Admin::AdminController
   end
   
   def update
-    donation_params[:author_type] ||= 'Player' unless donation_params[:author_id].nil?
-
     @donation = Message::Donation.find(params[:id])
+    attributes = donation_params
+    attributes[:author_type] ||= 'Player' if attributes[:author_id].present?
 
-    if @donation.update(donation_params)
+    if @donation.update(attributes)
       redirect_to admin_message_donations_url
     else
       render action: 'edit'

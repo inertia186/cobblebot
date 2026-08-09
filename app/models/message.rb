@@ -10,11 +10,19 @@ class Message < ActiveRecord::Base
   
   scope :query, lambda { |*keywords|
     keywords = [keywords].flatten.map { |k| "%#{k.to_s.downcase}%" }
+    return all if keywords.empty?
 
     clauses = []
     keywords.size.times { clauses << "lower(messages.body) LIKE ?" }
     keywords.size.times { clauses << "lower(messages.keywords) LIKE ?" }
-      select("messages.*, ( SELECT COUNT(*) WHERE lower(messages.body) LIKE '#{keywords.join('%')}' OR lower(messages.keywords) LIKE '#{keywords.join('%')}' ) as weight").
+    weight_pattern = keywords.join('%')
+    weight_sql = sanitize_sql_array([
+      'CASE WHEN lower(messages.body) LIKE ? OR lower(messages.keywords) LIKE ? THEN 1 ELSE 0 END AS weight',
+      weight_pattern,
+      weight_pattern
+    ])
+
+    select("messages.*, #{weight_sql}").
       where(clauses.join(" OR "), *keywords, *keywords).
       order('weight DESC')
   }
@@ -53,7 +61,15 @@ class Message < ActiveRecord::Base
   scope :latest, lambda { |latest = 10| order(:created_at).limit(latest) }
   scope :supplementary, lambda { |message| where.not(id: message).where(body: message.body) }
   scope :matching_stop_words, -> {
-    where(Preference.stop_words.split(' ').map { |w| "LOWER(body) LIKE '%#{w.downcase}%'" }.join(" OR "))
+    patterns = Preference.stop_words.to_s.split.map do |word|
+      "%#{sanitize_sql_like(word.downcase)}%"
+    end
+    next all if patterns.empty?
+
+    where(
+      Array.new(patterns.length, 'LOWER(body) LIKE ? ESCAPE \'\\\'').join(' OR '),
+      *patterns
+    )
   }
 
   scope :has_parent, lambda { |has_parent = true|

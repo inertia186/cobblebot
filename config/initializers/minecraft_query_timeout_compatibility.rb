@@ -3,4 +3,8 @@
 # function as a singleton method until the dependency is updated.
 require 'minecraft-query'
 
-Query.extend(Timeout) unless Query.respond_to?(:timeout, true)
+unless Query.respond_to?(:timeout)
+  Query.define_singleton_method(:timeout) do |duration, &block|
+    Timeout.timeout(duration, &block)
+  end
+end

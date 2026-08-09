@@ -33,21 +33,28 @@ class MinecraftServerLogTailer
   end
 
   def call
-    @file_opener.open(@server_log) do |log|
-      configure(log)
-      tail(log)
-    end
+    log = open_log
+    return :missing unless log
+
+    configure(log)
+    tail(log)
 
     :completed
-  rescue Errno::ENOENT => error
-    @logger.error "Need to finish setup: #{error.inspect}"
-    :missing
   rescue Resque::TermException
     @logger.info 'Detected ^C'
     :terminated
+  ensure
+    log.close if log&.respond_to?(:close)
   end
 
 private
+  def open_log
+    @file_opener.open(@server_log)
+  rescue Errno::ENOENT => error
+    @logger.error "Need to finish setup: #{error.inspect}"
+    nil
+  end
+
   def configure(log)
     log.extend(File::Tail)
     log.max_interval = @monitor_tick * @tick_multiplier
@@ -57,22 +64,10 @@ private
   end
 
   def tail(log)
-    unique_lines = []
-    lines_seen = 0
-
     @max_ticks.times do
       log.tail(@log_length) do |line|
         started_at = @clock.call
-        unless unique_lines.include?(line)
-          unique_lines << line
-          @handler.handle(line)
-        end
-
-        lines_seen += 1
-        if lines_seen >= @log_length
-          unique_lines.clear
-          lines_seen = 0
-        end
+        @handler.handle(line)
 
         elapsed = @clock.call - started_at
         if elapsed > @monitor_tick

@@ -1,6 +1,6 @@
 atom_feed do |feed|
-  feed.body "#{ServerProperties.level_name.titleize} Messages"
-  feed.updated @messages.maximum(:created_at)
+  feed.title "#{ServerProperties.level_name.titleize} Messages"
+  feed.updated @messages.maximum(:created_at) || Time.current
   
   @messages.each do |message|
     feed.entry message, url: admin_message_path(message) do |entry|

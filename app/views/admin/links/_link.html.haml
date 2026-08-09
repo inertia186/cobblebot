@@ -1,9 +1,9 @@
 - if link.can_embed?
   %iframe{src: link.embedded_url, width: '100%', height: 480}
     %noframes
-      = link_to link.title, link.url, target: link.to_param
+      = link_to link.title, link.url, target: '_blank', rel: 'noopener noreferrer'
 - else
-  = link_to link.title, link.url, target: link.to_param
+  = link_to link.title, link.url, target: '_blank', rel: 'noopener noreferrer'
     
 .modal-footer
   .pull-xs-left

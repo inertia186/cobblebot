@@ -1,4 +1,4 @@
-= content_for :head, auto_discovery_link_tag(:atom, "http://#{pvps_url(format: :atom).split('://')[1]}")
+= content_for :head, auto_discovery_link_tag(:atom, pvps_url(format: :atom))
 
 / It would be nice to preload the inital request, but the json takes too long to render due to the deep structure.  Specifically, pvp.loser.quote and pvp.winner.quote have to be queried individually for each pvp message.  So it's better to just display the "Searching ..." text while this data loads asynchronisly.
 / %div{data: {preload_resource: '/pvps.json', data: (render template: '/pvps/index.json')}}
@@ -32,16 +32,16 @@
             %th Created
         %tbody.animate-container
           %tr.animate-repeat{ng_if: 'pvps.length == 0'}
-            %td{cell_span: 4} Searching ...
+            %td{colspan: 4} Searching ...
           %tr.animate-repeat{ng_repeat: 'pvp in (filteredPvps = ( pvps | searchFor:searchString | filter:query ) )', repeat_complete: 'repeatComplete()'}
             %td {{pvp.body}}
             %td
-              %a.tip{data: { title: "{{pvp.loser.quote}}" }}
-                %img{ng_src: "/player_images/{{pvp.loser.nick}}.png", width: 16, height: 16, alt: '{{pvp.loser.nick}}'}
-              {{pvp.loser.nick}}
+              %a.tip{'ng-if' => 'pvp.loser', data: { title: "{{pvp.loser.quote}}" }}
+                %img{'ng-src' => "/player_images/{{pvp.loser.nick}}.png", width: 16, height: 16, alt: '{{pvp.loser.nick}}'}
+              %span{'ng-if' => 'pvp.loser'} {{pvp.loser.nick}}
             %td
-              %a.tip{data: { title: "{{pvp.winner.quote}}" }}
-                %img{ng_src: "/player_images/{{pvp.winner.nick}}.png", width: 16, height: 16, alt: '{{pvp.winner.nick}}'}
-              {{pvp.winner.nick}}
+              %a.tip{'ng-if' => 'pvp.winner', data: { title: "{{pvp.winner.quote}}" }}
+                %img{'ng-src' => "/player_images/{{pvp.winner.nick}}.png", width: 16, height: 16, alt: '{{pvp.winner.nick}}'}
+              %span{'ng-if' => 'pvp.winner'} {{pvp.winner.nick}}
             %td{data: {title: '{{pvp.created_at}}'}}
               {{pvp.createdAgo()}}

@@ -1,10 +1,10 @@
 %table.table
   %tr
     %th Author Nick
-    %td=message.author.nick
+    %td= best_actor_name(message.author_type, message.author)
   %tr
     %th Recipient Nick
-    %td=message.recipient.nick
+    %td= best_actor_name(message.recipient_type, message.recipient)
   %tr
     %th Body
     %td= message.body

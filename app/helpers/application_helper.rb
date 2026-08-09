@@ -40,7 +40,7 @@ module ApplicationHelper
   def relative_time(date)
     "#{distance_of_time_in_words_to_now(date)} ago" unless date.nil?
   end
-  
+
   def modal_nav_links(path, id)
     nav_link(path, "first_#{id}", "#show_#{id}", 'f', 'F', 'irst') +
     nav_link(path, "previous_#{id}", "#show_#{id}", 'p', 'P', 'revious') +

@@ -1,9 +1,6 @@
 require "test_helper"
 
 class Admin::LoginTest < AcceptanceTest
-  def setup
-  end
-
   def test_basic_workflow
     Server.mock_mode(up: true, player_nicks: []) do
       ServerQuery.mock_mode(full_query: {numplayers: "0", maxplayers: "20"}) do

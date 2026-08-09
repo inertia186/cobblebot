@@ -1,6 +1,6 @@
 %tr{id: "link_tr_#{link.id}", data: { id: link.id } }
   %td
-    = link_to truncate(link.title, length: 75), link.url, target: link.to_param
+    = link_to truncate(link.title, length: 75), link.url, target: '_blank', rel: 'noopener noreferrer'
   - unless @player
     - if link.actor_type == 'Player' && !!link.actor
       %td=link_to(best_actor_name(link.actor_type, link.actor), admin_player_links_path(player_id: link.actor))
@@ -21,5 +21,5 @@
               %center
                 %img{src: '/images/large_spinner.gif'}
     - else
-      = link_to 'Show', link.url, class: 'btn btn-info btn-xs', target: link.to_param
+      = link_to 'Show', link.url, class: 'btn btn-info btn-xs', target: '_blank', rel: 'noopener noreferrer'
     = link_remote_delete(admin_link_path(link), class: 'btn btn-danger btn-xs', confirm: 'Are you sure?')

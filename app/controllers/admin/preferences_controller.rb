@@ -1,5 +1,6 @@
 class Admin::PreferencesController < Admin::AdminController
   before_action :authenticate_admin!
+  after_action :prevent_sensitive_caching
 
   respond_to :json
 
@@ -23,9 +24,14 @@ class Admin::PreferencesController < Admin::AdminController
   def update
     key = params[:id]
     @preference = Preference.find_or_create_by(key: key)
+    attributes = preference_params
+
+    if @preference.secure? && attributes[:value].blank?
+      head :accepted and return
+    end
 
     if key =~ /_json$/
-      val = preference_params[:value]
+      val = attributes[:value]
       line_no = 0
       begin
         val.each_line do |line|
@@ -37,12 +43,12 @@ class Admin::PreferencesController < Admin::AdminController
         @preference.errors.add(:value, "has a problem on line #{line_no}: #{e.message.split(': ').last}")
       end
     elsif key == 'path_to_server'
-      unless File.exist? preference_params[:value]
+      unless File.exist? attributes[:value]
         @preference.errors.add(:value, 'does not exist.')
       end
     elsif key == 'irc_server_port'
-      val = preference_params[:value].to_i
-      if val.to_s != preference_params[:value]
+      val = attributes[:value].to_i
+      if val.to_s != attributes[:value]
         @preference.errors.add(:value, 'must be a valid integer.')
       end
       if val < 1 || val > 65535
@@ -54,7 +60,7 @@ class Admin::PreferencesController < Admin::AdminController
       render json: @preference.errors, status: :unprocessable_entity and return
     end
 
-    if @preference.update(preference_params)
+    if @preference.update(attributes)
       ServerProperties.reset_vars
       ServerCommand.reset_vars
 
@@ -62,6 +68,11 @@ class Admin::PreferencesController < Admin::AdminController
     end
   end
 private
+  def prevent_sensitive_caching
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['Pragma'] = 'no-cache'
+  end
+
   def preference_params
     attributes = [:value]
 

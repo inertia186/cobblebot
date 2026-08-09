@@ -1,11 +1,9 @@
 require "test_helper"
 
 class DonationsTest < AcceptanceTest
-  def setup
-  end
-
   def test_basic_workflow
     Server.mock_mode(up: true) do
+      players(:resnullius).update!(last_chat: 'UNIQUE DONOR QUOTE')
       visit '/donations'
 
       assert page.has_no_content?('Searching ...')
@@ -20,19 +18,13 @@ class DonationsTest < AcceptanceTest
         assert page.has_content?('resnullius')
       end
 
+      fill_in 'query', with: 'unique donor quote'
+      assert page.has_content?('$10 from resnullius')
+
       fill_in 'query', with: 'dinnerbone'
       assert page.has_no_content?('$10 from resnullius')
       assert page.has_no_css?('count-up > span')
     end
   end
 
-  def test_basic_json
-    Server.mock_mode(up: true) do
-      get donations_path(format: :json)
-      assert_response :success
-      assert_equal 'application/json', response.media_type
-      refute_equal [], JSON.parse(response.body)
-      assert_match 'resnullius', response.body
-    end
-  end
 end

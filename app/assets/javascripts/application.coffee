@@ -27,8 +27,14 @@ updatePublicPlayers = ->
     document.updatePublicPlayersTimerId = setTimeout updatePublicPlayers, 5000
 
 updateIrcCount = ->
+  unless $('a#irc-link').length > 0
+    clearTimeout document.updateIrcCountTimerId
+    document.updateIrcCountTimerId = -1
+    return
+
   $.getScript('/irc.js').done ->
-    document.updateIrcCountTimerId = setTimeout updateIrcCount, 60000
+    if $('a#irc-link').length > 0
+      document.updateIrcCountTimerId = setTimeout updateIrcCount, 60000
 
 $ ->
   if $('#public-players').length > 0
@@ -72,7 +78,23 @@ $ ->
           @html(c + h.substring k)
 
         if h.indexOf(toAppend) == -1
-          @append "&lt;" + nick + "&gt; " + toAppend + "<br />"
+          line = $('<span>')
+          line.append document.createTextNode("<#{nick}> ")
+
+          source = String(toAppend)
+          urlPattern = /\bhttps?:\/\/[^\s<>"']+/g
+          position = 0
+          while match = urlPattern.exec(source)
+            line.append document.createTextNode(source.substring(position, match.index))
+            $('<a>',
+              href: match[0]
+              target: '_blank'
+              rel: 'noopener noreferrer'
+            ).text(match[0]).appendTo(line)
+            position = urlPattern.lastIndex
+          line.append document.createTextNode(source.substring(position))
+
+          @append(line).append $('<br>')
         if @hasClass 'chat_hidden'
           @miniText()
         else
@@ -83,7 +105,7 @@ $ ->
     $('body').on 'click', '#chat_controls', (e) -> chat.toggleChat()
     $('body').on 'click', '#chat_size', (e) -> chat.toggleSize()
     
-  if !!$('a#irc-link')
+  if $('a#irc-link').length > 0
     document.updateIrcCountTimerId = setTimeout updateIrcCount, 60000
 
   NProgress.configure
