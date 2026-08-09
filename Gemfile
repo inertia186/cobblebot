@@ -9,8 +9,8 @@ gem 'csv', '~> 3.2'
 # TEMP Ruby 3 spike cut: let a modern Bundler drive resolution so we can expose the next real blocker.
 # gem 'bundler', '>= 1.12'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-# Use the production-verified Rails 7.2 framework and defaults baseline.
-gem 'rails', '~> 7.2.3.2'
+# Run the supported Rails 8.1 framework and configuration-defaults lane.
+gem 'rails', '~> 8.1.3'
 
 # TEMP Ruby 3 / Rails 6.1 spike cut: old json 1.8.5 is not viable on this stack.
 gem 'json', '>= 2.6'
@@ -153,7 +153,8 @@ group :development do
 end
 
 group :test do
-  gem 'minitest', '~> 5.25'
+  gem 'minitest', '~> 6.0'
+  gem 'minitest-mock', '~> 5.27'
   gem 'capybara', '~> 3.40'
   gem 'capybara-screenshot', '~> 1.0'
   gem 'rails-controller-testing', '~> 1.0'

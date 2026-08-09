@@ -1,12 +1,12 @@
-Rails 7 configuration defaults
-==============================
+Rails framework and configuration defaults
+==========================================
 
 Baseline
 --------
-CobbleBot runs Rails 7.2.3.2 with `config.load_defaults 7.2`. Framework
-compatibility and default adoption were validated as separate slices. Zeitwerk
-remains explicit, and only the framework railties used by the application are
-loaded.
+CobbleBot runs Rails 8.1.3.1 with `config.load_defaults 8.1`. Framework
+compatibility and each default adoption are validated as separate slices.
+Zeitwerk remains explicit, and only the framework railties used by the
+application are loaded.
 
 Compatibility declarations
 --------------------------
@@ -45,18 +45,71 @@ Compatibility declarations
   CobbleBot did not rely on them; behavior coverage replaces assertions on the
   removed configuration APIs.
 - Rails 7.2 adds `useragent` through Action Pack and no other new direct runtime
-  surface. Rack remains on the compatible 2.2 line.
+  surface. Rack 3.2 is independently validated through Rails and Resque Web.
 - Rails 7.2 enables migration timestamp validation. Every repository migration
   has a valid timestamp, including the two intentional modernization data
   migrations.
 - PostgreSQL raw date values now decode as `Date`; CobbleBot has no schema-level
   `date` columns or raw date-query consumers, and focused PostgreSQL coverage
   verifies the adapter behavior.
-- `config.yjit` is enabled. Rails only activates YJIT on Ruby builds that expose
-  it. The locally validated Ruby 3.3.12 build does not, so this needs no
-  compatibility override; deployment builds may enable it when available.
+- Rails 8.1 disables `config.yjit` in development and test, where code reloading
+  and method replacement make it less useful, and enables it in production.
+  The locally validated Ruby 3.3.12 build does not expose an enabled YJIT, so
+  the production setting is inert there; other deployment builds may enable it.
 - The other Rails 7.2 defaults belong to Active Job and Active Storage. CobbleBot
   loads neither railtie, so those configuration surfaces remain absent.
+- Rails 8.0 requires Ruby 3.2 or newer; the supported Ruby 3.3.12 runtime is
+  already inside that boundary. The Rails framework family moves together to
+  8.0.5.1, Active Support adds the maintained `uri` gem, and Rails no longer
+  carries its former `cgi` edge.
+- CobbleBot uses none of Rails 8.0's removed enum, connection-pool, schema-cache,
+  transaction-return, or deprecated Active Support APIs. Sprockets, Resque, and
+  the selective-railtie boundary remain explicit; this bridge does not adopt
+  Propshaft, Solid Queue, Solid Cache, or unused framework railties.
+- Rails 8 defaults preserve the represented time zone through
+  `config.active_support.to_time_preserves_timezone = :zone`. CobbleBot has no
+  application calls to `#to_time`, so no data or display behavior changes.
+- Rails 8 defaults enable strict HTTP freshness. The server-icon endpoint is the
+  only Rails conditional-GET surface; when both validators are supplied, a
+  matching `If-None-Match` now correctly takes precedence over a stale
+  `If-Modified-Since` and returns HTTP 304. Its content ETag and two-hour public
+  cache policy remain unchanged.
+- Rails 8 defaults set `Regexp.timeout` to one second. Seeded and persisted
+  callback patterns remain valid and the callback suite stays green; the worker
+  handling boundary already catches `Regexp::TimeoutError` as a standard runtime
+  failure instead of allowing a pathological pattern to hang indefinitely.
+- Rails 8.1 removes the deprecated statistics constant. Task tests load the
+  complete application registry once; a clean `bundle exec rake -P` subprocess
+  continues to prove that the operator registry includes Resque and excludes
+  the retired Resque Pool hook.
+- Minitest 6.0.6 is the supported test runner. Its removed compatibility APIs
+  were absent from CobbleBot's tests. Minitest 6 extracted `minitest/mock` into
+  the official `minitest-mock` gem, which is pinned to 5.27.0 in the test group;
+  the production bundle continues to include only Minitest itself through
+  Active Support.
+- Rails 8.1 retains the Ruby 3.2 minimum and moves the complete framework family
+  to 8.1.3.1. Action Text adds its required `action_text-trix` edge, while
+  Active Support drops its direct `benchmark` edge and declares the already
+  selected `json` dependency. Unrelated packages remain fixed.
+- CobbleBot uses none of Rails 8.1's removed query-parser, SQLite `retries`,
+  Active Job, Active Support, or legacy console/statistics APIs. Rails 8.1
+  removes `STATS_DIRECTORIES`, so the task-test loader no longer needs the Rails
+  8.0 constant-normalization workaround.
+- Rails 8.1 replaces the deprecated open-redirect boolean with
+  `config.action_controller.action_on_open_redirect = :raise`; the application
+  preserves the same cross-host protection and keeps its two intentional
+  `allow_other_host` redirects. Rails now always preserves a Time receiver's
+  zone, so behavior coverage replaces inspection of the deprecated
+  `to_time_preserves_timezone` configuration.
+- Rails 8.1 defaults are active without compatibility overrides. JSON documents
+  no longer escape HTML characters or modern JavaScript line separators by
+  default; CobbleBot serves them as `application/json`, and Haml continues to
+  escape JSON placed in HTML attributes. Path-relative redirects now raise, and
+  every application redirect uses a URL helper or an explicit absolute URL.
+- Order-dependent finders now require an orderable model; every application
+  table has a primary key. Action View's Ruby render tracker compiles all 63
+  Haml templates, and generated hidden fields safely omit the obsolete
+  `autocomplete="off"` attribute.
 
 Deployment note
 ---------------
@@ -78,13 +131,17 @@ Validation
 - Production asset compilation.
 - Disposable-SQLite controller, model, worker, service, task, migration, and
   configuration tests.
-- Full PostgreSQL coverage gate on Ruby 3.3.12: 414 tests, 3208 assertions, no
-  failures or errors, six intentional skips, and 77.31% line coverage.
-- Full disposable-SQLite coverage gate on Ruby 3.3.12: 414 tests, 3207
-  assertions, no failures or errors, six intentional skips, and 77.31% line
-  coverage.
-- All 21 headless-Chrome acceptance tests pass.
-- Namespaced real-Redis integration: 2 tests and 23 assertions.
+- Full PostgreSQL coverage gate on Ruby 3.3.12, Rails 8.1.3.1, and Minitest
+  6.0.6: 432 tests, 3370 assertions, no failures or errors, six intentional
+  skips, and 78.02% line coverage.
+- Full disposable-SQLite coverage gate: 432 tests, 3369 assertions, no failures
+  or errors, six intentional skips, and 78.05% line coverage.
+- All 21 headless-Chrome acceptance tests pass with 136 assertions.
+- Namespaced real-Redis integration: 2 tests and 25 assertions.
+- With development/test groups excluded, a production SQLite schema and seeds
+  load, the admin login returns HTTP 200, `minitest` 6.0.6 remains available to
+  Active Support, `minitest-mock` is excluded, the production YJIT default is
+  selected, and Sprockets assets precompile.
 
 Production verification
 -----------------------
@@ -92,3 +149,10 @@ Commit `12b7d48074069cdd5b815fa95049aaaa5093bef2` is verified on Bolger:
 schema `20260805000000`, all five services active with zero restarts, HTTP 200,
 continuous unflushed Redis, and working in-game version and slap commands. The
 previous application release remains available for rollback.
+
+Rails 8.0.5.1, its defaults, Minitest 6, Rails 8.1.3.1, and the Rails 8.1
+defaults remain separate deployment slices after the Haml release. For each
+runtime-affecting slice, verify all five managed services, representative
+public/admin pages, expected Resque Web HTTP 401, Redis continuity,
+scheduler/worker starts, and graceful Puma shutdown while retaining the
+preceding release for immediate rollback.

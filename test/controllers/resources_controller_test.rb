@@ -33,6 +33,18 @@ class ResourcesControllerTest < ActionController::TestCase
     assert_empty response.body
   end
 
+  def test_matching_etag_takes_precedence_over_stale_modified_since
+    request_icon('first icon')
+    etag = response.headers['ETag']
+
+    @request.headers['If-None-Match'] = etag
+    @request.headers['If-Modified-Since'] = Time.at(0).httpdate
+    request_icon('first icon')
+
+    assert_response :not_modified
+    assert_empty response.body
+  end
+
   def test_changed_server_icon_invalidates_the_old_etag
     request_icon('first icon')
     old_etag = response.headers['ETag']

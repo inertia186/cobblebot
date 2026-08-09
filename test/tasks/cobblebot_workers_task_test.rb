@@ -4,7 +4,7 @@ require 'minitest/mock'
 
 class CobblebotWorkersTaskTest < ActiveSupport::TestCase
   def setup
-    Rails.application.load_tasks unless Rake::Task.task_defined?('cobblebot:workers:bootstrap')
+    ApplicationTaskTestSupport.load
     task.reenable
   end
 

@@ -1,19 +1,48 @@
 require 'test_helper'
 
 class TestRuntimeNoiseTest < Minitest::Test
-  def test_rails_7_2_defaults_are_loaded
+  def test_minitest_6_and_extracted_mock_runtime_are_loaded
+    assert_equal '6.0.6', Minitest::VERSION
+    assert defined?(Minitest::Mock)
+  end
+
+  def test_rails_8_1_framework_and_defaults_are_loaded
     assert_equal '3.3.12', RUBY_VERSION
-    assert_equal '7.2.3.2', Rails.version
-    assert_equal 7.2, Rails.application.config.loaded_config_version
-    assert Rails.application.config.action_controller.raise_on_open_redirects
+    assert_equal '8.1.3.1', Rails.version
+    assert_equal 8.1, Rails.application.config.loaded_config_version
+    zoned_time = Time.new(2026, 1, 1, 12, 0, 0, '+05:30')
+    assert_equal zoned_time.utc_offset, zoned_time.to_time.utc_offset
+    assert Rails.application.config.action_dispatch.strict_freshness
+    assert_equal 1, Regexp.timeout
+    assert_equal :raise, Rails.application.config.action_controller.action_on_open_redirect
+    assert_equal :raise, Rails.application.config.action_controller.action_on_path_relative_redirect
+    refute Rails.application.config.action_controller.escape_json_responses
+    refute Rails.application.config.active_support.escape_js_separators_in_json
+    assert Rails.application.config.active_record.raise_on_missing_required_finder_order_columns
+    assert_equal :ruby, Rails.application.config.action_view.render_tracker
+    assert Rails.application.config.action_view.remove_hidden_field_autocomplete
     assert_equal :json, Rails.application.config.action_dispatch.cookies_serializer
     assert_equal :none, Rails.application.config.action_dispatch.show_exceptions
+  end
+
+  def test_rails_8_1_json_and_hidden_field_behavior
+    json = ActionController::Base.renderer.render(json: { value: "<\u2028" })
+    assert_equal "{\"value\":\"<\u2028\"}", json
+
+    hidden = ActionController::Base.helpers.hidden_field_tag(:filter, 'all')
+    refute_includes hidden, 'autocomplete='
+  end
+
+  def test_rails_8_1_finder_order_requirement_has_application_primary_keys
+    application_tables = ActiveRecord::Base.connection.tables - %w(ar_internal_metadata schema_migrations)
+    assert application_tables.all? { |table| ActiveRecord::Base.connection.primary_key(table).present? },
+      'all application tables need a primary key for order-dependent finders'
   end
 
   def test_rails_7_2_runtime_defaults_are_active
     config = Rails.application.config
 
-    assert config.yjit
+    refute config.yjit
     assert config.active_record.postgresql_adapter_decode_dates
     assert config.active_record.validate_migration_timestamps
     refute config.respond_to?(:active_job)
