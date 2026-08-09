@@ -6,12 +6,12 @@ Purpose
 Record the conclusions from the preservation and modernization experiments. This
 is evidence for choosing the next migration step, not a final project roadmap.
 
-Current baseline (2026-08-06)
+Current baseline (2026-08-08)
 -----------------------------
 - Branch: `develop`.
-- Ruby `3.3.12`, Bundler `2.6.6`, and Rails `7.2.3.2` resolve and boot with Rails
-  7.2 configuration defaults.
-- Rails 7/Ruby 3 is the only supported lane. Rails 4/Ruby 2.6 remains in git
+- Ruby `3.3.12`, Bundler `2.6.6`, and Rails `8.1.3.1` resolve and boot with Rails
+  8.1 configuration defaults active.
+- Modern Rails/Ruby 3 is the only supported lane. Rails 4/Ruby 2.6 remains in git
   history but is not maintained, tested, or kept reproducible.
 - `bundle check` passes.
 - The Rails environment boots when the configured local Redis is available.
@@ -537,6 +537,78 @@ and 78.02% line coverage. Deploy this production rendering dependency alone,
 retain `5f0c120` for rollback, and verify representative public/admin pages plus
 a locally highlighted callback.
 
+The Rails 8.0 compatibility bridge is complete locally. The Rails framework
+family moves from 7.2.3.2 to 8.0.5.1 on the supported Ruby 3.3.12 runtime;
+Active Support adds `uri` 1.1.1 and the former Rails `cgi` edge leaves the lock.
+CobbleBot uses none of Rails 8.0's removed application APIs. The application
+retains `config.load_defaults 7.2`, Sprockets, Resque, and its selective railties
+while explicitly adopting zone-preserving `Time#to_time` behavior to keep the
+strict deprecation gate clean. Rails 8 defaults, Minitest 6, and Rails 8.1 remain
+separate slices. The complete PostgreSQL gate passes 428 tests and 3349
+assertions with six intentional skips at 78.05%; the disposable-SQLite gate
+passes 428 tests and 3348 assertions at 78.02%. Zeitwerk, all 21 browser tests,
+Redis-independent boot, the two-test real-Redis boundary, production schema and
+seeds, an admin HTTP 200 render, and production assets are green. Deploy this
+framework slice separately after Haml 7 validation and retain `01ce750` for
+immediate rollback.
+
+The Rails 8.0 defaults slice is complete locally without compatibility
+overrides. `Regexp.timeout` is one second, zone-aware `to_time` behavior is
+active, and strict HTTP freshness gives a matching server-icon ETag precedence
+over a stale modification date as required by RFC 7232. CobbleBot has no direct
+`to_time` calls, all callback patterns and handling tests pass under the timeout,
+and the server-icon ETag, content invalidation, and public cache policy remain
+green. The complete PostgreSQL gate passes 429 tests and 3354 assertions with
+six intentional skips at 78.05%; the disposable-SQLite gate passes 429 tests
+and 3353 assertions at 78.02%. Zeitwerk, all 21 browser tests, Redis-independent
+boot, the two-test real-Redis boundary, production schema and seeds, an admin
+HTTP 200 render, and production assets remain green. Deploy defaults separately
+after the Rails 8 framework bridge and retain that bridge release for rollback.
+
+The Minitest 6 compatibility slice is complete locally. The test runner moves
+from 5.27.0 to 6.0.6, and the seven mock-using test surfaces continue through
+the official test-only `minitest-mock` 5.27.0 extraction. CobbleBot uses none of
+Minitest 6's removed compatibility namespace, assertion, expectation, or runner
+APIs. A focused mock-heavy gate passes 75 tests and 329 assertions. The complete
+PostgreSQL gate passes 430 tests and 3360 assertions with six intentional skips
+at 78.05%; the disposable-SQLite gate passes 430 tests and 3359 assertions at
+78.05%. All 21 browser tests, the two-test real-Redis boundary, production schema
+and seeds, and an admin HTTP 200 render are green. With development and test
+groups excluded, Minitest remains available only as Active Support's runtime
+edge and `minitest-mock` is absent. Keep Rails 8.1 and Ruby 3.4 separate.
+
+The Rails 8.1 compatibility bridge is complete locally while retaining
+`config.load_defaults 8.0`. The framework family moves from 8.0.5.1 to the
+security-patched 8.1.3.1 release on Ruby 3.3.12. Action Text adds its required
+`action_text-trix` edge; Active Support drops its direct `benchmark` edge and
+declares the already selected `json` package. CobbleBot uses none of Rails
+8.1's removed APIs. Open-redirect protection now uses
+`action_on_open_redirect = :raise`, zone preservation is verified as behavior
+instead of through the deprecated configuration reader, and removal of Rails'
+statistics constant lets the task-test loader shed its Rails 8.0 normalization.
+The complete PostgreSQL gate passes 430 tests and 3360 assertions with six
+intentional skips at 78.02%; the disposable-SQLite gate passes 430 tests and
+3359 assertions at 77.97%. Zeitwerk, the complete task registry, all 21 browser
+tests, the two-test real-Redis boundary, production schema and seeds, an admin
+HTTP 200 render, and production assets are green. Keep Rails 8.1 defaults and
+Ruby 3.4 as separate follow-on slices.
+
+The Rails 8.1 defaults slice is complete locally without compatibility
+overrides. Development and test disable YJIT while production selects it; the
+current Ruby build leaves YJIT inactive. JSON responses emit literal HTML and
+modern JavaScript separator characters as an `application/json` document, while
+Haml still escapes JSON embedded in attributes. Path-relative redirects raise,
+and CobbleBot has no such redirect target. Every application table has a primary
+key for strict order-dependent finders. The Ruby render tracker compiles all 63
+Haml templates, and generated hidden fields omit obsolete autocomplete markup.
+The focused defaults, controller, and template gate passes 48 tests and 293
+assertions. The complete PostgreSQL gate passes 432 tests and 3370 assertions
+with six intentional skips at 78.02%; the disposable-SQLite gate passes 432
+tests and 3369 assertions at 78.05%. All 21 browser tests, the two-test real-Redis
+boundary, production schema and seeds, an admin HTTP 200 render, the production
+YJIT selection, and production assets are green. Keep Ruby 3.4 as a separate
+runtime slice.
+
 Likely follow-on order
 ----------------------
 1. Deploy Dentaku 4.0.2 as a package-only slice and verify the live Calc
@@ -550,11 +622,17 @@ Likely follow-on order
    and Angular-backed admin search while retaining the Rack/Sinatra release.
 5. Deploy Haml 7.3.0 separately and verify representative public and admin Haml
    pages plus local callback highlighting while retaining `5f0c120` for rollback.
-6. Evaluate Ruby 3.4 or the next Rails compatibility bridge only if continued
-   maintenance calls for it; keep runtime, framework, and defaults separate.
-7. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
+6. Deploy Rails 8.0.5.1 separately after the Haml 7 release is verified; retain
+   `01ce750` for rollback and verify services, HTTP, Resque Web, and Redis.
+7. Deploy the Rails 8.0 defaults and Minitest 6 changes as distinct slices,
+   retaining the preceding release for each rollback boundary.
+8. Deploy Rails 8.1.3.1 and its 8.1 defaults as separate slices, retaining the
+   preceding release at each rollback boundary.
+9. Upgrade Ruby 3.3 to 3.4 as its own runtime slice after the framework/defaults
+   lane is complete.
+10. Keep the working `minecraft-query` boundary and its Ruby 3 compatibility
    test unchanged unless production evidence calls for a replacement.
-8. Add Sting chat as a separate integration when its protocol, authentication,
+11. Add Sting chat as a separate integration when its protocol, authentication,
    and worker ownership are defined; keep Summer 1.0.1 available in the meantime.
 
 Project boundary

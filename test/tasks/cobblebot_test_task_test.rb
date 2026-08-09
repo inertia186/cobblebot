@@ -4,7 +4,7 @@ require 'minitest/mock'
 
 class CobblebotTestTaskTest < ActiveSupport::TestCase
   def setup
-    Rails.application.load_tasks unless Rake::Task.task_defined?('cobblebot:test:coverage')
+    ApplicationTaskTestSupport.load
     coverage_task.reenable
     @original_gate = ENV['COBBLEBOT_COVERAGE_GATE']
   end

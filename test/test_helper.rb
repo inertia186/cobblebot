@@ -48,6 +48,21 @@ Capybara::Screenshot.prune_strategy = { keep: 20 }
 
 Rails.application.load_seed
 
+module ApplicationTaskTestSupport
+  LOAD_MUTEX = Mutex.new
+
+  def self.load
+    LOAD_MUTEX.synchronize do
+      return if @loaded
+
+      # The Rails test command may reset its in-process task registry after task
+      # files have already been required, so load the complete registry once.
+      Rails.application.load_tasks
+      @loaded = true
+    end
+  end
+end
+
 module TestTools
   def skip_until_pass(options = {}, &block)
     when_passes = options[:when_passes] || "This test is now passing, please revise."
