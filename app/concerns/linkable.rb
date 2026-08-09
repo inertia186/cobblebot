@@ -53,7 +53,7 @@ module Linkable
       as = "[#{options[:as]}] " if !!options[:as]
     
       execute_tellraw(selector, {
-        text: as,
+        text: as.to_s,
         extra: [{
           text: title, color: 'dark_purple', underlined: true,
           hoverEvent: {
