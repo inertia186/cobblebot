@@ -118,6 +118,7 @@ class ServerCommandTest < ActiveSupport::TestCase
 
     commands = ServerCommand.commands_executed
     payload = JSON.parse(commands.keys.last.match(/\Atellraw @a (.+)\z/m)[1])
+    assert_equal '', payload.fetch('text')
     assert_equal 'github.com :: inertia186/cobblebot - GitHub',
       payload.fetch('extra').first.fetch('text')
   end

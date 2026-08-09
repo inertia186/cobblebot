@@ -2,7 +2,7 @@ require 'test_helper'
 
 class TestRuntimeNoiseTest < Minitest::Test
   def test_application_version
-    assert_equal '1.58.0', COBBLEBOT_VERSION
+    assert_equal '1.58.1', COBBLEBOT_VERSION
   end
 
   def test_minitest_6_and_extracted_mock_runtime_are_loaded
