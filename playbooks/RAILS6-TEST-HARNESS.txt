@@ -219,9 +219,9 @@ A focused model or controller run must not launch Chrome, invoke Selenium
 Manager, download a driver, or create/touch `log/test_phantomjs.log`. Browser
 startup is reserved for an explicit `test/acceptance` run.
 
-Deferred work
--------------
-- Replace remaining historical Rails deprecations independently of this harness
-  restoration.
-- Validate Redis/Resque workers and live Minecraft integration on the modern
-  lane without making ordinary Rails tests depend on either service.
+Follow-on result
+----------------
+Later framework slices removed application-owned deprecations and made them
+test failures. Worker-runtime coverage added isolated real-Redis integration and
+live log-to-command production validation without making ordinary Rails boot or
+focused tests depend on Redis or Minecraft.
