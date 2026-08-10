@@ -240,7 +240,7 @@ class ServerCommandTest < ActiveSupport::TestCase
         ServerCommand.play_sound('Steve', 'mailsound')
       end
     end
-    assert_match(/\Aexecute Steve /, command)
+    assert_equal 'execute as Steve at @s run playsound mailsound master @p ~ ~ ~', command
 
     command = nil
     online.define_singleton_method(:play_sounds) { |*| [steve] }
@@ -250,6 +250,21 @@ class ServerCommandTest < ActiveSupport::TestCase
       end
     end
     assert_nil command
+  end
+
+  def test_sound_selector_uses_modern_execute_syntax
+    online = Object.new
+    online.define_singleton_method(:none?) { false }
+    online.define_singleton_method(:play_sounds) { |*| [] }
+    command = nil
+
+    Server.stub(:players, online) do
+      ServerCommand.stub(:execute, ->(value, *) { command = value }) do
+        ServerCommand.play_sound('@a', 'sound_check_a')
+      end
+    end
+
+    assert_equal 'execute as @a at @s run playsound sound_check_a master @p ~ ~ ~', command
   end
 
   def test_detect_trouble_entities_queries_each_entity_type_once
