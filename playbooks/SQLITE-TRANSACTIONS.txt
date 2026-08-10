@@ -68,6 +68,8 @@ Under Ruby `3.3.12`, Rails `7.2.3.2`, sqlite3 `2.9.5`, and native SQLite
 
 Deferred work
 -------------
-- Full PostgreSQL validation when the configured service is available.
-- Full PostgreSQL validation now that the Rails 6 test harness is restored.
 - Any redesign for high-concurrency or threaded SQLite writes.
+
+Later modernization slices completed the full PostgreSQL suite; it is now part
+of the default CI gate. PostgreSQL remains the recommended concurrent deployment
+database.

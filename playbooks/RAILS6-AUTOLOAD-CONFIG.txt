@@ -80,7 +80,7 @@ Validation performed
 
 The broader legacy suite was not a gate for this slice. The later Rails 6 test
 harness pass retired PhantomJS and restored controller and acceptance coverage;
-PostgreSQL validation remains deferred until a disposable service is available.
+later modernization slices completed the full PostgreSQL and Redis/Resque gates.
 
 Useful commands
 ---------------
@@ -103,7 +103,8 @@ Non-goals
 - Do not broadly redesign SQLite concurrency beyond the supported immediate-mode
   replacement completed in its focused follow-up slice.
 
-Follow-on candidates
---------------------
-1. Validate Redis/Resque worker behavior under Rails 6.
-2. Run the complete suite against disposable PostgreSQL.
+Follow-on result
+----------------
+Redis/Resque worker behavior and the complete disposable-PostgreSQL suite were
+validated by the worker-runtime and framework-defaults slices. They are now part
+of the default CI gate rather than deferred Rails 6 work.

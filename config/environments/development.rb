@@ -36,5 +36,4 @@ Rails.application.configure do
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
 
-  # TEMP Ruby 3 / Rails 5.2 spike cut: web-console removed from the development stack.
 end
