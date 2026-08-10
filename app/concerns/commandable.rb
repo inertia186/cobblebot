@@ -64,7 +64,7 @@ module Commandable
     end
   
     def execute(command, options = {try_max: try_max})
-      command = command.to_s.strip
+      command = normalize_command(command)
 
       _try_max = if options[:try_max].present?
         options[:try_max].to_i
@@ -98,6 +98,16 @@ module Commandable
       end
       
       return nil
+    end
+
+    def normalize_command(command)
+      command.to_s.strip.sub(
+        /\Agive\s+(\S+)\s+(?:minecraft:)?filled_map\s+1\s+(\d+)\z/i
+      ) do
+        target = Regexp.last_match(1)
+        map_id = Regexp.last_match(2)
+        "give #{target} minecraft:filled_map[minecraft:map_id=#{map_id}] 1"
+      end
     end
     
     def kick(nick, reason = "Have A Nice Day")

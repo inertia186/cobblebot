@@ -31,6 +31,30 @@ class ServerCommandTest < ActiveSupport::TestCase
     assert_equal ['tellraw @a {"text":"test"}'], commands
   end
 
+  def test_execute_modernizes_legacy_filled_map_data_values
+    commands = []
+    rcon = Object.new
+    rcon.define_singleton_method(:command) { |command| commands << command; '' }
+
+    ServerCommand.stub(:command_scheme, 'rcon') do
+      ServerCommand.stub(:rcon, rcon) do
+        ServerCommand.execute('give Steve minecraft:filled_map 1 1143', try_max: 1)
+        ServerCommand.execute('give @a filled_map 1 1128', try_max: 1)
+      end
+    end
+
+    assert_equal [
+      'give Steve minecraft:filled_map[minecraft:map_id=1143] 1',
+      'give @a minecraft:filled_map[minecraft:map_id=1128] 1'
+    ], commands
+  end
+
+  def test_execute_preserves_modern_filled_map_commands
+    command = 'give Steve minecraft:filled_map[minecraft:map_id=1143] 1'
+
+    assert_equal command, ServerCommand.normalize_command(command)
+  end
+
   def test_execute_resolves_rcon_once_per_attempt
     calls = 0
     commands = []
