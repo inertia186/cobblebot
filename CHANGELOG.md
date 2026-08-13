@@ -5,6 +5,17 @@ All notable changes to CobbleBot are documented in this file.
 The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.58.2] - 2026-08-12
+
+### Fixed
+
+- Preloaded callback STI subclasses in the Minecraft log worker so player
+  authentication and other specialized server callbacks run in production.
+- Recovered player names through the RCON list command when the Minecraft
+  status response omits or truncates its optional player sample.
+- Added a bounded, idempotent current-day authentication backfill for repairing
+  login timestamps missed before this release.
+
 ## [1.58.1] - 2026-08-09
 
 ### Added

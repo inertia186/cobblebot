@@ -82,11 +82,20 @@ class Server
       end
     else
       nicks = begin
-        ServerQuery.full_query[:players]
+        query = ServerQuery.full_query
+        sampled_nicks = Array(query[:players])
+
+        if query[:numplayers].to_i > sampled_nicks.size
+          result = ServerCommand.execute 'list'
+          n = result.split(':', 2)[1] if !!result
+          n.split(',').map(&:strip) if !!n
+        else
+          sampled_nicks
+        end
       rescue
         result = ServerCommand.execute 'list'
-        n = result.split(':')[1] if !!result
-        n.split(', ') if !!n
+        n = result.split(':', 2)[1] if !!result
+        n.split(',').map(&:strip) if !!n
       end
     end
 

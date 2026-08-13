@@ -14,6 +14,10 @@ class MinecraftServerLogMonitor
   def self.perform(options = {})
     Rails.logger.info "Started #{self}"
 
+    # Rake tasks do not honor production eager loading. Load every callback STI
+    # type before ServerEntry builds its descendant-aware query.
+    ServerCallback.preload_sti_types!
+
     server_log = options["server_log"] || "#{ServerProperties.path_to_server}/logs/latest.log"
     log_length = options["log_length"] || DEFAULT_LOG_LENGTH
     monitor_tick = options["monitor_tick"] || DEFAULT_MONITOR_TICK

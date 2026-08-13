@@ -46,6 +46,26 @@ class ServerTest < ActiveSupport::TestCase
     assert Server.whitelist, "expect whitelist json"
   end
 
+  def test_player_nicks_use_status_sample_when_complete
+    Server.stub(:up?, true) do
+      ServerQuery.stub(:full_query, {numplayers: '1', players: ['Dinnerbone']}) do
+        ServerCommand.stub(:execute, ->(*) { flunk 'did not expect RCON list fallback' }) do
+          assert_equal ['Dinnerbone'], Server.player_nicks
+        end
+      end
+    end
+  end
+
+  def test_player_nicks_fall_back_to_rcon_when_status_sample_is_missing
+    Server.stub(:up?, true) do
+      ServerQuery.stub(:full_query, {numplayers: '1'}) do
+        ServerCommand.stub(:execute, 'There are 1 of a max of 20 players online: inertia186') do
+          assert_equal ['inertia186'], Server.player_nicks
+        end
+      end
+    end
+  end
+
   def test_minecraft_mp_server_requests_use_https
     Preference.mmp_api_key = 'FAKE_API_KEY'
     votes_request = stub_request(
