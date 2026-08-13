@@ -31,15 +31,16 @@ class ServerCommand
     end
   end
 
-  def self.player_authenticated(nick, uuid)
+  def self.player_authenticated(nick, uuid, at: Time.current)
     return if nick.to_s.empty? || uuid.to_s.empty?
 
     player = Player.find_by_uuid(uuid)
 
     if player.nil?
-      player = Player.create(uuid: uuid, nick: nick, last_login_at: Time.now)
+      player = Player.create(uuid: uuid, nick: nick, last_login_at: at)
     else
-      player.update(nick: nick, last_login_at: Time.now)
+      last_login_at = [player.last_login_at, at].compact.max
+      player.update(nick: nick, last_login_at: last_login_at)
     end
 
     player
