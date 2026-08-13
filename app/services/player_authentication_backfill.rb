@@ -2,15 +2,17 @@ require 'pathname'
 
 class PlayerAuthenticationBackfill
   MAX_LOG_BYTES = 64 * 1024 * 1024
+  DEFAULT_TIME_ZONE = 'America/Los_Angeles'
   Result = Struct.new(:events, :created, :updated, keyword_init: true)
 
-  def self.call(log_path:, date: Time.zone.today)
-    new(log_path: log_path, date: date).call
+  def self.call(log_path:, date:, time_zone: DEFAULT_TIME_ZONE)
+    new(log_path: log_path, date: date, time_zone: time_zone).call
   end
 
-  def initialize(log_path:, date:)
+  def initialize(log_path:, date:, time_zone:)
     @log_path = Pathname(log_path)
     @date = Date.parse(date.to_s)
+    @time_zone = Time.find_zone!(time_zone)
   end
 
   def call
@@ -53,7 +55,7 @@ private
       next unless match
 
       hour, minute, second = line[1, 8].split(':').map(&:to_i)
-      at = Time.zone.local(@date.year, @date.month, @date.day, hour, minute, second)
+      at = @time_zone.local(@date.year, @date.month, @date.day, hour, minute, second)
       events[match[2]] = {nick: match[1], uuid: match[2], at: at}
     end
 
