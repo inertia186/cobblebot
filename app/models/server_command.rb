@@ -18,7 +18,7 @@ class ServerCommand
   def self.eval_pattern(pattern, name = nil, options = {})
     begin
       eval(pattern, Proc.new {}.binding, name)
-    rescue => e
+    rescue StandardError, ScriptError => e
       raise CobbleBotError.new(message: "pattern: #{pattern}, name: #{name}, options: #{options}", cause: e)
     end
   end
@@ -26,7 +26,7 @@ class ServerCommand
   def self.eval_command(command, name = nil, options = {})
     begin
       eval(command, Proc.new{}.binding, name)
-    rescue => e
+    rescue StandardError, ScriptError => e
       raise CobbleBotError.new(message: "command: #{command}, name: #{name}, options: #{options}", cause: e)
     end
   end

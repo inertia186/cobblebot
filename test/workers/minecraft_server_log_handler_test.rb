@@ -79,6 +79,14 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_equal 2, player_check.other_responding_callbacks('[15:17:25] [Server thread/INFO]: <inertia186> @server version').count
   end
 
+  def test_load_error_in_callback_does_not_stop_later_callbacks
+    assert_script_error_isolated('raise LoadError, "cannot load such file -- retired/feature"')
+  end
+
+  def test_syntax_error_in_callback_does_not_stop_later_callbacks
+    assert_script_error_isolated('if')
+  end
+
   def test_check_version
     ServerCommand.reset_commands_executed
 
@@ -984,6 +992,30 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
   end
 
   private
+
+  def assert_script_error_isolated(broken_command)
+    pattern = '/script error isolation/'
+    broken = ServerCallback::ServerEntry.create!(
+      name: 'Broken Script Error Isolation',
+      pattern: pattern,
+      command: 'true'
+    )
+    broken.update_column(:command, broken_command)
+    following = ServerCallback::ServerEntry.create!(
+      name: 'Following Script Error Isolation',
+      pattern: pattern,
+      command: 'true'
+    )
+
+    assert ServerCallback::ServerEntry.handle(
+      '[12:00:00] [Server thread/INFO]: script error isolation',
+      debug: true
+    )
+    assert broken.reload.error_flag?
+    assert broken.ran?
+    refute following.reload.error_flag?
+    assert following.ran?
+  end
 
   def assert_ignored_log(log_entry)
     assert MinecraftServerLogHandler.ignore?(log_entry, debug: true),

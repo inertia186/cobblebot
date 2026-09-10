@@ -8,6 +8,16 @@ class ServerCommandTest < ActiveSupport::TestCase
     ServerProperties.reset_vars
   end
 
+  def test_eval_pattern_wraps_script_errors
+    assert_raises(CobbleBotError) { ServerCommand.eval_pattern('raise LoadError, "missing"') }
+    assert_raises(CobbleBotError) { ServerCommand.eval_pattern('if') }
+  end
+
+  def test_eval_command_wraps_script_errors
+    assert_raises(CobbleBotError) { ServerCommand.eval_command('raise LoadError, "missing"') }
+    assert_raises(CobbleBotError) { ServerCommand.eval_command('if') }
+  end
+
   def test_say
     assert_command_executed do
       ServerCommand.say('@a', 'This is Server.')

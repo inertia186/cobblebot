@@ -5,6 +5,14 @@ All notable changes to CobbleBot are documented in this file.
 The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.58.3] - 2026-09-10
+
+### Fixed
+
+- Contained `ScriptError` failures raised by database-backed callback patterns
+  and commands so one stale callback cannot terminate the Minecraft log worker
+  before later log lines are processed.
+
 ## [1.58.2] - 2026-08-12
 
 ### Fixed
