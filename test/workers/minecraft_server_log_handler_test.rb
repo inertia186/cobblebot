@@ -87,6 +87,28 @@ class MinecraftServerLogHandlerTest < ActiveSupport::TestCase
     assert_script_error_isolated('if')
   end
 
+  def test_malformed_pattern_does_not_stop_later_callbacks
+    broken = ServerCallback::ServerEntry.create!(
+      name: 'Broken Pattern Isolation', pattern: '/pattern isolation/', command: 'true'
+    )
+    following = ServerCallback::ServerEntry.create!(
+      name: 'Following Pattern Isolation', pattern: '/pattern isolation/', command: 'true'
+    )
+    ['if', 'raise LoadError, "missing"'].each do |pattern|
+      broken.update_column(:pattern, pattern)
+      following.update_column(:ran_at, nil)
+      assert ServerCallback::ServerEntry.handle(
+        '[12:00:00] [Server thread/INFO]: pattern isolation', debug: true
+      )
+      assert broken.reload.error_flag?
+      assert following.reload.ran?
+      refute following.error_flag?
+      assert_includes ServerCallback.responding_callbacks(
+        '[12:00:00] [Server thread/INFO]: pattern isolation'
+      ), following
+    end
+  end
+
   def test_check_version
     ServerCommand.reset_commands_executed
 

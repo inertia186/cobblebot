@@ -37,10 +37,10 @@ class ServerCommand
     player = Player.find_by_uuid(uuid)
 
     if player.nil?
-      player = Player.create(uuid: uuid, nick: nick, last_login_at: at)
+      player = Player.create!(uuid: uuid, nick: nick, last_login_at: at)
     else
       last_login_at = [player.last_login_at, at].compact.max
-      player.update(nick: nick, last_login_at: last_login_at)
+      player.update!(nick: nick, last_login_at: last_login_at)
     end
 
     player

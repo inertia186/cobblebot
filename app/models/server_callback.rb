@@ -78,7 +78,7 @@ class ServerCallback < ActiveRecord::Base
     result = []
 
     find_each do |c|
-      result << c if c.class.for_handling(message) && message =~ ServerCommand.eval_pattern(c.pattern, c.to_param)
+      result << c if c.class.for_handling(message) && c.matches_message?(message)
     end
 
     where(id: result)
@@ -169,8 +169,16 @@ class ServerCallback < ActiveRecord::Base
     end
   end
 
+  def matches_message?(message)
+    message&.match?(ServerCommand.eval_pattern(pattern, to_param))
+  rescue CobbleBotError => e
+    Rails.logger.error(e.local_backtrace)
+    update_column(:error_flag_at, Time.current)
+    false
+  end
+
   def handle_entry(player, message, line, options = {})
-    return unless message&.match?(ServerCommand.eval_pattern(pattern, to_param))
+    return unless matches_message?(message)
 
     executed = false
     ServerCallbackExecutionLock.synchronize(self) do

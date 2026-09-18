@@ -9,6 +9,12 @@ and uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Reject stale, changing, clock-ambiguous, and future-dated authentication
+  backfill logs before writing; roll back the entire backfill if a player save
+  fails validation.
+- Isolate malformed callback patterns during matching and callback discovery
+  so later callbacks on the same line can still run.
+
 - Contained `ScriptError` failures raised by database-backed callback patterns
   and commands so one stale callback cannot terminate the Minecraft log worker
   before later log lines are processed.
