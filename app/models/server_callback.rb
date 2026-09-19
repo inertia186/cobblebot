@@ -7,6 +7,7 @@ class ServerCallback < ActiveRecord::Base
   PLAYER_ENTRY_TYPES = %w(ServerCallback::AnyEntry ServerCallback::PlayerChat
     ServerCallback::PlayerCommand ServerCallback::PlayerEmote
     ServerCallback::AnyPlayerEntry)
+  STI_TYPES = (ALL_TYPES + %w(ServerCallback::NewPlayerAuthenticated)).freeze
 
   REGEX_ANY = %r{^\[\d{2}:\d{2}:\d{2}\] .*$}
   REGEX_PLAYER_CHAT = %r{^\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: <[^<]+> .*$}
@@ -77,7 +78,7 @@ class ServerCallback < ActiveRecord::Base
     result = []
 
     find_each do |c|
-      result << c if c.class.for_handling(message) && message =~ ServerCommand.eval_pattern(c.pattern, c.to_param)
+      result << c if c.class.for_handling(message) && c.matches_message?(message)
     end
 
     where(id: result)
@@ -87,6 +88,10 @@ class ServerCallback < ActiveRecord::Base
       return has_help_docs ? r : where.not(id: r)
     end
   }
+
+  def self.preload_sti_types!
+    STI_TYPES.each(&:constantize)
+  end
 
   def self.for_handling(line)
     raise CobbleBotError.new(message: "Cannot handle undefine callback type for: #{line}")
@@ -164,8 +169,16 @@ class ServerCallback < ActiveRecord::Base
     end
   end
 
+  def matches_message?(message)
+    message&.match?(ServerCommand.eval_pattern(pattern, to_param))
+  rescue CobbleBotError => e
+    Rails.logger.error(e.local_backtrace)
+    update_column(:error_flag_at, Time.current)
+    false
+  end
+
   def handle_entry(player, message, line, options = {})
-    return unless message&.match?(ServerCommand.eval_pattern(pattern, to_param))
+    return unless matches_message?(message)
 
     executed = false
     ServerCallbackExecutionLock.synchronize(self) do

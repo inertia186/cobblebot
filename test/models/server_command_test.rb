@@ -8,6 +8,16 @@ class ServerCommandTest < ActiveSupport::TestCase
     ServerProperties.reset_vars
   end
 
+  def test_eval_pattern_wraps_script_errors
+    assert_raises(CobbleBotError) { ServerCommand.eval_pattern('raise LoadError, "missing"') }
+    assert_raises(CobbleBotError) { ServerCommand.eval_pattern('if') }
+  end
+
+  def test_eval_command_wraps_script_errors
+    assert_raises(CobbleBotError) { ServerCommand.eval_command('raise LoadError, "missing"') }
+    assert_raises(CobbleBotError) { ServerCommand.eval_command('if') }
+  end
+
   def test_say
     assert_command_executed do
       ServerCommand.say('@a', 'This is Server.')
@@ -29,6 +39,30 @@ class ServerCommandTest < ActiveSupport::TestCase
     end
 
     assert_equal ['tellraw @a {"text":"test"}'], commands
+  end
+
+  def test_execute_modernizes_legacy_filled_map_data_values
+    commands = []
+    rcon = Object.new
+    rcon.define_singleton_method(:command) { |command| commands << command; '' }
+
+    ServerCommand.stub(:command_scheme, 'rcon') do
+      ServerCommand.stub(:rcon, rcon) do
+        ServerCommand.execute('give Steve minecraft:filled_map 1 1143', try_max: 1)
+        ServerCommand.execute('give @a filled_map 1 1128', try_max: 1)
+      end
+    end
+
+    assert_equal [
+      'give Steve minecraft:filled_map[minecraft:map_id=1143] 1',
+      'give @a minecraft:filled_map[minecraft:map_id=1128] 1'
+    ], commands
+  end
+
+  def test_execute_preserves_modern_filled_map_commands
+    command = 'give Steve minecraft:filled_map[minecraft:map_id=1143] 1'
+
+    assert_equal command, ServerCommand.normalize_command(command)
   end
 
   def test_execute_resolves_rcon_once_per_attempt
@@ -240,7 +274,7 @@ class ServerCommandTest < ActiveSupport::TestCase
         ServerCommand.play_sound('Steve', 'mailsound')
       end
     end
-    assert_match(/\Aexecute Steve /, command)
+    assert_equal 'execute as Steve at @s run playsound mailsound master @p ~ ~ ~', command
 
     command = nil
     online.define_singleton_method(:play_sounds) { |*| [steve] }
@@ -250,6 +284,21 @@ class ServerCommandTest < ActiveSupport::TestCase
       end
     end
     assert_nil command
+  end
+
+  def test_sound_selector_uses_modern_execute_syntax
+    online = Object.new
+    online.define_singleton_method(:none?) { false }
+    online.define_singleton_method(:play_sounds) { |*| [] }
+    command = nil
+
+    Server.stub(:players, online) do
+      ServerCommand.stub(:execute, ->(value, *) { command = value }) do
+        ServerCommand.play_sound('@a', 'sound_check_a')
+      end
+    end
+
+    assert_equal 'execute as @a at @s run playsound sound_check_a master @p ~ ~ ~', command
   end
 
   def test_detect_trouble_entities_queries_each_entity_type_once

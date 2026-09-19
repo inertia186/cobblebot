@@ -5,6 +5,31 @@ All notable changes to CobbleBot are documented in this file.
 The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.58.3] - 2026-09-10
+
+### Fixed
+
+- Reject stale, changing, clock-ambiguous, and future-dated authentication
+  backfill logs before writing; roll back the entire backfill if a player save
+  fails validation.
+- Isolate malformed callback patterns during matching and callback discovery
+  so later callbacks on the same line can still run.
+
+- Contained `ScriptError` failures raised by database-backed callback patterns
+  and commands so one stale callback cannot terminate the Minecraft log worker
+  before later log lines are processed.
+
+## [1.58.2] - 2026-08-12
+
+### Fixed
+
+- Preloaded callback STI subclasses in the Minecraft log worker so player
+  authentication and other specialized server callbacks run in production.
+- Recovered player names through the RCON list command when the Minecraft
+  status response omits or truncates its optional player sample.
+- Added a bounded, idempotent current-day authentication backfill for repairing
+  login timestamps missed before this release.
+
 ## [1.58.1] - 2026-08-09
 
 ### Added

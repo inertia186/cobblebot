@@ -382,3 +382,15 @@ If you're using CobbleBot, I'd love to hear from you.  Drop me a line and tell m
 ## Licence
 
 I don't believe in intellectual "property".  If you do, consider CobbleBot as licensed under a Creative Commons [![CC0](http://i.creativecommons.org/p/zero/1.0/80x15.png)] (http://creativecommons.org/publicdomain/zero/1.0/) License.
+
+### Authentication backfill log dates
+
+The authentication backfill uses the requested date and time zone to interpret
+Minecraft's time-only log records. Use the original server log with its original
+filesystem timestamps; a copied or retimestamped log cannot establish its date.
+The backfill requires the file's modification date to match the requested date,
+rejects future modification times and entries, and rejects decreasing clocks
+(including midnight rollovers) and ambiguous or nonexistent DST times. It also
+rejects a file that changes during the bounded read. Retry with a stable log;
+do not override its timestamps to bypass these checks. Failed player saves roll
+back all writes in the backfill transaction.
